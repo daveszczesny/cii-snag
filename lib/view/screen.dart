@@ -1,0 +1,125 @@
+import 'package:cii/view/notifications/notification.dart';
+import 'package:cii/view/project/project_create.dart';
+import 'package:cii/view/project/project_list.dart';
+import 'package:cii/view/search/search.dart';
+import 'package:cii/view/snag/snag_create.dart';
+import 'package:cii/view/utils/constants.dart';
+import 'package:flutter/material.dart';
+
+
+/*
+
+This is the main screen of the app.
+It contains a list of all the projects
+and a bottom navigation bar to navigate between the different screens.
+
+*/
+
+class Screen extends StatefulWidget {
+  const Screen({super.key});
+
+  @override
+  State<Screen> createState() => _ScreenState();
+}
+
+class _ScreenState extends State<Screen> {
+
+  int _index = 0;
+
+  static const List<Widget> _widgetOptions = <Widget>[
+    ProjectListView(), // 0
+    Search(), // 1
+    Notifications(), // 2
+    ProjectListView(), // 3
+  ];
+
+  void onItemTapped(int index) {
+    if (index == 3) {
+      // show modal bottm sheet for add project / quick add option
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        builder: (BuildContext context) {
+          return FractionallySizedBox(heightFactor: 0.3, child: _buildBottomSheetContent());
+        }
+      );
+    } else { setState(() { _index = index; }); }
+  }
+
+  // Create Project or Snag (QUICK ADD) Bottom sheet
+  Widget _buildBottomSheetContent() {
+    return Container(
+      padding: const EdgeInsets.all(16.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(
+                icon: const ImageIcon(
+                  AssetImage(AppAssets.projectIcon),
+                  size: 100,
+                ),
+                onPressed: () {
+                  // Hide the bottom sheet
+                  Navigator.pop(context);
+
+                  // navigate to create project screen
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (context) => const ProjectCreate())
+                  );
+                },
+              ),
+              const Text(
+                AppStrings.project,
+                style: TextStyle(fontSize: 14, fontFamily: 'Roboto', fontWeight: FontWeight.w300),
+              ),
+            ],
+          ),
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(
+                icon: const ImageIcon(AssetImage(AppAssets.snagIcon), size: 100),
+                onPressed: () {
+                  // Hide the bottom sheet
+                  Navigator.pop(context);
+
+                  // navigate to create snag screen
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (context) => const SnagCreate())
+                  );
+                }
+              ),
+              const Text(
+                AppStrings.snag,
+                style: TextStyle(fontSize: 14, fontFamily: 'Roboto', fontWeight: FontWeight.w300)
+              )
+            ],
+          )
+        ]
+      )
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: _widgetOptions.elementAt(_index),
+      ),
+      bottomNavigationBar: NavigationBar(
+        height: AppSizing.bottomNavBarHeight,
+        selectedIndex: _index,
+        onDestinationSelected: onItemTapped,
+        destinations: [
+          NavigationDestination(icon: Icon(_index == 0 ? Icons.home_filled : Icons.home_outlined,),label: AppStrings.home),
+          NavigationDestination(icon: Icon(_index == 1 ? Icons.search : Icons.search_outlined,),label: AppStrings.search),
+          NavigationDestination(icon: Icon(_index == 2 ? Icons.notifications : Icons.notifications_outlined,),label: AppStrings.notifications),
+          NavigationDestination(icon: Icon(_index == 3 ? Icons.add : Icons.add_outlined), label: AppStrings.add)
+        ],
+      ),
+    );
+  }
+}

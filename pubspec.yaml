@@ -4,7 +4,7 @@ publish_to: 'none'
 version: 0.1.0
 
 environment:
-  sdk: '>=2.17.0 <3.0.0'
+  sdk: '>=3.0.0 <4.0.0'
 
 dependencies:
   flutter:
@@ -30,3 +30,24 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  fonts:
+    - family: Roboto
+      fonts:
+        - asset: lib/assets/fonts/Roboto-Regular.ttf
+          weight: 400
+        - asset: lib/assets/fonts/Roboto-Bold.ttf
+          weight: 700
+        - asset: lib/assets/fonts/Roboto-SemiBold.ttf
+          weight: 600
+        - asset: lib/assets/fonts/Roboto-Light.ttf
+          weight: 300
+  assets:
+    - lib/assets/icons/png/project_icon.png
+    - lib/assets/icons/png/snag_icon.png
+    - lib/assets/icons/png/details_icon.png
+    - lib/assets/icons/png/priority_low_icon.png
+    - lib/assets/icons/png/priority_medium_icon.png
+    - lib/assets/icons/png/priority_high_icon.png
+    - lib/assets/icons/png/priority_low_icon_16.png
+    # - lib/assets/icons/png/priority_medium_icon_16.png
+    - lib/assets/icons/png/priority_high_icon_16.png

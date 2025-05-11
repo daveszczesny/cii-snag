@@ -12,19 +12,32 @@ class ProjectController {
     projectBox.add(project);
   }
 
-  void createProject(
-    String id,
-    String name,
-    String description,
-  ) {
-    final project = Project(
-      id:id,
-      name: name,
-      description: description,
-    );
+  void createProject({
+    required String name,
+    String? description,
+    String? client,
+    String? contractor,
+    String? location,
+    String? projectRef,
+  }) async {
+    try {
+      final project = Project(
+        name: name,
+        description: description,
+        client: client,
+        contractor: contractor,
+        location: location,
+        projectRef: projectRef,
+      );
+      await projectBox.add(project);
+    } catch (e) {
+      rethrow;
+    }
 
-    projectBox.add(project);
+  }
 
+  void deleteAllProjects() {
+    projectBox.clear();
   }
 
   Project getProjectById(String id) {

@@ -17,6 +17,9 @@ class Snag extends HiveObject {
   @HiveField(1)
   final String id;
 
+  @HiveField(14)
+  final String? projectId;
+
   // Name of the snag
   @HiveField(2)
   String name;
@@ -58,7 +61,8 @@ class Snag extends HiveObject {
 
   Snag({
     String? uuid,
-    required this.id,
+    String? id,
+    this.projectId,
     required this.name,
     DateTime? dateCreated,
     Status? status,
@@ -73,7 +77,13 @@ class Snag extends HiveObject {
     this.dateCompleted,
   }):
     uuid = uuid ?? const Uuid().v4(),
+    id = id ?? createHumanReadableId(projectId ?? 'PID'),
     dateCreated = dateCreated ?? DateTime.now(),
     status = status ?? Status.todo,
     priority = priority ?? Priority.low;
+
+
+    static String createHumanReadableId(String projectId) {
+      return '$projectId-${const Uuid().v4().split('-')[0]}';
+    }
 }

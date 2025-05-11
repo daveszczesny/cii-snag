@@ -1,7 +1,7 @@
 
-import 'package:cii/utils/colors/status_colors.dart';
+import 'package:cii/utils/colors/app_colors.dart';
+import 'package:cii/view/utils/constants.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:hive/hive.dart';
 import 'package:uuid/uuid.dart';
 
@@ -28,19 +28,23 @@ class Status extends HiveObject {
 
   // Create Statues
   static final Status todo = Status(
-    name: 'To Do',
+    name: AppStrings.statusTodo,
+    color: AppColors.lightTodo
   );
 
   static final Status inProgress = Status(
-    name: 'In Progress',
+    name: AppStrings.statusInProgress,
+    color: AppColors.lightInProgress
   );
 
   static final Status completed = Status(
-    name: 'Completed',
+    name: AppStrings.statusCompleted,
+    color: AppColors.lightCompleted
   );
 
   static final Status blocked = Status(
-    name: 'On Hold',
+    name: AppStrings.statusBlocked,
+    color: AppColors.lightBlocked
   );
 
   static final List<Status> values = [
@@ -51,28 +55,26 @@ class Status extends HiveObject {
   ];
 
   static Status? getStatus(String name, BuildContext context) {
-    final statusColors = Theme.of(context).extension<StatusColors>();
     switch (name.toLowerCase()) {
       case 'todo':
       case 'to do':
         Status todo = Status.todo;
-        todo.color = statusColors?.todo;
         return todo;
       case 'in progress':
       case 'inprogress':
         Status inProgress = Status.inProgress;
-        inProgress.color = statusColors?.inProgress;
         return inProgress;
       case 'completed':
         Status completed = Status.completed;
-        completed.color = statusColors?.completed;
         return completed;
       case 'blocked':
+      case 'on hold':
+      case 'onhold':
         Status blocked = Status.blocked;
-        blocked.color = statusColors?.blocked;
         return blocked;
       default:
-        return null;
+        Status defaultStatus = Status.todo;
+        return defaultStatus;
 
     }
   }

@@ -1,8 +1,10 @@
 import 'package:cii/controllers/project_controller.dart';
+import 'package:cii/controllers/single_project_controller.dart';
 import 'package:cii/models/project.dart';
-import 'package:cii/view/project/project_list_tab.dart';
+import 'package:cii/view/project/project_card_widget.dart';
+import 'package:cii/view/utils/constants.dart';
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 class ProjectListView extends StatefulWidget {
   const ProjectListView({super.key});
@@ -17,28 +19,33 @@ class _ProjectListViewState extends State<ProjectListView> {
   @override
   void initState() {
     super.initState();
-    _controller = ProjectController(Hive.box<Project>('projects'));
+    final box = Hive.box<Project>('projects');
+    _controller = ProjectController(box);
   }
 
   @override
   Widget build(BuildContext context) {
-    // If there are no projects
-    if(_controller.projectBox.isEmpty) {
-      return Scaffold(
-        appBar: AppBar(
-          title: const Text('My Projects'),
-        ),
-        body: const Center(
-          child: Text('No projects found.')
-        )
-      );
-    } else { // if there are projects
-      return Scaffold(
-        appBar: AppBar(
-          title: const Text('My Projects'),
-        ),
-        body: const ProjectListTabWidget()
-      );
-    }
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text(AppStrings.myProjects)
+      ),
+      body: ValueListenableBuilder(
+        valueListenable: _controller.projectBox.listenable(),
+        builder: (context, Box<Project> box, _) {
+          if (box.isEmpty) {
+          return const Center(child: Text(AppStrings.noProjectsFound));
+          }
+        
+          return ListView.builder(
+            itemCount: box.length,
+            itemBuilder: (context, index) {
+              final projectObject = box.getAt(index)!;
+              final projectController = SingleProjectController(projectObject);
+              return ProjectCardWidget(projectController: projectController);
+            }
+          );
+        }
+      )
+    );
   }
 }

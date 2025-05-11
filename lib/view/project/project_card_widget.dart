@@ -1,22 +1,20 @@
 import 'dart:io';
 
 import 'package:cii/controllers/single_project_controller.dart';
+import 'package:cii/view/project/project_detail.dart';
+import 'package:cii/view/utils/constants.dart';
 import 'package:flutter/material.dart';
 
 class ProjectCardWidget extends StatefulWidget {
   final SingleProjectController projectController;
 
-  const ProjectCardWidget({
-    super.key,
-    required this.projectController,
-  });
+  const ProjectCardWidget({super.key, required this.projectController});
 
   @override
   State<ProjectCardWidget> createState() => _ProjectCardWidgetState();
 }
 
 class _ProjectCardWidgetState extends State<ProjectCardWidget> {
-  late SingleProjectController _controller;
 
   @override
   void initState() {
@@ -27,7 +25,10 @@ class _ProjectCardWidgetState extends State<ProjectCardWidget> {
   Widget build(BuildContext context){
     return GestureDetector(
       onTap: () {
-        // Navigate to the project details page
+        // Navigate to the project details view
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (context) => ProjectDetail(projectController: widget.projectController))
+        );
       },
       child: Card(
         color: Colors.white,
@@ -65,9 +66,9 @@ class _ProjectCardWidgetState extends State<ProjectCardWidget> {
                         ),
                         const SizedBox(height: 8.0),
                         widget.projectController.getSnags!.isEmpty
-                          ? const Text('No snags found.')
+                          ? const Text(AppStrings.noSnagsFound)
                           : LinearProgressIndicator(
-                            value: _controller.getSnagProgress(),
+                            value: widget.projectController.getSnagProgress(),
                             color: Colors.blue,
                           ),
 
@@ -78,25 +79,74 @@ class _ProjectCardWidgetState extends State<ProjectCardWidget> {
                   PopupMenuButton<String>(
                     onSelected: (value) {
                       // handle menu item selections
+                      switch (value) {
+                        case 'view':
+                          Navigator.of(context).push(
+                            MaterialPageRoute(builder: (context) => ProjectDetail(projectController: widget.projectController))
+                          );
+                          break;
+                        case 'add':
+                          Navigator.of(context).push(
+                            MaterialPageRoute(builder: (context) => ProjectDetail(projectController: widget.projectController, index: 1))
+                          );
+                          break;
+                        case 'share':
+                          // implement share functionality
+                          break;
+                        case 'edit':
+                          // implement edit functionality
+                          break;
+                        case 'delete':
+                          // implement delete functionality
+                          showDialog(
+                            context: context,
+                            builder: (context) {
+                              return AlertDialog(
+                                title: const Text(AppStrings.deleteProject),
+                                content: const Text(AppStrings.deleteProjectConfirmation),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                    },
+                                    child: const Text(AppStrings.cancel)
+                                  ),
+                                  TextButton(
+                                    onPressed: () {
+                                      widget.projectController.deleteProject();
+                                      Navigator.of(context).pop();
+                                    },
+                                    child: const Text(AppStrings.delete)
+                                  ),
+                                ],
+                              );
+                            }
+                          );
+                          break;
+                      }
                     },
                     itemBuilder: (BuildContext context) {
                       return [
                         const PopupMenuItem<String>(
                           value: 'view',
-                          child: Text('View Project')
+                          child: Text(AppStrings.viewProject)
+                        ),
+                        const PopupMenuItem<String>(
+                          value: 'add',
+                          child: Text(AppStrings.addSnag)
                         ),
                         const PopupMenuItem<String>(
                           value: 'share',
-                          child: Text('Share Project')
+                          child: Text(AppStrings.shareProject)
                         ),
                         const PopupMenuItem(
                           value: 'edit',
-                          child: Text('Edit Project')
+                          child: Text(AppStrings.editProject)
                         ),
                         const PopupMenuDivider(height: 1.0),
                         const PopupMenuItem<String>(
                           value: 'delete',
-                          child: Text('Delete Project')
+                          child: Text(AppStrings.deleteProject)
                         ),
                       ];
                     },

@@ -16,5 +16,18 @@ enum Priority {
     }
   }
 
+  String get icon {
+    switch(this) {
+      case Priority.low:
+        return 'lib/assets/icons/png/priority_low_icon.png';
+      case Priority.medium:
+        return 'lib/assets/icons/png/priority_medium_icon.png';
+      case Priority.high:
+        return 'lib/assets/icons/png/priority_high_icon.png';
+      default:
+        return 'lib/assets/icons/png/priority_low_icon.png';
+    }
+  }
+
   // implement get icon
 }

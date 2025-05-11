@@ -18,7 +18,7 @@ class ProjectAdapter extends TypeAdapter<Project> {
     };
     return Project(
       uuid: fields[0] as String?,
-      id: fields[1] as String,
+      id: fields[1] as String?,
       name: fields[2] as String,
       description: fields[3] as String?,
       mainImagePath: fields[4] as String?,

@@ -16,7 +16,7 @@ class Project extends HiveObject {
 
   // Human-readable id of the project
   @HiveField(1)
-  final String id;
+  final String? id;
 
   // Name of the project
   @HiveField(2)
@@ -72,7 +72,7 @@ class Project extends HiveObject {
 
   Project({
     String? uuid,
-    required this.id,
+    String? id,
     required this.name,
     this.description,
     this.mainImagePath,
@@ -89,7 +89,21 @@ class Project extends HiveObject {
   })
   :
     uuid = uuid ?? const Uuid().v4(),
+    id = id ?? humanReadableId(name),
     dateCreated = dateCreated ?? DateTime.now(),
     status = status ?? Status.todo;
+
+  static String humanReadableId(String name) {
+    // Generate a human-readable ID
+    // Remove spaces and special characters, keep only alphanumeric characters
+    final sanitized = name.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '');
+
+    // Extract the first 3 characters or pad with random alphanumeric characters if too short
+    final id = sanitized.length >= 3
+        ? sanitized.substring(0, 3).toUpperCase()
+        : (sanitized.toUpperCase() + const Uuid().v4().split('-')[0]).substring(0, 3);
+
+    return id;
+  }
 
 }

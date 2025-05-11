@@ -1,3 +1,4 @@
+import 'package:cii/controllers/snag_controller.dart';
 import 'package:cii/models/project.dart';
 import 'package:cii/models/snag.dart';
 import 'package:cii/models/status.dart';
@@ -14,6 +15,10 @@ class SingleProjectController {
     project.status = updatedProject.status;
     project.dateCompleted = updatedProject.dateCompleted;
     project.snags = updatedProject.snags;
+  }
+
+  void saveProject() {
+    project.save();
   }
 
   void deleteProject() {
@@ -38,19 +43,29 @@ class SingleProjectController {
     project.save();
   }
 
-  List<Snag> getSnagsByStatus(Status status) {
-    return project.snags.where((snag) => snag.status == status).toList();
+  List<SnagController> getAllSnags() {
+    return project.snags.map((snag) => SnagController(snag)).toList();
   }
 
-  List<Snag> getSnagsByPriority(String priority) {
-    return project.snags.where((snag) => snag.priority.name == priority).toList();
+  List<SnagController> getSnagsByStatus(Status status) {
+    return project.snags
+        .where((snag) => snag.status.name.toLowerCase() == status.name.toLowerCase())
+        .map((snag) => SnagController(snag))
+        .toList();
+  }
+
+  List<SnagController> getSnagsByPriority(String priority) {
+    return project.snags
+        .where((snag) => snag.priority.name == priority)
+        .map((snag) => SnagController(snag))
+        .toList();
   }
 
   double getSnagProgress() {
     if (project.snags.isEmpty) {
       return 0.0;
     }
-    int totalResolvedSnags = project.snags.where((snag) => snag.status == Status.completed).length;
+    int totalResolvedSnags = project.snags.where((snag) => snag.status.name == Status.completed.name).length;
     return totalResolvedSnags / project.snags.length;
   }
 
@@ -83,14 +98,23 @@ class SingleProjectController {
     }
   }
 
-  List<Snag> getAllSnags() {
-    return project.snags;
-  }
-
-
   String? get getDescription {
     return project.description;
   }
+
+  String? get getLocation {
+    return project.location;
+  }
+  String? get getClient {
+    return project.client;
+  }
+  String? get getContractor {
+    return project.contractor;
+  }
+  String? get getProjectRef {
+    return project.projectRef;
+  }
+
   String? get getName {
     return project.name;
   }
@@ -103,8 +127,12 @@ class SingleProjectController {
   String? get getSnags {
     return project.snags.toString();
   }
-  String? get getProjectId {
+  String? get getProjectUUID {
     return project.uuid;
+  }
+
+  String? get getProjectId {
+    return project.id;
   }
 
   String? get getMainImagePath {

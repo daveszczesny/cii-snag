@@ -1,6 +1,7 @@
 import 'package:cii/models/comment.dart';
 import 'package:cii/models/snag.dart';
 import 'package:cii/models/status.dart';
+import 'package:cii/models/priority.dart' as snag_priority;
 
 class SnagController {
 
@@ -23,8 +24,12 @@ class SnagController {
     return snag.status;
   }
 
-  String get priority {
-    return snag.priority.name;
+  set status(Status status) {
+    snag.status = status;
+  }
+
+  snag_priority.Priority get priority {
+    return snag.priority;
   }
 
   String get assignee {
