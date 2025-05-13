@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:cii/controllers/single_project_controller.dart';
 import 'package:cii/controllers/snag_controller.dart';
 import 'package:cii/models/status.dart';
@@ -109,6 +111,47 @@ class _SnagDetailState extends State<SnagDetail> {
                     Text('Name: ${widget.snag.name}'),
                     const SizedBox(height: 28.0)
                   ],
+
+                  if (widget.snag.imagePaths != null && widget.snag.imagePaths!.isNotEmpty) ... [
+                    const Text('Image'),
+                    const SizedBox(height: 8.0),
+                    SizedBox(
+                      height: 200,
+                      child: GridView.builder(
+                        physics: const NeverScrollableScrollPhysics(),
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 3,
+                          crossAxisSpacing: 4.0,
+                          mainAxisSpacing: 4.0,
+                        ),
+                        itemCount: widget.snag.imagePaths!.length,
+                        itemBuilder: (context, index) {
+                          final imagePath = (widget.snag.annotatedImagePaths != null &&
+                            widget.snag.annotatedImagePaths!.isNotEmpty &&
+                            widget.snag.annotatedImagePaths!.containsKey(widget.snag.imagePaths![index]))
+                            ? widget.snag.annotatedImagePaths![widget.snag.imagePaths![index]]!
+                            : widget.snag.imagePaths![index];
+
+                          return GestureDetector(
+                            onTap: () {
+                              showDialog(
+                                context: context,
+                                builder: (_) => Dialog(
+                                  backgroundColor: Colors.transparent,
+                                  child: GestureDetector(
+                                    onTap: () => Navigator.of(context).pop(),
+                                    child: InteractiveViewer(child: Image.file(File(imagePath)))
+                                  ),
+                                )
+                              );
+                            },
+                            child: Image.file(File(imagePath), fit: BoxFit.cover),
+                          );
+                        }
+                      ),
+                    )
+                  ],
+
                   if (widget.snag.location != '') ... [
                     Text('Location: ${widget.snag.location}'),
                     const SizedBox(height: 28.0)

@@ -2,8 +2,7 @@ import 'package:cii/models/comment.dart';
 import 'package:cii/models/priority.dart';
 import 'package:cii/models/status.dart';
 import 'package:cii/models/tag.dart';
-import 'package:cii/models/category.dart' as cii;
-import 'package:flutter/foundation.dart';
+import 'package:cii/models/category.dart';
 import 'package:hive/hive.dart';
 import 'package:uuid/uuid.dart';
 
@@ -40,8 +39,20 @@ class Snag extends HiveObject {
   @HiveField(6)
   String? description;
 
+  // List of original image paths
   @HiveField(7)
   List<String>? imagePaths;
+
+  // Map of annotated images and their original paths
+  // original path -> annotated path
+  @HiveField(17)
+  Map<String, String>? annotatedImagePaths;
+
+  @HiveField(18)
+  List<String>? progressImagePaths;
+
+  @HiveField(19)
+  List<String>? finalImagePaths;
 
   @HiveField(8)
   String? assignee;
@@ -66,7 +77,7 @@ class Snag extends HiveObject {
   List<Tag>? tags;
 
   @HiveField(16)
-  List<cii.Category>? categories;
+  List<Category>? categories;
 
   Snag({
     String? uuid,
@@ -78,6 +89,7 @@ class Snag extends HiveObject {
     Priority? priority,
     this.description,
     this.imagePaths,
+    this.annotatedImagePaths,
     this.assignee,
     this.comments,
     this.finalRemarks,

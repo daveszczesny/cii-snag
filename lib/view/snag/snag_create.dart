@@ -1,13 +1,18 @@
+import 'dart:io';
+
 import 'package:cii/controllers/single_project_controller.dart';
 import 'package:cii/models/category.dart' as cii;
 import 'package:cii/models/priority.dart';
 import 'package:cii/models/snag.dart';
 import 'package:cii/models/tag.dart';
+import 'package:cii/utils/common.dart';
 import 'package:cii/view/project/project_detail.dart';
 import 'package:cii/view/utils/constants.dart';
+import 'package:cii/view/utils/image.dart';
 import 'package:cii/view/utils/selector.dart';
 import 'package:cii/view/utils/text.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 class SnagCreate extends StatefulWidget {
   final SingleProjectController? projectController;
@@ -29,6 +34,9 @@ class _SnagCreateState extends State<SnagCreate> {
   List<Tag>? snagTags = [];
   final List<String> priorityOptions = ['Low', 'Medium', 'High'];
 
+  List<String> imageFilePaths = [];
+  Map<String, String> annotatedImages = {};
+
 
   void createSnag() {
     final String name = nameController.text;
@@ -46,6 +54,8 @@ class _SnagCreateState extends State<SnagCreate> {
           categories: snagCategory != null ? [snagCategory!] : [],
           tags: snagTags,
           priority: priority,
+          imagePaths: imageFilePaths,
+          annotatedImagePaths: annotatedImages,
         )
       );
 
@@ -54,6 +64,16 @@ class _SnagCreateState extends State<SnagCreate> {
         MaterialPageRoute(builder: (context) => ProjectDetail(projectController: widget.projectController!))
       );
     }
+  }  
+
+  void onChange() {
+    setState(() {});
+  }
+
+  void saveAnnotatedImage(String originalPath, String path) {
+    setState(() {
+      annotatedImages[originalPath] = path;
+    });
   }
 
   @override
@@ -76,6 +96,12 @@ class _SnagCreateState extends State<SnagCreate> {
                 const SizedBox(height: 28.0),
                 buildTextInput(AppStrings.projectLocation, 'Ex. Living Room', locationController),
                 const SizedBox(height: 28.0),
+                buildImageInput('Upload Image', context, imageFilePaths, onChange),
+                const SizedBox(height: 14.0),
+                if (imageFilePaths.isNotEmpty) ... [
+                  buildImageShowcase(context, onChange, saveAnnotatedImage, imageFilePaths),
+                  const SizedBox(height: 28.0),
+                ],
                 buildTextInput(AppStrings.assignee, AppStrings.assigneeExample, assigneeController),
                 const SizedBox(height: 28.0),
                 buildDropdownInput('Priority', priorityOptions, priorityController),

@@ -49,6 +49,10 @@ class SnagController {
   List<String> get imagePaths {
     return snag.imagePaths ?? [];
   }
+
+  Map<String, String> get annotatedImagePaths {
+    return snag.annotatedImagePaths ?? {};
+  }
   
   List<Comment> get comments {
     return snag.comments ?? [];
