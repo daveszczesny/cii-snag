@@ -1,9 +1,11 @@
 import 'package:cii/adapters/color_adapter.dart';
 import 'package:cii/adapters/priority_enum_adapter.dart';
+import 'package:cii/models/category.dart';
 import 'package:cii/models/comment.dart';
 import 'package:cii/models/project.dart';
 import 'package:cii/models/snag.dart';
 import 'package:cii/models/status.dart';
+import 'package:cii/models/tag.dart';
 import 'package:cii/view/screen.dart';
 import 'package:cii/view/utils/constants.dart';
 import 'package:flutter/material.dart';
@@ -16,6 +18,8 @@ void main() async {
   Hive.registerAdapter(ColorAdapter());
   Hive.registerAdapter(PriorityAdapter());
   Hive.registerAdapter(CommentAdapter());
+  Hive.registerAdapter(CategoryAdapter());
+  Hive.registerAdapter(TagAdapter());
   Hive.registerAdapter(ProjectAdapter());
   Hive.registerAdapter(StatusAdapter());
   Hive.registerAdapter(SnagAdapter());

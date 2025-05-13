@@ -1,6 +1,8 @@
+import 'package:cii/models/category.dart' as cii;
 import 'package:cii/models/comment.dart';
 import 'package:cii/models/snag.dart';
 import 'package:cii/models/status.dart';
+import 'package:cii/models/tag.dart';
 import 'package:hive/hive.dart';
 import 'package:uuid/uuid.dart';
 
@@ -68,6 +70,16 @@ class Project extends HiveObject {
   @HiveField(15)
   List<Snag> snags = [];
 
+  // Tags are project specific
+  // All tags are created by the user, and can be reused when creating snags
+  @HiveField(16)
+  List<Tag> createdTags = [];
+
+  // Categories are project specific
+  // There will be some premade categories but more can be created by the user
+  // Will be used to categorize snags
+  @HiveField(17)
+  List<cii.Category>? createdCategories;
 
 
   Project({
@@ -86,12 +98,16 @@ class Project extends HiveObject {
     this.finalRemarks,
     this.location,
     Status? status,
+    List<cii.Category>? createdCategories,
+    List<Tag>? createdTags,
   })
   :
     uuid = uuid ?? const Uuid().v4(),
     id = id ?? humanReadableId(name),
     dateCreated = dateCreated ?? DateTime.now(),
-    status = status ?? Status.todo;
+    status = status ?? Status.todo,
+    createdCategories = createdCategories ?? [],
+    createdTags = createdTags ?? [];
 
   static String humanReadableId(String name) {
     // Generate a human-readable ID

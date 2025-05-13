@@ -54,6 +54,8 @@ class AppStrings {
   static const String snagName = 'Snag Name';
   static const String snagNameExample = 'Ex. Broken Light';
 
+  static const String assignee = 'Assignee';
+  static const String assigneeExample = 'Ex. John Doe';
 
   // Card Widget
   static const String noSnagsFound = 'No Snags Found';

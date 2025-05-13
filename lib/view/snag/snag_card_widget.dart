@@ -1,15 +1,19 @@
+import 'package:cii/controllers/single_project_controller.dart';
 import 'package:cii/controllers/snag_controller.dart';
 import 'package:cii/models/status.dart';
 import 'package:cii/utils/colors/app_colors.dart';
+import 'package:cii/view/snag/snag_detail.dart';
 import 'package:cii/view/utils/constants.dart';
 import 'package:flutter/material.dart';
 
 class SnagCardWidget extends StatefulWidget {
+  final SingleProjectController projectController;
   final SnagController snagController;
   final VoidCallback onStatusChanged;
 
   const SnagCardWidget({
     super.key,
+    required this.projectController,
     required this.snagController,
     required this.onStatusChanged,
   });
@@ -50,12 +54,46 @@ class _SnagCardWidgetState extends State<SnagCardWidget> {
     );
   }
 
+  void _showCategoryModal(BuildContext context) {
+  showModalBottomSheet(
+    context: context,
+    builder: (BuildContext context) {
+      return Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: FractionallySizedBox(
+          heightFactor: 0.7,
+          child: SingleChildScrollView( // <-- Add this
+            child: Column(
+              children: widget.projectController.getCategories!
+                .map((category) {
+                  return ListTile(
+                    title: Text(category.name),
+                    onTap: () {
+                      setState(() {
+                        widget.snagController.setCategory(category);
+                      });
+                      widget.onStatusChanged();
+                      Navigator.pop(context);
+                    },
+                  );
+                }).toList(),
+            ),
+          ),
+        ),
+      );
+    }
+  );
+}
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (context) => SnagDetail(projectController: widget.projectController, snag: widget.snagController))
+        );
       },
-      child: Container(
+      child: SizedBox(
         height: 110,
         child: Card(
           color: AppColors.cardColor,
@@ -100,27 +138,57 @@ class _SnagCardWidgetState extends State<SnagCardWidget> {
                         ],
                       ),
                       const SizedBox(height: 8.0),
-                      GestureDetector(
-                        onTap: () => _showStatusModal(context),
-                        child: Container(
-                          width: 90,
-                          padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
-                          decoration: BoxDecoration(
-                            color: Status.getStatus(widget.snagController.status.name, context)!.color,
-                            borderRadius: BorderRadius.circular(20.0),
-                          ),
-                          alignment: Alignment.center,
-                          child: Text(
-                            widget.snagController.status.name,
-                            style: const TextStyle(
-                              fontSize: 12.0,
-                              fontWeight: FontWeight.w400,
-                              color: Colors.black,
-                              fontFamily: 'Roboto',
+                      Row(
+                        children: [
+                          // ...status pill...
+                          GestureDetector(
+                            onTap: () => _showStatusModal(context),
+                            child: Container(
+                              width: 90,
+                              padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
+                              decoration: BoxDecoration(
+                                color: Status.getStatus(widget.snagController.status.name, context)!.color,
+                                borderRadius: BorderRadius.circular(20.0),
+                              ),
+                              alignment: Alignment.center,
+                              child: Text(
+                                widget.snagController.status.name,
+                                style: const TextStyle(
+                                  fontSize: 12.0,
+                                  fontWeight: FontWeight.w400,
+                                  color: Colors.black,
+                                  fontFamily: 'Roboto',
+                                )
+                              )
                             )
-                          )
-                        )
-                      )
+                          ),
+
+                          // Category pill (show only if categories is not empty)
+                          if (widget.snagController.categories.isNotEmpty)
+                            const SizedBox(width: 8.0),
+                            GestureDetector(
+                              onTap: () => _showCategoryModal(context),
+                              child: Container(
+                                width: 90,
+                                padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
+                                decoration: BoxDecoration(
+                                  color: widget.snagController.categories[0].color,
+                                  borderRadius: BorderRadius.circular(20.0),
+                                ),
+                                alignment: Alignment.center,
+                                child: Text(
+                                  widget.snagController.categories[0].name, // Show category name, not status
+                                  style: const TextStyle(
+                                    fontSize: 12.0,
+                                    fontWeight: FontWeight.w400,
+                                    color: Colors.black,
+                                    fontFamily: 'Roboto',
+                                  )
+                                )
+                              )
+                            ),
+                        ],
+                      ),
                     ],
                   ),
                 ),

@@ -1,5 +1,7 @@
 import 'package:cii/models/project.dart';
 import 'package:cii/models/status.dart';
+import 'package:cii/models/category.dart' as cii;
+import 'package:cii/models/tag.dart';
 import 'package:hive/hive.dart';
 
 class ProjectController {
@@ -19,8 +21,11 @@ class ProjectController {
     String? contractor,
     String? location,
     String? projectRef,
+    List<cii.Category>? categories,
+    List<Tag>? tags,
   }) async {
     try {
+
       final project = Project(
         name: name,
         description: description,
@@ -28,6 +33,9 @@ class ProjectController {
         contractor: contractor,
         location: location,
         projectRef: projectRef,
+        createdCategories: categories,
+        createdTags: tags,
+
       );
       await projectBox.add(project);
     } catch (e) {

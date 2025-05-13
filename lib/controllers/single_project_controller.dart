@@ -1,7 +1,10 @@
 import 'package:cii/controllers/snag_controller.dart';
 import 'package:cii/models/project.dart';
 import 'package:cii/models/snag.dart';
+import 'package:cii/models/category.dart' as cii;
 import 'package:cii/models/status.dart';
+import 'package:cii/models/tag.dart';
+import 'package:flutter/material.dart';
 
 class SingleProjectController {
   final Project project;
@@ -138,4 +141,30 @@ class SingleProjectController {
   String? get getMainImagePath {
     return project.mainImagePath;
   }
+
+  List<cii.Category>? get getCategories {
+    return project.createdCategories;
+  }
+
+  List<Tag>? get getTags {
+    return project.createdTags;
+  }
+
+  void removeCategory(String name) {
+    project.createdCategories?.removeWhere((category) => category.name == name);
+  }
+
+  void removeTag(String name) {
+    project.createdTags.removeWhere((tag) => tag.name == name);
+  }
+
+  void addTag(String name, Color color) {
+    project.createdTags.add(Tag(name: name, color: color));
+  }
+
+  void addCategory(String name, Color color) {
+    project.createdCategories ??= <cii.Category>[];
+    project.createdCategories?.add(cii.Category(name: name, color: color));
+  }
+
 }

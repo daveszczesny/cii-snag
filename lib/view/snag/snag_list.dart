@@ -64,6 +64,7 @@ class _SnagListState extends State<SnagList> with SingleTickerProviderStateMixin
       itemBuilder: (context, index) {
         final SnagController snag = snags[index];
         return SnagCardWidget(
+          projectController: widget.projectController,
           snagController: snag,
           onStatusChanged: _onStatusChanged,
         );

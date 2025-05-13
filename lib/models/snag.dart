@@ -1,6 +1,9 @@
 import 'package:cii/models/comment.dart';
 import 'package:cii/models/priority.dart';
 import 'package:cii/models/status.dart';
+import 'package:cii/models/tag.dart';
+import 'package:cii/models/category.dart' as cii;
+import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 import 'package:uuid/uuid.dart';
 
@@ -59,6 +62,12 @@ class Snag extends HiveObject {
   @HiveField(13)
   DateTime? dateCompleted;
 
+  @HiveField(15)
+  List<Tag>? tags;
+
+  @HiveField(16)
+  List<cii.Category>? categories;
+
   Snag({
     String? uuid,
     String? id,
@@ -75,6 +84,8 @@ class Snag extends HiveObject {
     this.location,
     this.lastModified,
     this.dateCompleted,
+    this.tags,
+    this.categories,
   }):
     uuid = uuid ?? const Uuid().v4(),
     id = id ?? createHumanReadableId(projectId ?? 'PID'),

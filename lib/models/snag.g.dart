@@ -32,13 +32,15 @@ class SnagAdapter extends TypeAdapter<Snag> {
       location: fields[11] as String?,
       lastModified: fields[12] as DateTime?,
       dateCompleted: fields[13] as DateTime?,
-    );
+    )
+      ..tags = (fields[15] as List?)?.cast<Tag>()
+      ..categories = (fields[16] as List?)?.cast<cii.Category>();
   }
 
   @override
   void write(BinaryWriter writer, Snag obj) {
     writer
-      ..writeByte(15)
+      ..writeByte(17)
       ..writeByte(0)
       ..write(obj.uuid)
       ..writeByte(1)
@@ -68,7 +70,11 @@ class SnagAdapter extends TypeAdapter<Snag> {
       ..writeByte(12)
       ..write(obj.lastModified)
       ..writeByte(13)
-      ..write(obj.dateCompleted);
+      ..write(obj.dateCompleted)
+      ..writeByte(15)
+      ..write(obj.tags)
+      ..writeByte(16)
+      ..write(obj.categories);
   }
 
   @override

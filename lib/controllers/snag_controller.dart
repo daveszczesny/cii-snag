@@ -2,6 +2,8 @@ import 'package:cii/models/comment.dart';
 import 'package:cii/models/snag.dart';
 import 'package:cii/models/status.dart';
 import 'package:cii/models/priority.dart' as snag_priority;
+import 'package:cii/models/tag.dart';
+import 'package:cii/models/category.dart' as cii;
 
 class SnagController {
 
@@ -62,6 +64,28 @@ class SnagController {
   
   String get description {
     return snag.description ?? '';
+  }
+
+  List<Tag> get tags {
+    return snag.tags ?? [];
+  }
+
+  List<cii.Category> get categories {
+    return snag.categories ?? [];
+  }
+
+  void setTag(Tag tag) {
+    snag.tags ??= [];
+    snag.tags!.add(tag);
+  }
+
+  void setCategory(cii.Category category) {
+    // limit to 1 category
+    if (snag.categories != null && snag.categories!.isNotEmpty) {
+      snag.categories!.clear();
+    }
+    snag.categories ??= [];
+    snag.categories!.add(category);
   }
 
 }

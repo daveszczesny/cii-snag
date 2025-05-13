@@ -1,6 +1,9 @@
 import 'package:cii/controllers/project_controller.dart';
 import 'package:cii/models/project.dart';
+import 'package:cii/models/category.dart' as cii;
+import 'package:cii/models/tag.dart';
 import 'package:cii/view/utils/constants.dart';
+import 'package:cii/view/utils/selector.dart';
 import 'package:cii/view/utils/text.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
@@ -21,6 +24,8 @@ class _ProjectCreateState extends State<ProjectCreate> {
   final TextEditingController _projectRefController = TextEditingController();
   final TextEditingController _clientController = TextEditingController();
   final TextEditingController _contractorController = TextEditingController();
+  List<cii.Category> _categories = cii.Category.defaultCategories;
+  List<Tag> _tags = []; // no default tags
 
   late ProjectController projectController;
 
@@ -44,7 +49,9 @@ class _ProjectCreateState extends State<ProjectCreate> {
       location: location,
       projectRef: projectRef,
       client: client,
-      contractor: contractor
+      contractor: contractor,
+      categories: _categories,
+      tags: _tags,
     );
 
     // navigate back
@@ -82,7 +89,34 @@ class _ProjectCreateState extends State<ProjectCreate> {
               const SizedBox(height: 28.0),
               buildTextInput(AppStrings.projectContractor, AppStrings.projectContractorExample, _contractorController),
               const SizedBox(height: 28.0),
-
+              ObjectSelector(
+                label: 'Category',
+                pluralLabel: 'Categories',
+                hint: 'This allows you to create new categories to be used for snags in the project. Each snag can be assigned a single category',
+                options: _categories,
+                getName: (cat) => cat.name,
+                getColor: (cat) => cat.color,
+                onCreate: (name, color) {
+                  setState(() {
+                    _categories.add(cii.Category(name: name, color: color));
+                  });
+                },
+              ),
+              const SizedBox(height: 28.0),
+              ObjectSelector(
+                label: 'Tag',
+                pluralLabel: 'Tags',
+                hint: 'This allows you to create new tags to be used for snags in the project. Each snag can have multiple tags',
+                options: _tags,
+                getName: (tag) => tag.name,
+                getColor: (tag) => tag.color,
+                onCreate: (name, color) {
+                  setState(() {
+                    _tags.add(Tag(name: name, color: color));
+                  });
+                }
+              ),
+              const SizedBox(height: 28.0),
               ElevatedButton(
                 onPressed: createProject,
                 child: const Text('Create project'),
