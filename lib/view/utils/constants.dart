@@ -11,6 +11,24 @@ class AppStrings {
   static const String notifications = 'Notifications';
   static const String add = 'Add';
 
+  static const String uploadImage = 'Upload Image';
+  static const String priority = 'Priority';
+  static const String category = 'Category';
+  static const String categories = 'Categories';
+  static const String categoryHint = 'This allows you to group snags into categories. Each snag can be assigned a single category';
+
+  static const String tag = 'Tag';
+  static const String tags = 'Tags';
+  static const String tagHint = 'This allows you to assign tags to snags. Each snag can be assigned multiple tags';
+
+  static const String imageAnnotation = 'Image Annotation';
+  static const String imageAnnotationExport = 'Image exported successfully';
+
+  static const String photoLibrary = 'Photo Library';
+  static const String photoCamera = 'Camera';
+
+  static const String id = 'ID';
+
   // Titles
   static const String appTitle = 'CII';
   static const String newProject = 'New Project';
@@ -23,8 +41,10 @@ class AppStrings {
   // Project List
   static const String myProjects = 'My Projects';
   static const String noProjectsFound = 'No Projects Found';
-
+  static const String noProjectsFoundQuickAdd = 'No projects found. Add a project first.';
   // Project Create
+  static String projectNameDefault(String name) =>  'Project name is empty. Default name $name will be used';
+
   static const String projectTite = 'Project Title';
   static const String projectTitleExample = 'Ex. My new project';
 
@@ -49,13 +69,23 @@ class AppStrings {
   static const String projectId = 'Project ID';
 
   // Snag Create
+  static String snagNameDefault(String name) =>  'Snag name is empty. Default name $name will be used';
+
   static const String snagCreate = 'Create Snag';
   
   static const String snagName = 'Snag Name';
+  static const String name = 'Name';
   static const String snagNameExample = 'Ex. Broken Light';
 
   static const String assignee = 'Assignee';
   static const String assigneeExample = 'Ex. John Doe';
+
+  static const String snagLocationExample = 'Ex. Living Room';
+
+  static const String progressPictures = 'Progress Pictures';
+  static const String addProgressPictures = 'Add $progressPictures';
+
+  static const String finalRemarks = 'Final Remarks';
 
   // Card Widget
   static const String noSnagsFound = 'No Snags Found';

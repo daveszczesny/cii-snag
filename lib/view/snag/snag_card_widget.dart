@@ -36,7 +36,6 @@ class _SnagCardWidgetState extends State<SnagCardWidget> {
             heightFactor: 0.7,
             child: Column(
               children: Status.values
-              // .where((status) => status.name.toLowerCase() != 'completed')
               .map((status) {
                 return ListTile(
                   title: Text(status.name),

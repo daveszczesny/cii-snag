@@ -47,10 +47,10 @@ class _ProjectCreateState extends State<ProjectCreate> {
     if (name.isEmpty) {
       // if the name is empty, create a default name 'Project #$no' and also show a snackbar
       int no = projectController.getAllProjects().length + 1;
-      name = 'Project #$no';
+      name = '${AppStrings.project} #$no';
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Project name is empty. Default name $name will be used'),
+          content: Text(AppStrings.projectNameDefault(name)),
           duration: const Duration(seconds: 2),
         )
       );
@@ -103,9 +103,9 @@ class _ProjectCreateState extends State<ProjectCreate> {
               buildTextInput(AppStrings.projectContractor, AppStrings.projectContractorExample, _contractorController),
               const SizedBox(height: 28.0),
               ObjectSelector(
-                label: 'Category',
-                pluralLabel: 'Categories',
-                hint: 'This allows you to create new categories to be used for snags in the project. Each snag can be assigned a single category',
+                label: AppStrings.category,
+                pluralLabel: AppStrings.categories,
+                hint: AppStrings.categoryHint,
                 options: _categories,
                 getName: (cat) => cat.name,
                 getColor: (cat) => cat.color,
@@ -117,9 +117,9 @@ class _ProjectCreateState extends State<ProjectCreate> {
               ),
               const SizedBox(height: 28.0),
               ObjectSelector(
-                label: 'Tag',
-                pluralLabel: 'Tags',
-                hint: 'This allows you to create new tags to be used for snags in the project. Each snag can have multiple tags',
+                label: AppStrings.tag,
+                pluralLabel: AppStrings.tags,
+                hint: AppStrings.tagHint,
                 options: _tags,
                 getName: (tag) => tag.name,
                 getColor: (tag) => tag.color,
@@ -129,11 +129,9 @@ class _ProjectCreateState extends State<ProjectCreate> {
                   });
                 }
               ),
-              const SizedBox(height: 28.0),
-              ElevatedButton(
-                onPressed: createProject,
-                child: const Text('Create project'),
-              )
+              const SizedBox(height: 35.0),
+              buildTextButton(AppStrings.projectCreate, createProject),
+              const SizedBox(height: 12.0),
             ]
           )
         )

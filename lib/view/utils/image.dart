@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:cii/utils/common.dart';
 import 'package:cii/view/image/annotation.dart';
+import 'package:cii/view/utils/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -122,7 +123,7 @@ Widget buildImageInput(
           children: <Widget>[
             ListTile(
               leading: const Icon(Icons.photo_library),
-              title: const Text('Photo Library'),
+              title: const Text(AppStrings.photoLibrary),
               onTap: () {
                 Navigator.of(context).pop();
                 pickImagesFromSource(imageFilePaths, onChange, ImageSource.gallery);
@@ -130,7 +131,7 @@ Widget buildImageInput(
             ),
             ListTile(
               leading: const Icon(Icons.photo_camera),
-              title: const Text('Camera'),
+              title: const Text(AppStrings.photoCamera),
               onTap: () {
                 Navigator.of(context).pop();
                 pickImagesFromSource(imageFilePaths, onChange, ImageSource.camera);

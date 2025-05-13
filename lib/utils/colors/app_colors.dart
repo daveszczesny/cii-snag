@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 class AppColors {
 
   static const Color primaryGreen = Color(0xFF38564d);
+  static const Color createButtonColor = Color(0xFFFFA500);
 
   // Light mode colors
   static const Color primaryBlue = Color(0xFF003366);

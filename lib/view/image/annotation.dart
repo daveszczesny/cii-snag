@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:cii/view/utils/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:image_painter/image_painter.dart';
 import 'package:path_provider/path_provider.dart';
@@ -16,7 +17,7 @@ class ImageAnnotationScreen extends StatefulWidget {
 
 class _ImageAnnotationScreenState extends State<ImageAnnotationScreen> {
   final imagePainterController = ImagePainterController(
-    color: Colors.green,
+    color: Colors.black,
     strokeWidth: 4,
     mode: PaintMode.line,
   );
@@ -25,7 +26,7 @@ class _ImageAnnotationScreenState extends State<ImageAnnotationScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Image Annotation'),
+        title: const Text(AppStrings.imageAnnotation),
         actions: [
           IconButton(
             icon: const Icon(Icons.save_alt),
@@ -59,7 +60,7 @@ class _ImageAnnotationScreenState extends State<ImageAnnotationScreen> {
           content: const Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text("Image Exported successfully.",
+              Text(AppStrings.imageAnnotationExport,
                   style: TextStyle(color: Colors.white)),
             ],
           ),

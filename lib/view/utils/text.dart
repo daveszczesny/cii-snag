@@ -1,5 +1,6 @@
 import 'package:cii/controllers/single_project_controller.dart';
 import 'package:cii/models/project.dart';
+import 'package:cii/utils/colors/app_colors.dart';
 import 'package:flutter/material.dart';
 
 Widget buildTextDetail(String label, String text) {
@@ -188,5 +189,24 @@ Widget buildDropdownInputForObjects({
         ),
       ),
     ],
+  );
+}
+
+
+// This function creates a button with the given label and onPressed callback.
+Widget buildTextButton(
+  String label,
+  VoidCallback onPressed
+) {
+  return SizedBox(
+    width: double.infinity,
+    child: TextButton(
+      style: ButtonStyle(
+        backgroundColor: WidgetStateProperty.all(AppColors.createButtonColor),
+        foregroundColor: WidgetStateProperty.all(Colors.black),
+      ),
+      onPressed: onPressed,
+      child: Text(label),
+    ),
   );
 }

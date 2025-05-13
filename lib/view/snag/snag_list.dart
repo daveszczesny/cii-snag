@@ -56,7 +56,7 @@ class _SnagListState extends State<SnagList> with SingleTickerProviderStateMixin
   Widget buildSnagList(String status) {
     final List<SnagController> snags = filterSnags(status);
     if (snags.isEmpty) {
-      return const Center(child: Text('No snags found'));
+      return const Center(child: Text(AppStrings.noSnagsFound));
     }
 
     return ListView.builder(

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:cii/controllers/single_project_controller.dart';
 import 'package:cii/controllers/snag_controller.dart';
 import 'package:cii/models/status.dart';
+import 'package:cii/view/utils/constants.dart';
 import 'package:cii/view/utils/image.dart';
 import 'package:flutter/material.dart';
 
@@ -122,11 +123,11 @@ class _SnagDetailState extends State<SnagDetail> {
 
                   // Page Contents
                   if (widget.snag.getId != '') ... [
-                    Text('ID: ${widget.snag.getId}'),
+                    Text('${AppStrings.id}: ${widget.snag.getId}'),
                     const SizedBox(height: 28.0)
                   ],
                   if (widget.snag.name != '') ...[
-                    Text('Name: ${widget.snag.name}'),
+                    Text('${AppStrings.name}: ${widget.snag.name}'),
                     const SizedBox(height: 28.0)
                   ],
 
@@ -171,7 +172,7 @@ class _SnagDetailState extends State<SnagDetail> {
                   ],
 
                   if (widget.snag.location != '') ... [
-                    Text('Location: ${widget.snag.location}'),
+                    Text('${AppStrings.projectLocation}: ${widget.snag.location}'),
                     const SizedBox(height: 28.0)
                   ],
 
@@ -201,11 +202,11 @@ class _SnagDetailState extends State<SnagDetail> {
                   const SizedBox(height: 24.0),
                   // Progress Pictures (only if not completed)
                   if (widget.snag.status.name != Status.completed.name) ... [
-                    buildImageInput('Add Progress Pictures', context, progressImageFilePaths, onChange)
+                    buildImageInput(AppStrings.addProgressPictures, context, progressImageFilePaths, onChange)
                   ],
 
                   if (widget.snag.progressImagePaths.isNotEmpty) ... [
-                    const Text('Progress Pictures'),
+                    const Text(AppStrings.progressPictures),
                     const SizedBox(height: 8.0),
                     SizedBox(
                       height: 200,
@@ -240,7 +241,7 @@ class _SnagDetailState extends State<SnagDetail> {
 
                   // Category and Tags
                   if (widget.snag.categories.isNotEmpty) ... [
-                    const Text('Category'),
+                    const Text(AppStrings.category),
                     const SizedBox(height: 8.0),
                     Wrap(
                       spacing: 8.0,
@@ -277,7 +278,7 @@ class _SnagDetailState extends State<SnagDetail> {
                   ],
 
                   if (widget.snag.tags.isNotEmpty) ... [
-                    const Text('Tags'),
+                    const Text(AppStrings.tags),
                     const SizedBox(height: 8.0),
                     Wrap(
                       spacing: 8.0,
@@ -314,11 +315,11 @@ class _SnagDetailState extends State<SnagDetail> {
                   ],
 
                   if (widget.snag.assignee != '') ... [
-                    Text('Assignee: ${widget.snag.assignee}'),
+                    Text('${AppStrings.assignee}: ${widget.snag.assignee}'),
                     const SizedBox(height: 28.0)
                   ],
                   if (widget.snag.finalRemarks != '') ... [
-                    Text('Final Remarks: ${widget.snag.finalRemarks}'),
+                    Text('${AppStrings.finalRemarks}: ${widget.snag.finalRemarks}'),
                     const SizedBox(height: 28.0)
                   ],
                 ],

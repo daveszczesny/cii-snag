@@ -61,7 +61,7 @@ class _SnagCreateState extends State<SnagCreate> {
         Navigator.of(context).pop();
         ScaffoldMessenger.of(context).showSnackBar(
           
-          const SnackBar(content: Text('No projects found. Add a project first.'))
+          const SnackBar(content: Text(AppStrings.noProjectsFoundQuickAdd)),
         );
       }
     }
@@ -76,10 +76,10 @@ class _SnagCreateState extends State<SnagCreate> {
     if (name.isEmpty) {
       // if the name is empty, create a default name 'Snag #$no' and also show a snackbar
       int no = projectController!.getTotalSnags() + 1;
-      name = 'Snag #$no';
+      name = '${AppStrings.snag} #$no';
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Snag name is empty. Default name $name will be used'),
+          content: Text(AppStrings.snagNameDefault(name)),
           duration: const Duration(seconds: 2),
         )
       );
@@ -134,7 +134,7 @@ class _SnagCreateState extends State<SnagCreate> {
       // AppBar is only shown if user is using QUICK ADD
       appBar: widget.projectController == null
         ? AppBar(
-          title: const Text('Create Snag'),
+          title: const Text(AppStrings.snagCreate),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: () {
@@ -170,9 +170,9 @@ class _SnagCreateState extends State<SnagCreate> {
 
               buildTextInput(AppStrings.snagName, AppStrings.snagNameExample, nameController),
               const SizedBox(height: 28.0),
-              buildTextInput(AppStrings.projectLocation, 'Ex. Living Room', locationController),
+              buildTextInput(AppStrings.projectLocation, AppStrings.snagLocationExample, locationController),
               const SizedBox(height: 28.0),
-              buildImageInput('Upload Image', context, imageFilePaths, onChange),
+              buildImageInput(AppStrings.uploadImage, context, imageFilePaths, onChange),
               const SizedBox(height: 14.0),
               if (imageFilePaths.isNotEmpty) ... [
                 buildImageShowcase(context, onChange, saveAnnotatedImage, imageFilePaths),
@@ -180,13 +180,13 @@ class _SnagCreateState extends State<SnagCreate> {
               ],
               buildTextInput(AppStrings.assignee, AppStrings.assigneeExample, assigneeController),
               const SizedBox(height: 28.0),
-              buildDropdownInput('Priority', priorityOptions, priorityController),
+              buildDropdownInput(AppStrings.priority, priorityOptions, priorityController),
               const SizedBox(height: 28.0),
               if (projectController != null) ... [
                 ObjectSelector(
-                  label: 'Category',
-                  pluralLabel: 'Categories',
-                  hint: 'This allows you to group snags into categories. Each snag can be assigned a single category',
+                  label: AppStrings.category,
+                  pluralLabel: AppStrings.categories,
+                  hint: AppStrings.categoryHint,
                   options: projectController?.getCategories ?? [],
                   getName: (cat) => cat.name,
                   getColor: (cat) => cat.color,
@@ -207,9 +207,9 @@ class _SnagCreateState extends State<SnagCreate> {
                 ),
                 const SizedBox(height: 28.0),
                 ObjectSelector(
-                  label: 'Tag',
-                  pluralLabel: 'Tags',
-                  hint: 'This allows you to assign tags to snags. Each snag can be assigned multiple tags',
+                  label: AppStrings.tag,
+                  pluralLabel: AppStrings.tags,
+                  hint: AppStrings.tagHint,
                   options: projectController?.getTags ?? [],
                   getName: (tag) => tag.name,
                   getColor: (tag) => tag.color,
@@ -230,11 +230,9 @@ class _SnagCreateState extends State<SnagCreate> {
                   allowMultiple: true,
                 ),
               ],
-              const SizedBox(height: 28.0),
-              ElevatedButton(
-                onPressed: createSnag,
-                child: const Text(AppStrings.snagCreate),
-              )
+              const SizedBox(height: 35.0),
+              buildTextButton(AppStrings.snagCreate, createSnag),
+              const SizedBox(height: 12.0),
             ],
           )
         )
