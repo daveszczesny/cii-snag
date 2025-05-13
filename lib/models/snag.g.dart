@@ -32,9 +32,9 @@ class SnagAdapter extends TypeAdapter<Snag> {
       location: fields[11] as String?,
       lastModified: fields[12] as DateTime?,
       dateCompleted: fields[13] as DateTime?,
-    )
-      ..tags = (fields[15] as List?)?.cast<Tag>()
-      ..categories = (fields[16] as List?)?.cast<cii.Category>();
+      tags: (fields[15] as List?)?.cast<Tag>(),
+      categories: (fields[16] as List?)?.cast<cii.Category>(),
+    );
   }
 
   @override

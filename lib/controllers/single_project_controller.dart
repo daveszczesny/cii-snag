@@ -155,16 +155,19 @@ class SingleProjectController {
   }
 
   void removeTag(String name) {
-    project.createdTags.removeWhere((tag) => tag.name == name);
+    project.createdTags?.removeWhere((tag) => tag.name == name);
   }
 
   void addTag(String name, Color color) {
-    project.createdTags.add(Tag(name: name, color: color));
+    project.createdTags ??= <Tag>[];
+    project.createdTags?.add(Tag(name: name, color: color));
+    project.save();
   }
 
   void addCategory(String name, Color color) {
     project.createdCategories ??= <cii.Category>[];
     project.createdCategories?.add(cii.Category(name: name, color: color));
+    project.save();
   }
 
 }

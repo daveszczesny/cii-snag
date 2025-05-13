@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:cii/controllers/single_project_controller.dart';
+import 'package:cii/utils/colors/app_colors.dart';
 import 'package:cii/view/project/project_detail.dart';
 import 'package:cii/view/utils/constants.dart';
 import 'package:flutter/material.dart';
@@ -37,7 +38,8 @@ class _ProjectCardWidgetState extends State<ProjectCardWidget> {
           padding: const EdgeInsets.all(16.0),
           child: Row(
             children: [
-              Container(
+              if (widget.projectController.getMainImagePath != null) ... [
+                Container(
                 width: 50,
                 height: 50,
                 color: Colors.grey,
@@ -51,27 +53,27 @@ class _ProjectCardWidgetState extends State<ProjectCardWidget> {
                     : const Icon(Icons.image, color: Colors.white),
                   ),
                   const SizedBox(width: 16.0),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        Text(
-                          widget.projectController.getName!,
-                          style: const TextStyle(
-                            fontSize: 18.0,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.black,
-                          ),
+              ],
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Text(
+                        widget.projectController.getName!,
+                        style: const TextStyle(
+                          fontSize: 18.0,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black,
                         ),
-                        const SizedBox(height: 8.0),
-                        widget.projectController.getSnags!.isEmpty
-                          ? const Text(AppStrings.noSnagsFound)
-                          : LinearProgressIndicator(
-                            value: widget.projectController.getSnagProgress(),
-                            color: Colors.blue,
-                          ),
-
+                      ),
+                      const SizedBox(height: 8.0),
+                      widget.projectController.getSnags!.isEmpty
+                        ? const Text(AppStrings.noSnagsFound)
+                        : LinearProgressIndicator(
+                          value: widget.projectController.getSnagProgress(),
+                          color: Colors.blue,
+                        ),
                       ],
                     ),
                   ),
@@ -146,7 +148,7 @@ class _ProjectCardWidgetState extends State<ProjectCardWidget> {
                         const PopupMenuDivider(height: 1.0),
                         const PopupMenuItem<String>(
                           value: 'delete',
-                          child: Text(AppStrings.deleteProject)
+                          child: Text(AppStrings.deleteProject, style: TextStyle(color: AppColors.red)),
                         ),
                       ];
                     },

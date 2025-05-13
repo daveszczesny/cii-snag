@@ -33,9 +33,8 @@ class ProjectAdapter extends TypeAdapter<Project> {
       location: fields[13] as String?,
       status: fields[14] as Status?,
       createdCategories: (fields[17] as List?)?.cast<cii.Category>(),
-    )
-      ..snags = (fields[15] as List).cast<Snag>()
-      ..createdTags = (fields[16] as List).cast<Tag>();
+      createdTags: (fields[16] as List?)?.cast<Tag>(),
+    )..snags = (fields[15] as List).cast<Snag>();
   }
 
   @override

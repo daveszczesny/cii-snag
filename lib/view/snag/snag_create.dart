@@ -1,5 +1,6 @@
 import 'package:cii/controllers/single_project_controller.dart';
 import 'package:cii/models/category.dart' as cii;
+import 'package:cii/models/priority.dart';
 import 'package:cii/models/snag.dart';
 import 'package:cii/models/tag.dart';
 import 'package:cii/view/project/project_detail.dart';
@@ -23,14 +24,17 @@ class _SnagCreateState extends State<SnagCreate> {
   // final TextEditingController priorityController = TextEditingController();
   final TextEditingController assigneeController = TextEditingController();
   final TextEditingController locationController = TextEditingController();
+  final TextEditingController priorityController = TextEditingController();
   cii.Category? snagCategory;
   List<Tag>? snagTags = [];
+  final List<String> priorityOptions = ['Low', 'Medium', 'High'];
 
 
   void createSnag() {
     final String name = nameController.text;
     final String assignee = assigneeController.text;
     final String location = locationController.text;
+    final Priority priority = Priority.getPriorityByString(priorityController.text);
 
     if (widget.projectController != null) {
       widget.projectController?.addSnag(
@@ -40,7 +44,8 @@ class _SnagCreateState extends State<SnagCreate> {
           location: location,
           assignee: assignee,
           categories: snagCategory != null ? [snagCategory!] : [],
-          tags: snagTags
+          tags: snagTags,
+          priority: priority,
         )
       );
 
@@ -72,6 +77,8 @@ class _SnagCreateState extends State<SnagCreate> {
                 buildTextInput(AppStrings.projectLocation, 'Ex. Living Room', locationController),
                 const SizedBox(height: 28.0),
                 buildTextInput(AppStrings.assignee, AppStrings.assigneeExample, assigneeController),
+                const SizedBox(height: 28.0),
+                buildDropdownInput('Priority', priorityOptions, priorityController),
                 const SizedBox(height: 28.0),
                 ObjectSelector(
                   label: 'Category',

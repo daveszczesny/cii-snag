@@ -73,7 +73,7 @@ class Project extends HiveObject {
   // Tags are project specific
   // All tags are created by the user, and can be reused when creating snags
   @HiveField(16)
-  List<Tag> createdTags = [];
+  List<Tag>? createdTags;
 
   // Categories are project specific
   // There will be some premade categories but more can be created by the user

@@ -55,42 +55,44 @@ class _SnagCardWidgetState extends State<SnagCardWidget> {
   }
 
   void _showCategoryModal(BuildContext context) {
-  showModalBottomSheet(
-    context: context,
-    builder: (BuildContext context) {
-      return Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: FractionallySizedBox(
-          heightFactor: 0.7,
-          child: SingleChildScrollView( // <-- Add this
-            child: Column(
-              children: widget.projectController.getCategories!
-                .map((category) {
-                  return ListTile(
-                    title: Text(category.name),
-                    onTap: () {
-                      setState(() {
-                        widget.snagController.setCategory(category);
-                      });
-                      widget.onStatusChanged();
-                      Navigator.pop(context);
-                    },
-                  );
-                }).toList(),
+    showModalBottomSheet(
+      context: context, 
+      builder: (BuildContext context) {
+        final categories = widget.projectController.getCategories!;
+        return Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: FractionallySizedBox(
+            heightFactor: 0.7,
+            child: ListView.builder(
+              itemCount: categories.length,
+              itemBuilder: (context, index) {
+                final cat = categories[index];
+                return ListTile(
+                  title: Text(cat.name),
+                  onTap: () {
+                    setState(() {
+                      widget.snagController.setCategory(cat);
+                    });
+                    Navigator.pop(context);
+                  },
+                );
+              },
             ),
           ),
-        ),
-      );
+        );
+      }
+    );
     }
-  );
-}
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
         Navigator.of(context).push(
-          MaterialPageRoute(builder: (context) => SnagDetail(projectController: widget.projectController, snag: widget.snagController))
+          MaterialPageRoute(builder: (context) => SnagDetail(
+            projectController: widget.projectController,
+            snag: widget.snagController,
+            onStatusChanged: widget.onStatusChanged))
         );
       },
       child: SizedBox(
@@ -164,7 +166,7 @@ class _SnagCardWidgetState extends State<SnagCardWidget> {
                           ),
 
                           // Category pill (show only if categories is not empty)
-                          if (widget.snagController.categories.isNotEmpty)
+                          if (widget.snagController.categories.isNotEmpty) ... [
                             const SizedBox(width: 8.0),
                             GestureDetector(
                               onTap: () => _showCategoryModal(context),
@@ -187,6 +189,7 @@ class _SnagCardWidgetState extends State<SnagCardWidget> {
                                 )
                               )
                             ),
+                          ]
                         ],
                       ),
                     ],
@@ -198,27 +201,65 @@ class _SnagCardWidgetState extends State<SnagCardWidget> {
                     PopupMenuButton<String>(
                       onSelected: (value) {
                         // Handle menu actions
+                        switch (value) {
+                          case 'view':
+                            Navigator.of(context).push(
+                              MaterialPageRoute(builder: (context) => SnagDetail(projectController: widget.projectController, snag: widget.snagController))
+                            );
+                            break;
+                          case 'share':
+                            break;
+                          case 'edit':
+                            break;
+                          case 'delete':
+                            showDialog(
+                              context: context,
+                              builder: (context) {
+                                return AlertDialog(
+                                  title: const Text('Delete Snag'),
+                                  content: const Text('Are you sure you want to delete this snag?'),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.of(context).pop();
+                                      },
+                                      child: const Text(AppStrings.cancel)
+                                    ),
+                                    TextButton(
+                                      onPressed: () {
+                                        widget.projectController.deleteSnag(widget.snagController.snag);
+                                        widget.onStatusChanged();
+                                        Navigator.of(context).pop();
+                                      },
+                                      child: const Text(AppStrings.delete)
+                                    ),
+                                  ],
+                                );
+                              }
+                            );
+                            break;
+                        }
                       },
                       // Quick actions for a selected project
                       itemBuilder: (BuildContext context) {
                         return const [
                           PopupMenuItem<String>(
-                            value: 'View snag',
+                            value: 'view',
                             child: Text(AppStrings.viewSnag),
                           ),
                           PopupMenuItem<String>(
-                            value: 'Share snag',
+                            value: 'share',
                             child: Text(AppStrings.shareSnag),
                           ),
                           PopupMenuItem<String>(
-                            value: 'Edit snag',
+                            value: 'edit',
                             child: Text(AppStrings.editSnag),
                           ),
                           PopupMenuDivider(
                             height: 1.0,
                           ),
                           PopupMenuItem<String>(
-                            value: 'Delete snag',
+                            value: 'delete',
                             child: Text(AppStrings.deleteSnag, style: TextStyle(color: AppColors.red)),
                           ),
                         ];
