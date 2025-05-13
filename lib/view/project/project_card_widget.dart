@@ -79,7 +79,7 @@ class _ProjectCardWidgetState extends State<ProjectCardWidget> {
         );
       },
       child: Card(
-        color: AppColors.cardColor,
+        color: Theme.of(context).cardColor,
         margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
         child: SizedBox(
           height: 120, // Adjust height as needed
@@ -110,10 +110,10 @@ class _ProjectCardWidgetState extends State<ProjectCardWidget> {
                           const Spacer(), // Pushes the text to vertical center
                           Text(
                             widget.projectController.getName!,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 24.0,
                               fontWeight: FontWeight.w600,
-                              color: Colors.black,
+                              color: Theme.of(context).textTheme.bodyLarge?.color,
                             ),
                             textAlign: TextAlign.start,
                           ),

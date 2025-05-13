@@ -99,7 +99,7 @@ class _SnagCardWidgetState extends State<SnagCardWidget> {
       child: SizedBox(
         height: 110,
         child: Card(
-          color: AppColors.cardColor,
+          color: Theme.of(context).cardColor,
           margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
           child: Padding(
             padding: const EdgeInsets.all(16.0),

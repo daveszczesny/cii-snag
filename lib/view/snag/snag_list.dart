@@ -72,6 +72,42 @@ class _SnagListState extends State<SnagList> with SingleTickerProviderStateMixin
     );
   }
 
+
+  /*
+  // bar at the bottom
+  // later figure out how to make this an option for the user in the Settings
+@override
+Widget build(BuildContext context){
+  return Scaffold(
+    body: TabBarView(
+      controller: _tabController,
+      children: [
+        buildSnagList(AppStrings.all),
+        buildSnagList(Status.todo.name),
+        buildSnagList(Status.inProgress.name),
+        buildSnagList(Status.completed.name),
+        buildSnagList(Status.blocked.name),
+      ]
+    ),
+    bottomNavigationBar: Material(
+      color: Theme.of(context).cardColor,
+      child: TabBar(
+        controller: _tabController,
+        isScrollable: true,
+        tabs: const [
+          Tab(text: AppStrings.all),
+          Tab(text: AppStrings.statusTodo),
+          Tab(text: AppStrings.statusInProgress),
+          Tab(text: AppStrings.statusCompleted),
+          Tab(text: AppStrings.statusBlocked)
+        ],
+      ),
+    ),
+  );
+}
+  */
+
+  // bar at the top
   @override
   Widget build(BuildContext context){
     return Scaffold(

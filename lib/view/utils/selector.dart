@@ -193,10 +193,10 @@ class _ObjectSelectorState<T> extends State<ObjectSelector<T>> {
         const SizedBox(height: 12.0),
         Text(
           'Project ${widget.pluralLabel}',
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 12.0,
             fontWeight: FontWeight.w400,
-            color: Colors.black,
+            color: Theme.of(context).textTheme.bodyLarge?.color,
             fontFamily: 'Roboto',
           )
         ),
@@ -226,10 +226,10 @@ class _ObjectSelectorState<T> extends State<ObjectSelector<T>> {
                 alignment: Alignment.center,
                 child:Text(
                   name,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14.0,
                     fontWeight: FontWeight.w400,
-                    color: Colors.black,
+                    color: Theme.of(context).textTheme.bodyLarge?.color,
                     fontFamily: 'Roboto',
                   ),
                   overflow: TextOverflow.ellipsis,

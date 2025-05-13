@@ -6,6 +6,7 @@ import 'package:cii/models/project.dart';
 import 'package:cii/models/snag.dart';
 import 'package:cii/models/status.dart';
 import 'package:cii/models/tag.dart';
+import 'package:cii/theme.dart';
 import 'package:cii/view/screen.dart';
 import 'package:cii/view/utils/constants.dart';
 import 'package:flutter/material.dart';
@@ -33,9 +34,12 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
       title: AppStrings.appTitle,
-      home: Screen(),
+      theme: lightTheme,
+      darkTheme: darkTheme,
+      themeMode: ThemeMode.system,
+      home: const Screen(),
     );
   }
 }
