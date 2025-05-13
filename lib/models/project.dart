@@ -1,4 +1,4 @@
-import 'package:cii/models/category.dart' as cii;
+import 'package:cii/models/category.dart';
 import 'package:cii/models/comment.dart';
 import 'package:cii/models/snag.dart';
 import 'package:cii/models/status.dart';
@@ -79,7 +79,7 @@ class Project extends HiveObject {
   // There will be some premade categories but more can be created by the user
   // Will be used to categorize snags
   @HiveField(17)
-  List<cii.Category>? createdCategories;
+  List<Category>? createdCategories;
 
 
   Project({
@@ -98,7 +98,7 @@ class Project extends HiveObject {
     this.finalRemarks,
     this.location,
     Status? status,
-    List<cii.Category>? createdCategories,
+    List<Category>? createdCategories,
     List<Tag>? createdTags,
   })
   :

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:cii/controllers/single_project_controller.dart';
 import 'package:cii/controllers/snag_controller.dart';
 import 'package:cii/models/status.dart';
@@ -108,7 +110,12 @@ class _SnagCardWidgetState extends State<SnagCardWidget> {
                   width: 50,
                   height: 50,
                   color: Colors.grey,
-                  child: const Icon(Icons.image, color: Colors.white),
+                  child: widget.snagController.imagePaths.isEmpty
+                   ? const Icon(Icons.image, color: Colors.white)
+                   : Image.file(
+                      File(widget.snagController.imagePaths[0]),
+                      fit: BoxFit.cover,
+                    ),
                 ),
                 const SizedBox(width: 16.0),
                 Expanded(

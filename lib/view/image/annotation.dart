@@ -1,0 +1,71 @@
+import 'dart:io';
+
+import 'package:flutter/material.dart';
+import 'package:image_painter/image_painter.dart';
+import 'package:path_provider/path_provider.dart';
+
+class ImageAnnotationScreen extends StatefulWidget {
+
+  final String imagePath;
+
+  const ImageAnnotationScreen({super.key, required this.imagePath});
+
+  @override
+  State<ImageAnnotationScreen> createState() => _ImageAnnotationScreenState();
+}
+
+class _ImageAnnotationScreenState extends State<ImageAnnotationScreen> {
+  final imagePainterController = ImagePainterController(
+    color: Colors.green,
+    strokeWidth: 4,
+    mode: PaintMode.line,
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Image Annotation'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.save_alt),
+            onPressed: saveImage,
+          )
+        ],
+      ),
+      body: ImagePainter.asset(
+        widget.imagePath,
+        controller: imagePainterController,
+        scalable: true,
+        textDelegate: TextDelegate(),
+      )
+    );
+  }
+
+   void saveImage() async {
+    final image = await imagePainterController.exportImage();
+    final imageName = '${DateTime.now().millisecondsSinceEpoch}.png';
+    final directory = (await getApplicationDocumentsDirectory()).path;
+    await Directory('$directory/snagImages').create(recursive: true);
+    final fullPath = '$directory/snagImages/$imageName';
+    final imgFile = File(fullPath);
+    if (image != null) {
+      imgFile.writeAsBytesSync(image);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: Colors.grey[700],
+          padding: const EdgeInsets.only(left: 10),
+          content: const Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text("Image Exported successfully.",
+                  style: TextStyle(color: Colors.white)),
+            ],
+          ),
+        ),
+      );
+      Navigator.pop(context, fullPath);
+    }
+  }
+
+}
