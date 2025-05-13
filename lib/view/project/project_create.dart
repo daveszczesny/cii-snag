@@ -2,6 +2,7 @@ import 'package:cii/controllers/project_controller.dart';
 import 'package:cii/models/project.dart';
 import 'package:cii/models/category.dart' as cii;
 import 'package:cii/models/tag.dart';
+import 'package:cii/utils/common.dart';
 import 'package:cii/view/utils/constants.dart';
 import 'package:cii/view/utils/selector.dart';
 import 'package:cii/view/utils/text.dart';
@@ -24,8 +25,8 @@ class _ProjectCreateState extends State<ProjectCreate> {
   final TextEditingController _projectRefController = TextEditingController();
   final TextEditingController _clientController = TextEditingController();
   final TextEditingController _contractorController = TextEditingController();
-  List<cii.Category> _categories = cii.Category.defaultCategories;
-  List<Tag> _tags = []; // no default tags
+  final List<cii.Category> _categories = List<cii.Category>.from(cii.Category.defaultCategories);
+  final List<Tag> _tags = []; // no default tags
 
   late ProjectController projectController;
 
@@ -36,12 +37,24 @@ class _ProjectCreateState extends State<ProjectCreate> {
   }
 
   void createProject() {
-    final String name = _nameController.text;
+    String name = _nameController.text;
     final String description = _descriptionController.text;
     final String location = _locationController.text;
     final String projectRef = _projectRefController.text;
     final String client = _clientController.text;
     final String contractor = _contractorController.text;
+
+    if (name.isEmpty) {
+      // if the name is empty, create a default name 'Project #$no' and also show a snackbar
+      int no = projectController.getAllProjects().length + 1;
+      name = 'Project #$no';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Project name is empty. Default name $name will be used'),
+          duration: const Duration(seconds: 2),
+        )
+      );
+    }
 
     projectController.createProject(
       name: name,
@@ -73,7 +86,7 @@ class _ProjectCreateState extends State<ProjectCreate> {
       ),
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.all(38.0),
+          padding: const EdgeInsets.all(24.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -98,7 +111,7 @@ class _ProjectCreateState extends State<ProjectCreate> {
                 getColor: (cat) => cat.color,
                 onCreate: (name, color) {
                   setState(() {
-                    _categories.add(cii.Category(name: name, color: color));
+                    _categories.add(cii.Category(name: capitilize(name), color: color));
                   });
                 },
               ),
@@ -112,7 +125,7 @@ class _ProjectCreateState extends State<ProjectCreate> {
                 getColor: (tag) => tag.color,
                 onCreate: (name, color) {
                   setState(() {
-                    _tags.add(Tag(name: name, color: color));
+                    _tags.add(Tag(name: capitilize(name), color: color));
                   });
                 }
               ),

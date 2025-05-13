@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:cii/controllers/single_project_controller.dart';
 import 'package:cii/controllers/snag_controller.dart';
 import 'package:cii/models/status.dart';
+import 'package:cii/view/utils/image.dart';
 import 'package:flutter/material.dart';
 
 class SnagDetail extends StatefulWidget {
@@ -17,6 +18,8 @@ class SnagDetail extends StatefulWidget {
 }
 
 class _SnagDetailState extends State<SnagDetail> {
+
+  List<String> progressImageFilePaths = [];
 
   @override
   void initState() {
@@ -81,7 +84,20 @@ class _SnagDetailState extends State<SnagDetail> {
         );
       }
     );
-    }
+  }
+
+  void onChange() {
+    setState(() {
+      for (final path in progressImageFilePaths) {
+        if (!widget.snag.progressImagePaths.contains(path)) {
+          widget.snag.addProgressImagePath(path);
+        }
+      }
+      progressImageFilePaths.clear();
+      widget.projectController.saveProject();
+      // widget.onStatusChanged!();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -103,6 +119,8 @@ class _SnagDetailState extends State<SnagDetail> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+
+                  // Page Contents
                   if (widget.snag.getId != '') ... [
                     Text('ID: ${widget.snag.getId}'),
                     const SizedBox(height: 28.0)
@@ -157,6 +175,7 @@ class _SnagDetailState extends State<SnagDetail> {
                     const SizedBox(height: 28.0)
                   ],
 
+                  // Status
                   GestureDetector(
                     onTap: () => _showStatusModal(context),
                     child: Container(
@@ -179,6 +198,47 @@ class _SnagDetailState extends State<SnagDetail> {
                     )
                   ),
 
+                  const SizedBox(height: 24.0),
+                  // Progress Pictures (only if not completed)
+                  if (widget.snag.status.name != Status.completed.name) ... [
+                    buildImageInput('Add Progress Pictures', context, progressImageFilePaths, onChange)
+                  ],
+
+                  if (widget.snag.progressImagePaths.isNotEmpty) ... [
+                    const Text('Progress Pictures'),
+                    const SizedBox(height: 8.0),
+                    SizedBox(
+                      height: 200,
+                      child: GridView.builder(
+                        physics: const NeverScrollableScrollPhysics(),
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 3,
+                          crossAxisSpacing: 4.0,
+                          mainAxisSpacing: 4.0,
+                        ),
+                        itemCount: widget.snag.progressImagePaths!.length,
+                        itemBuilder: (context, index) {
+                          return GestureDetector(
+                            onTap: () {
+                              showDialog(
+                                context: context,
+                                builder: (_) => Dialog(
+                                  backgroundColor: Colors.transparent,
+                                  child: GestureDetector(
+                                    onTap: () => Navigator.of(context).pop(),
+                                    child: InteractiveViewer(child: Image.file(File(widget.snag.progressImagePaths![index])))
+                                  ),
+                                )
+                              );
+                            },
+                            child: Image.file(File(widget.snag.progressImagePaths![index]), fit: BoxFit.cover),
+                          );
+                        }
+                      ),
+                    )
+                  ],
+
+                  // Category and Tags
                   if (widget.snag.categories.isNotEmpty) ... [
                     const Text('Category'),
                     const SizedBox(height: 8.0),

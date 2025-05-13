@@ -1,3 +1,5 @@
+import 'package:cii/controllers/single_project_controller.dart';
+import 'package:cii/models/project.dart';
 import 'package:flutter/material.dart';
 
 Widget buildTextDetail(String label, String text) {
@@ -122,6 +124,53 @@ Widget buildDropdownInput(String label, List<String> options, TextEditingControl
         onChanged: (String? value) {
           controller.text = value ?? '';
         },
+        decoration: InputDecoration(
+          hintText: 'Select $label',
+          hintStyle: const TextStyle(
+            color: Color(0xFF333333),
+            fontSize: 16,
+            fontWeight: FontWeight.w300,
+            fontFamily: 'Roboto',
+          ),
+          enabledBorder: const UnderlineInputBorder(
+            borderSide: BorderSide(color: Color(0xFF333333)),
+          ),
+          focusedBorder: const UnderlineInputBorder(
+            borderSide: BorderSide(color: Color(0xFF333333)),
+          ),
+        ),
+      ),
+    ],
+  );
+}
+
+Widget buildDropdownInputForObjects({
+  required String label,
+  required List<Project> options,
+  required Project? selectedProject,
+  required ValueChanged<Project?> onChanged,
+}) {
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        label,
+        style: const TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.w600,
+          fontFamily: 'Roboto',
+        ),
+      ),
+      const SizedBox(height: 12.0),
+      DropdownButtonFormField<Project>(
+        value: selectedProject,
+        items: options.map((Project option) {
+          return DropdownMenuItem<Project>(
+            value: option,
+            child: Text(option.name),
+          );
+        }).toList(),
+        onChanged: onChanged,
         decoration: InputDecoration(
           hintText: 'Select $label',
           hintStyle: const TextStyle(

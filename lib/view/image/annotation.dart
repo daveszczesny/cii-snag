@@ -53,6 +53,7 @@ class _ImageAnnotationScreenState extends State<ImageAnnotationScreen> {
       imgFile.writeAsBytesSync(image);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
+          duration: const Duration(seconds: 2),
           backgroundColor: Colors.grey[700],
           padding: const EdgeInsets.only(left: 10),
           content: const Row(

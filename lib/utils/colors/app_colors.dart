@@ -25,7 +25,7 @@ class AppColors {
 
 
   static const Color backgroundColor = Color(0xFFffffff);
-  static const Color cardColor = Color.fromARGB(255, 247, 247, 247);
+  static const Color cardColor = Color(0xFFFFFFFF);
 
   // 0xFFe3e8e3 i like it but idk green on green
 }

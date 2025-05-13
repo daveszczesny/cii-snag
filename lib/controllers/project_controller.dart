@@ -33,7 +33,7 @@ class ProjectController {
         contractor: contractor,
         location: location,
         projectRef: projectRef,
-        createdCategories: categories,
+        createdCategories: categories != null ? List<cii.Category>.from(categories) : [],
         createdTags: tags,
 
       );
@@ -52,13 +52,42 @@ class ProjectController {
     return projectBox.values.firstWhere((project) => project.id == id, orElse: () => throw Exception('Project not found'));
   }
 
+  List<Project> getAllProjects() {
+    return projectBox.values.toList();
+  }
+
+  List<Project>? getProjectsByStatus(String status) {
+    switch (status.toLowerCase()) {
+      case 'completed':
+        // check if any project is completed
+        List<Project> completedProjects = projectBox.values
+            .where((project) => project.status == Status.completed).toList();
+
+        if (completedProjects.isEmpty) { return []; }
+        completedProjects.sort((a, b) => b.dateCompleted!.compareTo(a.dateCompleted!));
+        return completedProjects;
+      case 'recent':
+        final twoWeekLimit = DateTime.now().subtract(const Duration(days: 14));
+        List<Project> recentProjects = projectBox.values
+            .where((project) => project.dateModified!.isAfter(twoWeekLimit))
+            .toList();
+        if (recentProjects.isEmpty) { return []; }
+        recentProjects.sort((a, b) => b.dateModified!.compareTo(a.dateModified!));
+        return recentProjects;
+      case 'all':
+      default:
+        List<Project> allProjects = projectBox.values.toList();
+        allProjects.sort((a, b) => b.dateModified!.compareTo(a.dateModified!));
+        return allProjects;
+    }
+  }
 
   Stream<List<Project>> filterProjects(String filter) async*{
     List<Project> filteredProjects;
     switch (filter.toLowerCase()) {
       case 'recent':
         filteredProjects = projectBox.values.toList()
-          ..sort((a, b) => b.dateCreated!.compareTo(a.dateCreated!));
+          ..sort((a, b) => b.dateModified!.compareTo(a.dateModified!));
         break;
       case 'completed':
         filteredProjects = projectBox.values
@@ -69,7 +98,7 @@ class ProjectController {
       case 'all':
       default:
         filteredProjects = projectBox.values.toList()
-          ..sort((a, b) => b.dateCreated!.compareTo(a.dateCreated!));
+          ..sort((a, b) => b.dateModified!.compareTo(a.dateModified!));
         break;
     }
     yield filteredProjects;

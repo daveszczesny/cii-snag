@@ -30,7 +30,8 @@ class SingleProjectController {
 
   void addSnag(Snag snag) {
     project.snags.add(snag);
-    project.save();
+    project.dateModified = DateTime.now();
+    saveProject();
   }
 
   void updateSnag(Snag updatedSnag) {
@@ -39,11 +40,12 @@ class SingleProjectController {
       project.snags[index] = updatedSnag;
       project.save();
     }
+    saveProject();
   }
 
   void deleteSnag(Snag snag) {
     project.snags.remove(snag);
-    project.save();
+    saveProject();
   }
 
   List<SnagController> getAllSnags() {

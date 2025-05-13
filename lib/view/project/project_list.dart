@@ -2,6 +2,7 @@ import 'package:cii/controllers/project_controller.dart';
 import 'package:cii/controllers/single_project_controller.dart';
 import 'package:cii/models/project.dart';
 import 'package:cii/view/project/project_card_widget.dart';
+import 'package:cii/view/project/project_list_tab.dart';
 import 'package:cii/view/utils/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -29,23 +30,25 @@ class _ProjectListViewState extends State<ProjectListView> {
       appBar: AppBar(
         title: const Text(AppStrings.myProjects)
       ),
-      body: ValueListenableBuilder(
-        valueListenable: _controller.projectBox.listenable(),
-        builder: (context, Box<Project> box, _) {
-          if (box.isEmpty) {
-          return const Center(child: Text(AppStrings.noProjectsFound));
-          }
+      body: ProjectListTabWidget(),
+      
+      // ValueListenableBuilder(
+      //   valueListenable: _controller.projectBox.listenable(),
+      //   builder: (context, Box<Project> box, _) {
+      //     if (box.isEmpty) {
+      //     return const Center(child: Text(AppStrings.noProjectsFound));
+      //     }
         
-          return ListView.builder(
-            itemCount: box.length,
-            itemBuilder: (context, index) {
-              final projectObject = box.getAt(index)!;
-              final projectController = SingleProjectController(projectObject);
-              return ProjectCardWidget(projectController: projectController);
-            }
-          );
-        }
-      )
+      //     return ListView.builder(
+      //       itemCount: box.length,
+      //       itemBuilder: (context, index) {
+      //         final projectObject = box.getAt(index)!;
+      //         final projectController = SingleProjectController(projectObject);
+      //         return ProjectCardWidget(projectController: projectController);
+      //       }
+      //     );
+      //   }
+      // )
     );
   }
 }

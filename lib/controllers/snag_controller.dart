@@ -53,6 +53,15 @@ class SnagController {
   Map<String, String> get annotatedImagePaths {
     return snag.annotatedImagePaths ?? {};
   }
+
+  List<String> get progressImagePaths {
+    return snag.progressImagePaths ?? [];
+  }
+
+  void addProgressImagePath(String path) {
+    snag.progressImagePaths ??= [];
+    snag.progressImagePaths!.add(path);
+  }
   
   List<Comment> get comments {
     return snag.comments ?? [];

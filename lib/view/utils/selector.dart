@@ -190,7 +190,7 @@ class _ObjectSelectorState<T> extends State<ObjectSelector<T>> {
             ),
           ],
         ),
-        const SizedBox(height: 8.0),
+        const SizedBox(height: 12.0),
         Text(
           'Project ${widget.pluralLabel}',
           style: const TextStyle(
@@ -214,10 +214,10 @@ class _ObjectSelectorState<T> extends State<ObjectSelector<T>> {
               onTap: () => widget.onSelect == null ? null : _handleTap(obj),
               child: Container(
                 constraints: const BoxConstraints(
-                  minWidth: 90,
-                  maxWidth: 140,
+                  minWidth: 110,
+                  maxWidth: 150,
                 ),
-                padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
+                padding: const EdgeInsets.symmetric(horizontal: 18.0, vertical: 8.0),
                 decoration: BoxDecoration(
                   color: color,
                   borderRadius: BorderRadius.circular(20.0),
@@ -227,7 +227,7 @@ class _ObjectSelectorState<T> extends State<ObjectSelector<T>> {
                 child:Text(
                   name,
                   style: const TextStyle(
-                    fontSize: 12.0,
+                    fontSize: 14.0,
                     fontWeight: FontWeight.w400,
                     color: Colors.black,
                     fontFamily: 'Roboto',

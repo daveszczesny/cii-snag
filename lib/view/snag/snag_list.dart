@@ -79,6 +79,7 @@ class _SnagListState extends State<SnagList> with SingleTickerProviderStateMixin
         children: [
           TabBar(
             controller: _tabController,
+            isScrollable: true,
             tabs: const [
               Tab(text: AppStrings.all),
               Tab(text: AppStrings.statusTodo),

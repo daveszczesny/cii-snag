@@ -2,8 +2,10 @@ import 'package:cii/controllers/project_controller.dart';
 import 'package:cii/controllers/single_project_controller.dart';
 import 'package:cii/models/project.dart';
 import 'package:cii/view/project/project_card_widget.dart';
+import 'package:cii/view/utils/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 class ProjectListTabWidget extends StatefulWidget {
 
@@ -34,27 +36,27 @@ class _ProjectListTabWidgetState extends State<ProjectListTabWidget> with Single
 
 
   Widget buildProjectList(String status) {
-    return StreamBuilder<List<Project>>(
-      stream: controller.filterProjects(status),
-      builder: (context, snapshot) { 
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        if (snapshot.hasError) {
-          return const Center(child: Text('Error loading projects.'));
-        }
+    return ValueListenableBuilder(
+        valueListenable: controller.projectBox.listenable(),
+        builder: (context, Box<Project> box, _) {
+          if (box.isEmpty) {
+          return const Center(child: Text(AppStrings.noProjectsFound));
+          }
 
-        final projects = snapshot.data;
-        return ListView.builder(
-          itemCount: projects?.length,
-          itemBuilder: ((context, index) {
-            return ProjectCardWidget(
-              projectController: SingleProjectController(projects![index])
-            );
-          })
-        );
-      }
-    );
+          List<Project>? projects = controller.getProjectsByStatus(status);
+          if (projects == null || projects.isEmpty) {
+            return const Center(child: Text('No projects found.'));
+          }
+          return ListView.builder(
+            itemCount: box.length,
+            itemBuilder: (context, index) {
+              final projectObject = projects[index];
+              final projectController = SingleProjectController(projectObject);
+              return ProjectCardWidget(projectController: projectController);
+            }
+          );
+        }
+      );
   }
 
   @override
@@ -74,7 +76,7 @@ class _ProjectListTabWidgetState extends State<ProjectListTabWidget> with Single
           TabBar(
             controller: tabController,
             indicatorSize: TabBarIndicatorSize.tab,
-            isScrollable: true,
+            isScrollable: false,
             labelPadding: const EdgeInsets.symmetric(horizontal: 16.0),
             tabs: tabs,
           ),

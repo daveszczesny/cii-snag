@@ -90,7 +90,7 @@ class Project extends HiveObject {
     this.mainImagePath,
     this.comments,
     DateTime? dateCreated,
-    this.dateModified,
+    DateTime? dateModified,
     this.dateCompleted,
     this.projectRef,
     this.client,
@@ -105,6 +105,7 @@ class Project extends HiveObject {
     uuid = uuid ?? const Uuid().v4(),
     id = id ?? humanReadableId(name),
     dateCreated = dateCreated ?? DateTime.now(),
+    dateModified = dateModified ?? DateTime.now(),
     status = status ?? Status.todo,
     createdCategories = createdCategories ?? [],
     createdTags = createdTags ?? [];

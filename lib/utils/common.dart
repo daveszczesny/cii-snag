@@ -9,3 +9,7 @@ Future<String> saveImageToAppDir(File imageFile) async {
   final savedImage = await imageFile.copy('${appDir.path}/$fileName');
   return savedImage.path;
 }
+
+String capitilize(String s){
+  return s[0].toUpperCase() + s.substring(1);
+}

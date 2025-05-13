@@ -17,8 +17,17 @@ import 'package:image_picker/image_picker.dart';
             children: [
               // Main image tap (e.g., preview)
               GestureDetector(
-                onTap: () {
-                  // TODO: implement image preview or other action
+                // same on tap behavior as edit button
+                onTap: () async {
+                  final annotatedImagePath = await Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => ImageAnnotationScreen(imagePath: path),
+                      ),
+                    );
+
+                    if (annotatedImagePath != null) {
+                      onSave(path, annotatedImagePath);
+                    }
                 },
                 child: SizedBox(
                   width: 100,
@@ -116,7 +125,7 @@ Widget buildImageInput(
               title: const Text('Photo Library'),
               onTap: () {
                 Navigator.of(context).pop();
-                pickImages(imageFilePaths, onChange);
+                pickImagesFromSource(imageFilePaths, onChange, ImageSource.gallery);
               },
             ),
             ListTile(
@@ -124,7 +133,7 @@ Widget buildImageInput(
               title: const Text('Camera'),
               onTap: () {
                 Navigator.of(context).pop();
-                pickImages(imageFilePaths, onChange);
+                pickImagesFromSource(imageFilePaths, onChange, ImageSource.camera);
               },
             )
           ]
@@ -134,17 +143,27 @@ Widget buildImageInput(
   );
 }
 
-Future<void> pickImages(
+Future<void> pickImagesFromSource(
   List<String> imageFilePaths,
   VoidCallback onChange,
+  ImageSource source,
 ) async {
   final ImagePicker picker = ImagePicker();
-  final List<XFile>? images = await picker.pickMultiImage();
-  if (images != null) {
-    for (final image in images) {
+  if (source == ImageSource.gallery) {
+    final List<XFile>? images = await picker.pickMultiImage();
+    if (images != null) {
+      for (final image in images) {
+        String imagePath = await saveImageToAppDir(File(image.path));
+        imageFilePaths.add(imagePath);
+      }
+      onChange();
+    }
+  } else {
+    final XFile? image = await picker.pickImage(source: ImageSource.camera);
+    if (image != null) {
       String imagePath = await saveImageToAppDir(File(image.path));
       imageFilePaths.add(imagePath);
+      onChange();
     }
-    onChange();
   }
 }
