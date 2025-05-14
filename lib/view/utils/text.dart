@@ -2,6 +2,7 @@ import 'package:cii/controllers/single_project_controller.dart';
 import 'package:cii/models/project.dart';
 import 'package:cii/utils/colors/app_colors.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 
 Widget buildTextDetail(String label, String text) {
     return Column(
@@ -29,17 +30,36 @@ Widget buildTextDetail(String label, String text) {
     );
 }
 
-Widget buildTextInput(label, hintText, controller) {
+Widget buildTextInput(
+  String label,
+  String hintText,
+  TextEditingController controller,
+  {bool optional = true}
+) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-            fontFamily: 'Roboto',
-          ),
+        Row(
+          children: [
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
+                fontFamily: 'Roboto',
+              ),
+            ),
+            if (!optional)
+              const Text(
+                ' *',
+                style: TextStyle(
+                  color: Colors.red,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                  fontFamily: 'Roboto',
+                ),
+              ),
+          ],
         ),
         const SizedBox(height: 12.0),
         TextField(

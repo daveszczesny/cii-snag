@@ -25,12 +25,12 @@ class _ProjectDetailState extends State<ProjectDetail> {
   void initState() {
     super.initState();
     pages = [
+      // page for snag list
+      SnagList(projectController: widget.projectController),
       // page for project details
       ProjectDetailPage(projectController: widget.projectController),
       // page to create snag
       SnagCreate(projectController: widget.projectController),
-      // page for snag list
-      SnagList(projectController: widget.projectController)
     ];
 
     final projectName = widget.projectController.getName!;
@@ -56,16 +56,16 @@ class _ProjectDetailState extends State<ProjectDetail> {
         onDestinationSelected: (int index) => setState(() => selectedIndex = index),
         destinations: const [
           NavigationDestination(
+            icon: Icon(Icons.list),
+            label: AppStrings.snags,
+          ),
+          NavigationDestination(
             icon: Icon(Icons.info),
             label: AppStrings.projectDetails,
           ),
           NavigationDestination(
             icon: Icon(Icons.add),
             label: AppStrings.add,
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.list),
-            label: AppStrings.snags,
           ),
         ],
       ),

@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:cii/controllers/single_project_controller.dart';
+import 'package:cii/services/pdf_exporter.dart';
 import 'package:cii/utils/colors/app_colors.dart';
 import 'package:cii/view/project/project_detail.dart';
 import 'package:cii/view/utils/constants.dart';
@@ -34,8 +35,9 @@ class _ProjectCardWidgetState extends State<ProjectCardWidget> {
           MaterialPageRoute(builder: (context) => ProjectDetail(projectController: widget.projectController, index: 1))
         );
         break;
-      case 'share':
+      case 'export':
         // implement share functionality
+          savePdfFile();
         break;
       case 'edit':
         // implement edit functionality
@@ -127,8 +129,8 @@ class _ProjectCardWidgetState extends State<ProjectCardWidget> {
                                     : LinearProgressIndicator(
                                         value: widget.projectController.getSnagProgress(),
                                         color: Color.lerp(
-                                          AppColors.red,
-                                          AppColors.green,
+                                          Colors.blue,
+                                          Colors.green,
                                           widget.projectController.getSnagProgress(),
                                         ),
                                       )),
@@ -155,7 +157,7 @@ class _ProjectCardWidgetState extends State<ProjectCardWidget> {
                         child: Text(AppStrings.addSnag)
                       ),
                       const PopupMenuItem<String>(
-                        value: 'share',
+                        value: 'export',
                         child: Text(AppStrings.shareProject)
                       ),
                       const PopupMenuItem(

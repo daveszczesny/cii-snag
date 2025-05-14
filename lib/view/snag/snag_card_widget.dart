@@ -83,17 +83,62 @@ class _SnagCardWidgetState extends State<SnagCardWidget> {
         );
       }
     );
+  }
+
+  // Handles popup menu selection
+  void onSelect(String value) {
+    switch (value) {
+      case 'view':
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (context) => SnagDetail(projectController: widget.projectController, snag: widget.snagController))
+        );
+        break;
+      case 'share':
+        break;
+      case 'edit':
+        break;
+      case 'delete':
+        showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: const Text('Delete Snag'),
+              content: const Text('Are you sure you want to delete this snag?'),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text(AppStrings.cancel)
+                ),
+                TextButton(
+                  onPressed: () {
+                    widget.projectController.deleteSnag(widget.snagController.snag);
+                    widget.onStatusChanged();
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text(AppStrings.delete)
+                ),
+              ],
+            );
+          }
+        );
+        break;
     }
+  }
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
         Navigator.of(context).push(
-          MaterialPageRoute(builder: (context) => SnagDetail(
-            projectController: widget.projectController,
-            snag: widget.snagController,
-            onStatusChanged: widget.onStatusChanged))
+          MaterialPageRoute(
+            builder: (context) => SnagDetail(
+              projectController: widget.projectController,
+              snag: widget.snagController,
+              onStatusChanged: widget.onStatusChanged,
+            ),
+          ),
         );
       },
       child: SizedBox(
@@ -101,180 +146,141 @@ class _SnagCardWidgetState extends State<SnagCardWidget> {
         child: Card(
           color: Theme.of(context).cardColor,
           margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Row(
-              children: [
-                Container(
-                  width: 50,
-                  height: 50,
-                  color: Colors.grey,
-                  child: widget.snagController.imagePaths.isEmpty
-                   ? const Icon(Icons.image, color: Colors.white)
-                   : Image.file(
-                      File(widget.snagController.imagePaths[0]),
-                      fit: BoxFit.cover,
-                    ),
-                ),
-                const SizedBox(width: 16.0),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Image.asset(
-                            widget.snagController.priority.icon,
-                            width: 16.0,
-                            height: 16.0,
-                          ),
-                          const SizedBox(width: 8.0),
-                          Expanded(
-                            child: Text(
-                              widget.snagController.name,
-                              style: const TextStyle(
-                                fontSize: 18.0,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.primaryGreen,
-                                fontFamily: 'Roboto',
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                              maxLines: 1,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8.0),
-                      Row(
-                        children: [
-                          // ...status pill...
-                          GestureDetector(
-                            onTap: () => _showStatusModal(context),
-                            child: Container(
-                              width: 90,
-                              padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
-                              decoration: BoxDecoration(
-                                color: Status.getStatus(widget.snagController.status.name, context)!.color,
-                                borderRadius: BorderRadius.circular(20.0),
-                              ),
-                              alignment: Alignment.center,
-                              child: Text(
-                                widget.snagController.status.name,
-                                style: const TextStyle(
-                                  fontSize: 12.0,
-                                  fontWeight: FontWeight.w400,
-                                  color: Colors.black,
-                                  fontFamily: 'Roboto',
-                                )
-                              )
-                            )
-                          ),
-
-                          // Category pill (show only if categories is not empty)
-                          if (widget.snagController.categories.isNotEmpty) ... [
-                            const SizedBox(width: 8.0),
-                            GestureDetector(
-                              onTap: () => _showCategoryModal(context),
-                              child: Container(
-                                width: 90,
-                                padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
-                                decoration: BoxDecoration(
-                                  color: widget.snagController.categories[0].color,
-                                  borderRadius: BorderRadius.circular(20.0),
-                                ),
-                                alignment: Alignment.center,
-                                child: Text(
-                                  widget.snagController.categories[0].name, // Show category name, not status
-                                  style: const TextStyle(
-                                    fontSize: 12.0,
-                                    fontWeight: FontWeight.w400,
-                                    color: Colors.black,
-                                    fontFamily: 'Roboto',
-                                  )
-                                )
-                              )
-                            ),
-                          ]
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
+          child: Stack(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
                   children: [
-                    PopupMenuButton<String>(
-                      onSelected: (value) {
-                        // Handle menu actions
-                        switch (value) {
-                          case 'view':
-                            Navigator.of(context).push(
-                              MaterialPageRoute(builder: (context) => SnagDetail(projectController: widget.projectController, snag: widget.snagController))
-                            );
-                            break;
-                          case 'share':
-                            break;
-                          case 'edit':
-                            break;
-                          case 'delete':
-                            showDialog(
-                              context: context,
-                              builder: (context) {
-                                return AlertDialog(
-                                  title: const Text('Delete Snag'),
-                                  content: const Text('Are you sure you want to delete this snag?'),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () {
-                                        Navigator.of(context).pop();
-                                      },
-                                      child: const Text(AppStrings.cancel)
+                    Container(
+                      width: 50,
+                      height: 50,
+                      color: Colors.grey,
+                      child: widget.snagController.imagePaths.isEmpty
+                          ? const Icon(Icons.image_rounded, color: Colors.white, size: 50)
+                          : Image.file(
+                              File(widget.snagController.imagePaths[0]),
+                              fit: BoxFit.cover,
+                            ),
+                    ),
+                    const SizedBox(width: 16.0),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Image.asset(
+                                widget.snagController.priority.icon,
+                                width: 16.0,
+                                height: 16.0,
+                              ),
+                              const SizedBox(width: 8.0),
+                              Expanded(
+                                child: Text(
+                                  widget.snagController.name,
+                                  style: const TextStyle(
+                                    fontSize: 18.0,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.primaryGreen,
+                                    fontFamily: 'Roboto',
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8.0),
+                          Row(
+                            children: [
+                              // Status pill
+                              GestureDetector(
+                                onTap: () => _showStatusModal(context),
+                                child: Container(
+                                  width: 90,
+                                  padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
+                                  decoration: BoxDecoration(
+                                    color: Status.getStatus(widget.snagController.status.name, context)!.color,
+                                    borderRadius: BorderRadius.circular(20.0),
+                                  ),
+                                  alignment: Alignment.center,
+                                  child: Text(
+                                    widget.snagController.status.name,
+                                    style: const TextStyle(
+                                      fontSize: 12.0,
+                                      fontWeight: FontWeight.w400,
+                                      color: Colors.black,
+                                      fontFamily: 'Roboto',
                                     ),
-                                    TextButton(
-                                      onPressed: () {
-                                        widget.projectController.deleteSnag(widget.snagController.snag);
-                                        widget.onStatusChanged();
-                                        Navigator.of(context).pop();
-                                      },
-                                      child: const Text(AppStrings.delete)
+                                  ),
+                                ),
+                              ),
+                              // Category pill (show only if categories is not empty)
+                              if (widget.snagController.categories.isNotEmpty) ...[
+                                const SizedBox(width: 8.0),
+                                GestureDetector(
+                                  onTap: () => _showCategoryModal(context),
+                                  child: Container(
+                                    width: 90,
+                                    padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
+                                    decoration: BoxDecoration(
+                                      color: widget.snagController.categories[0].color,
+                                      borderRadius: BorderRadius.circular(20.0),
                                     ),
-                                  ],
-                                );
-                              }
-                            );
-                            break;
-                        }
-                      },
-                      // Quick actions for a selected project
-                      itemBuilder: (BuildContext context) {
-                        return const [
-                          PopupMenuItem<String>(
-                            value: 'view',
-                            child: Text(AppStrings.viewSnag),
+                                    alignment: Alignment.center,
+                                    child: Text(
+                                      widget.snagController.categories[0].name,
+                                      style: const TextStyle(
+                                        fontSize: 12.0,
+                                        fontWeight: FontWeight.w400,
+                                        color: Colors.black,
+                                        fontFamily: 'Roboto',
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ]
+                            ],
                           ),
-                          PopupMenuItem<String>(
-                            value: 'share',
-                            child: Text(AppStrings.shareSnag),
-                          ),
-                          PopupMenuItem<String>(
-                            value: 'edit',
-                            child: Text(AppStrings.editSnag),
-                          ),
-                          PopupMenuDivider(
-                            height: 1.0,
-                          ),
-                          PopupMenuItem<String>(
-                            value: 'delete',
-                            child: Text(AppStrings.deleteSnag, style: TextStyle(color: AppColors.red)),
-                          ),
-                        ];
-                      },
+                        ],
+                      ),
                     ),
                   ],
                 ),
-              ],
-            ),
+              ),
+              Positioned(
+                top: 0,
+                right: 0,
+                child: PopupMenuButton<String>(
+                  onSelected: onSelect,
+                  itemBuilder: (BuildContext context) {
+                    return const [
+                      PopupMenuItem<String>(
+                        value: 'view',
+                        child: Text(AppStrings.viewSnag),
+                      ),
+                      PopupMenuItem<String>(
+                        value: 'share',
+                        child: Text(AppStrings.shareSnag),
+                      ),
+                      PopupMenuItem<String>(
+                        value: 'edit',
+                        child: Text(AppStrings.editSnag),
+                      ),
+                      PopupMenuDivider(
+                        height: 1.0,
+                      ),
+                      PopupMenuItem<String>(
+                        value: 'delete',
+                        child: Text(AppStrings.deleteSnag, style: TextStyle(color: AppColors.red)),
+                      ),
+                    ];
+                  },
+                ),
+              ),
+            ],
           ),
         ),
       ),

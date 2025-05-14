@@ -2,6 +2,7 @@ import 'package:cii/adapters/color_adapter.dart';
 import 'package:cii/adapters/priority_enum_adapter.dart';
 import 'package:cii/models/category.dart';
 import 'package:cii/models/comment.dart';
+import 'package:cii/models/company.dart';
 import 'package:cii/models/project.dart';
 import 'package:cii/models/snag.dart';
 import 'package:cii/models/status.dart';
@@ -21,9 +22,11 @@ void main() async {
   Hive.registerAdapter(CommentAdapter());
   Hive.registerAdapter(CategoryAdapter());
   Hive.registerAdapter(TagAdapter());
+  Hive.registerAdapter(CompanyAdapter());
   Hive.registerAdapter(ProjectAdapter());
   Hive.registerAdapter(StatusAdapter());
   Hive.registerAdapter(SnagAdapter());
+  await Hive.openBox<Company>('companies');
   await Hive.openBox<Project>('projects');
 
   runApp(const MainApp());

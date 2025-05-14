@@ -101,7 +101,27 @@ Widget buildImageInput(
       IconButton(
         icon: const Icon(Icons.upload, size: 28, color: Color(0xFF333333)),
         tooltip: 'Upload Images',
-        onPressed: () => _showImageSourceActionSheet(context, imageFilePaths, onChange),
+        onPressed: () => _showImagesSourceActionSheet(context, imageFilePaths, onChange),
+      )
+    ]
+  );
+}
+
+Widget buildImageInputForSingleImage(
+  String label,
+  BuildContext context,
+  String imageFilePath,
+  VoidCallback onChange,) {
+  return Row(
+    crossAxisAlignment: CrossAxisAlignment.center,
+    children: [
+      Expanded(
+        child: Text(label, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600, fontFamily: 'Roboto')),
+      ),
+      IconButton(
+        icon: const Icon(Icons.upload, size: 28, color: Color(0xFF333333)),
+        tooltip: 'Upload Images',
+        onPressed: () => _showImageSourceActionSheet(context, imageFilePath, onChange),
       )
     ]
   );
@@ -110,7 +130,43 @@ Widget buildImageInput(
 
 // Helper functions
 
- void _showImageSourceActionSheet(
+// Single image
+void _showImageSourceActionSheet(
+  BuildContext context,
+  String imageFilePath,
+  VoidCallback onChange,
+) {
+  showModalBottomSheet(
+    context: context,
+    builder: (BuildContext context) {
+      return SafeArea(
+        child: Wrap(
+          children: <Widget>[
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: const Text(AppStrings.photoLibrary),
+              onTap: () {
+                Navigator.of(context).pop();
+                pickImageFromSource(imageFilePath, onChange, ImageSource.gallery);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_camera),
+              title: const Text(AppStrings.photoCamera),
+              onTap: () {
+                Navigator.of(context).pop();
+                pickImageFromSource(imageFilePath, onChange, ImageSource.camera);
+              },
+            )
+          ]
+        )
+      );
+    },
+  );
+}
+
+// Multiple images
+ void _showImagesSourceActionSheet(
   BuildContext context,
   List<String> imageFilePaths,
   VoidCallback onChange,
@@ -142,6 +198,30 @@ Widget buildImageInput(
       );
     },
   );
+}
+
+
+Future<void> pickImageFromSource(
+  String imageFilePath,
+  VoidCallback onChange,
+  ImageSource source
+) async {
+  final ImagePicker picker = ImagePicker();
+  if (source == ImageSource.gallery) {
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+    if (image != null) {
+      String imagePath = await saveImageToAppDir(File(image.path));
+      imageFilePath = imagePath;
+      onChange();
+    }
+  } else {
+    final XFile? image = await picker.pickImage(source: ImageSource.camera);
+    if (image != null) {
+      String imagePath = await saveImageToAppDir(File(image.path));
+      imageFilePath = imagePath;
+      onChange();
+    }
+  }
 }
 
 Future<void> pickImagesFromSource(

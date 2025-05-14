@@ -1,3 +1,6 @@
+import 'package:cii/controllers/company_controller.dart';
+import 'package:cii/models/company.dart';
+import 'package:cii/view/company/company_create.dart';
 import 'package:cii/view/notifications/notification.dart';
 import 'package:cii/view/project/project_create.dart';
 import 'package:cii/view/project/project_list.dart';
@@ -5,6 +8,7 @@ import 'package:cii/view/search/search.dart';
 import 'package:cii/view/snag/snag_create.dart';
 import 'package:cii/view/utils/constants.dart';
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 
 /*
@@ -24,7 +28,15 @@ class Screen extends StatefulWidget {
 
 class _ScreenState extends State<Screen> {
 
+  late CompanyController companyController;
+
   int _index = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    companyController = CompanyController(Hive.box<Company>('companies'));
+  }
 
   static const List<Widget> _widgetOptions = <Widget>[
     ProjectListView(), // 0
@@ -103,23 +115,33 @@ class _ScreenState extends State<Screen> {
     );
   }
 
+  void onChange() {
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: _widgetOptions.elementAt(_index),
-      ),
-      bottomNavigationBar: NavigationBar(
-        height: AppSizing.bottomNavBarHeight,
-        selectedIndex: _index,
-        onDestinationSelected: onItemTapped,
-        destinations: [
-          NavigationDestination(icon: Icon(_index == 0 ? Icons.home_filled : Icons.home_outlined,),label: AppStrings.home),
-          NavigationDestination(icon: Icon(_index == 1 ? Icons.search : Icons.search_outlined,),label: AppStrings.search),
-          NavigationDestination(icon: Icon(_index == 2 ? Icons.notifications : Icons.notifications_outlined,),label: AppStrings.notifications),
-          NavigationDestination(icon: Icon(_index == 3 ? Icons.add : Icons.add_outlined), label: AppStrings.add)
-        ],
-      ),
-    );
+
+   if (companyController.getCompany() == null) {
+      // Schedule navigation after build
+      return CompanyCreate(onChange: onChange);
+    } else {
+       return Scaffold(
+          body: Center(
+            child: _widgetOptions.elementAt(_index),
+          ),
+          bottomNavigationBar: NavigationBar(
+            height: AppSizing.bottomNavBarHeight,
+            selectedIndex: _index,
+            onDestinationSelected: onItemTapped,
+            destinations: [
+              NavigationDestination(icon: Icon(_index == 0 ? Icons.home_filled : Icons.home_outlined,),label: AppStrings.home),
+              NavigationDestination(icon: Icon(_index == 1 ? Icons.search : Icons.search_outlined,),label: AppStrings.search),
+              NavigationDestination(icon: Icon(_index == 2 ? Icons.notifications : Icons.notifications_outlined,),label: AppStrings.notifications),
+              NavigationDestination(icon: Icon(_index == 3 ? Icons.add : Icons.add_outlined), label: AppStrings.add)
+            ],
+          ),
+        );
+    }
   }
 }

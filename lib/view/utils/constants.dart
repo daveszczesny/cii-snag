@@ -92,7 +92,7 @@ class AppStrings {
 
   // Quick actions : Project
   static const String viewProject = 'View Project';
-  static const String shareProject = 'Share Project';
+  static const String shareProject = 'Export Project';
   static const String editProject = 'Edit Project';
   static const String deleteProject = 'Delete Project';
   static const String addSnag = 'Add Snag';

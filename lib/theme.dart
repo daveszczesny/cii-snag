@@ -8,7 +8,7 @@ final ThemeData lightTheme = ThemeData(
   cardColor: AppColors.cardColor,
   colorScheme: const ColorScheme.light(
     primary: AppColors.primaryGreen,
-    secondary: AppColors.ctaOrange,
+    secondary: Colors.white,
     error: AppColors.red,
     onPrimary: Colors.white,
     onSecondary: Colors.black,
@@ -19,7 +19,7 @@ final ThemeData lightTheme = ThemeData(
     foregroundColor: Colors.white,
   ),
   textTheme: const TextTheme(
-    bodyLarge: TextStyle(color: Colors.black),
+    bodyLarge: TextStyle(color: AppColors.primaryGreen),
   ),
 );
 

@@ -26,7 +26,7 @@ class AppColors {
 
 
   static const Color backgroundColor = Color(0xFFffffff);
-  static const Color cardColor = Color(0xFFFFFFFF);
+  static const Color cardColor = Color(0xFFfaebd2);
 
   // 0xFFe3e8e3 i like it but idk green on green
 }

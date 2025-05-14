@@ -4,7 +4,6 @@ import 'package:cii/models/project.dart';
 import 'package:cii/view/project/project_card_widget.dart';
 import 'package:cii/view/utils/constants.dart';
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 class ProjectListTabWidget extends StatefulWidget {
