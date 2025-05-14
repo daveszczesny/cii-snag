@@ -21,6 +21,8 @@ class SnagDetail extends StatefulWidget {
 class _SnagDetailState extends State<SnagDetail> {
 
   List<String> progressImageFilePaths = [];
+  List<String> imageFilePaths = [];
+  List<String> annotatedImageFilePaths = [];
 
   @override
   void initState() {
@@ -87,7 +89,21 @@ class _SnagDetailState extends State<SnagDetail> {
     );
   }
 
-  void onChange() {
+  void onChangeSnagImage(){
+    setState(() {
+      bool reloadParent = false;
+      if (widget.snag.imagePaths.isEmpty) {
+        reloadParent = true;
+      }
+
+      widget.snag.imagePaths.addAll(imageFilePaths);
+      if (reloadParent) {
+        widget.onStatusChanged!();
+      }
+    });
+  }
+
+  void onChangeProgressImage() {
     setState(() {
       for (final path in progressImageFilePaths) {
         if (!widget.snag.progressImagePaths.contains(path)) {
@@ -96,7 +112,6 @@ class _SnagDetailState extends State<SnagDetail> {
       }
       progressImageFilePaths.clear();
       widget.projectController.saveProject();
-      // widget.onStatusChanged!();
     });
   }
 
@@ -171,6 +186,10 @@ class _SnagDetailState extends State<SnagDetail> {
                     )
                   ],
 
+                  // add more snag images
+                  buildImageInput('Add Snag Images', context, imageFilePaths, onChangeSnagImage),
+                  
+
                   if (widget.snag.location != '') ... [
                     Text('${AppStrings.projectLocation}: ${widget.snag.location}'),
                     const SizedBox(height: 28.0)
@@ -202,7 +221,7 @@ class _SnagDetailState extends State<SnagDetail> {
                   const SizedBox(height: 24.0),
                   // Progress Pictures (only if not completed)
                   if (widget.snag.status.name != Status.completed.name) ... [
-                    buildImageInput(AppStrings.addProgressPictures, context, progressImageFilePaths, onChange)
+                    buildImageInput(AppStrings.addProgressPictures, context, progressImageFilePaths, onChangeProgressImage)
                   ],
 
                   if (widget.snag.progressImagePaths.isNotEmpty) ... [

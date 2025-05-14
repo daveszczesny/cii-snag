@@ -26,6 +26,7 @@ void main() async {
   Hive.registerAdapter(ProjectAdapter());
   Hive.registerAdapter(StatusAdapter());
   Hive.registerAdapter(SnagAdapter());
+  Hive.deleteBoxFromDisk('companies');
   await Hive.openBox<Company>('companies');
   await Hive.openBox<Project>('projects');
 
@@ -41,7 +42,7 @@ class MainApp extends StatelessWidget {
       title: AppStrings.appTitle,
       theme: lightTheme,
       darkTheme: darkTheme,
-      themeMode: ThemeMode.system,
+      themeMode: ThemeMode.light,
       home: const Screen(),
     );
   }

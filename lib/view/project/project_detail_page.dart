@@ -1,8 +1,10 @@
 import 'package:cii/controllers/single_project_controller.dart';
 import 'package:cii/view/utils/constants.dart';
+import 'package:cii/view/utils/image.dart';
 import 'package:cii/view/utils/selector.dart';
 import 'package:cii/view/utils/text.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class ProjectDetailPage extends StatefulWidget {
   final SingleProjectController projectController;
@@ -14,6 +16,17 @@ class ProjectDetailPage extends StatefulWidget {
 
 class _ProjectDetailPageState extends State<ProjectDetailPage> {
 
+  final TextEditingController descriptionController = TextEditingController();
+  final TextEditingController locationController = TextEditingController();
+  final TextEditingController clientController = TextEditingController();
+  final TextEditingController contractorController = TextEditingController();
+  final TextEditingController projectRefController = TextEditingController();
+
+  // format dateCreated
+  String formatDate(DateTime date) {
+    return DateFormat('yyyy-MM-dd').format(date);
+  }
+
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
@@ -24,30 +37,98 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (widget.projectController.getProjectId != '') ... {
-                  buildTextDetail(AppStrings.projectId, widget.projectController.getProjectId!),
-                  const SizedBox(height: 28.0)
-                },
-                if (widget.projectController.getDescription != '') ...{
-                  buildTextDetail(AppStrings.projectDescription, widget.projectController.getDescription!),
-                  const SizedBox(height: 28.0)
-                },
-                if (widget.projectController.getLocation != '') ... {
-                  buildTextDetail(AppStrings.projectLocation, widget.projectController.getLocation!),
-                  const SizedBox(height: 28.0)
-                },
-                if (widget.projectController.getClient != '') ... {
-                  buildTextDetail(AppStrings.projectClient, widget.projectController.getClient!),
-                  const SizedBox(height: 28.0)
-                },
-                if (widget.projectController.getContractor != '') ... {
-                  buildTextDetail(AppStrings.projectContractor, widget.projectController.getContractor!),
-                  const SizedBox(height: 28.0)
-                },
-                if (widget.projectController.getProjectRef != '') ... {
-                  buildTextDetail(AppStrings.projectRef, widget.projectController.getProjectRef!),
-                  const SizedBox(height: 28.0)
-                },
+
+                if (widget.projectController.getMainImagePath != null && widget.projectController.getMainImagePath != '') ... [
+                  buildSingleImageShowcaseBig(context, widget.projectController.getMainImagePath!, () {
+                    // onDelete fn
+                    setState(() {
+                      // ask the user if they want to delete the image
+                      showDialog(
+                        context: context,
+                        builder: (context) {
+                          return AlertDialog(
+                            title: const Text('Delete Image'),
+                            content: const Text('Are you sure you want to delete this image?'),
+                            actions: [
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                                child: const Text('Cancel')
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                  // delete the image
+                                  widget.projectController.setMainImagePath('');
+                                  setState(() {});
+                                },
+                                child: const Text('Delete')
+                              )
+                            ],
+                          );
+                        }
+                      );
+                    });
+                  }),
+                ] else ... [
+                  // if there is no project image allow the user to add one
+                  buildImageInputForSingleImage('Upload Project Thumbnail', context, (value) {
+                    setState(() {
+                      widget.projectController.setMainImagePath(value);
+                    });
+                  })
+                ],
+                const SizedBox(height: 28.0),
+
+                buildTextDetail('Date Created', formatDate(widget.projectController.getDateCreated!)),
+                const SizedBox(height: 28.0),
+                buildEditableTextDetail(context, AppStrings.projectDescription, 
+                  widget.projectController.getDescription != '' ? widget.projectController.getDescription! : 'Empty description',
+                  descriptionController,
+                  onChanged: () {
+                    setState(() {
+                      widget.projectController.setDescription(descriptionController.text);
+                    });
+                }),
+                const SizedBox(height: 28.0),
+                buildEditableTextDetail(context, AppStrings.projectLocation, 
+                  widget.projectController.getLocation != '' ? widget.projectController.getLocation! : 'Empty Location',
+                  locationController,
+                  onChanged: () {
+                    setState(() {
+                      widget.projectController.setLocation(locationController.text);
+                    });
+                }),
+                const SizedBox(height: 28.0),
+                buildEditableTextDetail(context, AppStrings.projectClient, 
+                  widget.projectController.getClient != '' ? widget.projectController.getClient! : 'No Client',
+                  clientController,
+                  onChanged: () {
+                    setState(() {
+                      widget.projectController.setClient(clientController.text);
+                    });
+                }),
+                const SizedBox(height: 28.0),
+
+                buildEditableTextDetail(context, AppStrings.projectContractor, 
+                  widget.projectController.getContractor != '' ? widget.projectController.getContractor! : 'No Contractor',
+                  contractorController,
+                  onChanged: () {
+                    setState(() {
+                      widget.projectController.setContractor(contractorController.text);
+                    });
+                }),
+                const SizedBox(height: 28.0),
+
+                buildEditableTextDetail(context, AppStrings.projectRef, 
+                  widget.projectController.getProjectRef != '' ? widget.projectController.getProjectRef! : 'No Project Reference',
+                  projectRefController,
+                  onChanged: () {
+                    setState(() {
+                      widget.projectController.setProjectRef(projectRefController.text);
+                    });
+                }),
                 const SizedBox(height: 28.0),
                 ObjectSelector(
                   label: AppStrings.category,

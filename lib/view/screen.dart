@@ -7,6 +7,7 @@ import 'package:cii/view/project/project_list.dart';
 import 'package:cii/view/search/search.dart';
 import 'package:cii/view/snag/snag_create.dart';
 import 'package:cii/view/utils/constants.dart';
+import 'package:cii/view/utils/text.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
@@ -119,12 +120,49 @@ class _ScreenState extends State<Screen> {
     setState(() {});
   }
 
+  void createDefaultCompany() {
+    companyController.createCompany(
+      name: 'Default Company'
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
 
-   if (companyController.getCompany() == null) {
-      // Schedule navigation after build
-      return CompanyCreate(onChange: onChange);
+    if (companyController.getCompany() == null) {
+      return Scaffold(
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text(
+                  'Welcome to CII',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontFamily: 'Roboto',
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                // two buttons. 1. to create a company. 2. to not make a company
+                buildTextButton('Register your Company', () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (context) => CompanyCreate(onChange: onChange))
+                  );
+                }),
+                const SizedBox(height: 16),
+                buildTextButton('Skip for now', () {
+                  // create a default company
+                  createDefaultCompany();
+                  onChange();
+                })
+              ],
+            )
+          )
+        )
+      );
     } else {
        return Scaffold(
           body: Center(

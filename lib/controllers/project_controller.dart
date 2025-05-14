@@ -23,6 +23,7 @@ class ProjectController {
     String? projectRef,
     List<cii.Category>? categories,
     List<Tag>? tags,
+    String? imagePath,
   }) async {
     try {
 
@@ -35,6 +36,7 @@ class ProjectController {
         projectRef: projectRef,
         createdCategories: categories != null ? List<cii.Category>.from(categories) : [],
         createdTags: tags,
+        mainImagePath: imagePath,
 
       );
       await projectBox.add(project);

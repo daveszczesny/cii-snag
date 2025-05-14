@@ -51,8 +51,10 @@ class _CompanyCreateState extends State<CompanyCreate> {
     );
   }
 
-  void onChange() {
-    setState((){});
+  void onChange(String path) {
+    setState((){
+      logoPath = path;
+    });
   }
 
   void onClick() {
@@ -73,6 +75,7 @@ class _CompanyCreateState extends State<CompanyCreate> {
     }
     createCompany();
     widget.onChange();
+    Navigator.of(context).pop();
   }
 
   @override
@@ -99,7 +102,7 @@ class _CompanyCreateState extends State<CompanyCreate> {
               const SizedBox(height: 28),
               buildLongTextInput('Slogan', 'Ex. Just do it', sloganController),
               const SizedBox(height: 28),
-              buildImageInputForSingleImage('Upload Company Logo', context, logoPath, onChange),
+              buildImageInputForSingleImage('Upload Company Logo', context, onChange),
               const SizedBox(height: 28),
               buildTextButton('Create Company', onClick)
             ],

@@ -35,9 +35,9 @@ class _ProjectDetailState extends State<ProjectDetail> {
 
     final projectName = widget.projectController.getName!;
     titles = [
+      'Snags in $projectName',
       projectName,
       'Create Snag in $projectName',
-      'Snags in $projectName'
     ];
 
     selectedIndex = widget.index ?? 0;
@@ -55,14 +55,19 @@ class _ProjectDetailState extends State<ProjectDetail> {
         selectedIndex: selectedIndex,
         onDestinationSelected: (int index) => setState(() => selectedIndex = index),
         destinations: const [
+          // page for snag list
           NavigationDestination(
             icon: Icon(Icons.list),
             label: AppStrings.snags,
           ),
+
+          // page for project details
           NavigationDestination(
             icon: Icon(Icons.info),
             label: AppStrings.projectDetails,
           ),
+
+          // page to create snag
           NavigationDestination(
             icon: Icon(Icons.add),
             label: AppStrings.add,

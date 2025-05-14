@@ -152,18 +152,13 @@ class _SnagCardWidgetState extends State<SnagCardWidget> {
                 padding: const EdgeInsets.all(16.0),
                 child: Row(
                   children: [
-                    Container(
-                      width: 50,
-                      height: 50,
-                      color: Colors.grey,
-                      child: widget.snagController.imagePaths.isEmpty
-                          ? const Icon(Icons.image_rounded, color: Colors.white, size: 50)
-                          : Image.file(
-                              File(widget.snagController.imagePaths[0]),
-                              fit: BoxFit.cover,
-                            ),
-                    ),
-                    const SizedBox(width: 16.0),
+                    if (widget.snagController.imagePaths.isNotEmpty) ... [
+                      Container(
+                        width: 50, height: 50, color: Colors.grey,
+                        child: Image.file(File(widget.snagController.imagePaths[0]), width: 50, height: 50, fit: BoxFit.cover),
+                      ),
+                      const SizedBox(width: 16.0),
+                    ],
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,

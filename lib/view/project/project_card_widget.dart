@@ -32,7 +32,7 @@ class _ProjectCardWidgetState extends State<ProjectCardWidget> {
         break;
       case 'add':
         Navigator.of(context).push(
-          MaterialPageRoute(builder: (context) => ProjectDetail(projectController: widget.projectController, index: 1))
+          MaterialPageRoute(builder: (context) => ProjectDetail(projectController: widget.projectController, index: 2))
         );
         break;
       case 'export':
@@ -91,17 +91,10 @@ class _ProjectCardWidgetState extends State<ProjectCardWidget> {
                 padding: const EdgeInsets.all(16.0),
                 child: Row(
                   children: [
-                    if (widget.projectController.getMainImagePath != null) ...[
+                    if (widget.projectController.getMainImagePath != null && widget.projectController.getMainImagePath != '') ...[
                       Container(
-                        width: 50,
-                        height: 50,
-                        color: Colors.grey,
-                        child: Image.file(
-                          File(widget.projectController.getMainImagePath!),
-                          width: 50,
-                          height: 50,
-                          fit: BoxFit.cover,
-                        ),
+                        width: 75, height: 75, color: Colors.grey,
+                        child: Image.file(File(widget.projectController.getMainImagePath!), width: 75, height: 75, fit: BoxFit.cover),
                       ),
                       const SizedBox(width: 16.0),
                     ],
@@ -126,13 +119,22 @@ class _ProjectCardWidgetState extends State<ProjectCardWidget> {
                                 ? const Text(AppStrings.noSnagsFound)
                                 : (widget.projectController.getSnagProgress() == 1
                                     ? const Text('All snags completed', style: TextStyle(color: AppColors.primaryGreen))
-                                    : LinearProgressIndicator(
-                                        value: widget.projectController.getSnagProgress(),
-                                        color: Color.lerp(
-                                          Colors.blue,
-                                          Colors.green,
-                                          widget.projectController.getSnagProgress(),
-                                        ),
+                                    : Row(
+                                        children: [
+                                          // The progress bar takes up all space except for the popup menu
+                                          Expanded(
+                                            child: LinearProgressIndicator(
+                                              value: widget.projectController.getSnagProgress(),
+                                              color: Color.lerp(
+                                                Colors.blue,
+                                                Colors.green,
+                                                widget.projectController.getSnagProgress(),
+                                              ),
+                                            ),
+                                          ),
+                                          // Reserve space for the popup menu button (adjust width as needed)
+                                          const SizedBox(width: 48),
+                                        ],
                                       )),
                           ),
                         ],

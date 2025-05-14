@@ -7,85 +7,173 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
 
-  Widget buildImageShowcase(BuildContext context, onChange, onSave, List<String> imageFilePaths) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Wrap(
-        spacing: 8,
-        runSpacing: 8,
-        children: imageFilePaths.map((path) {
-          return Stack(
-            children: [
-              // Main image tap (e.g., preview)
-              GestureDetector(
-                // same on tap behavior as edit button
+Widget buildImageShowcase(BuildContext context, onChange, onSave, List<String> imageFilePaths) {
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 8),
+    child: Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: imageFilePaths.map((path) {
+        return Stack(
+          children: [
+            // Main image tap (e.g., preview)
+            GestureDetector(
+              // same on tap behavior as edit button
+              onTap: () async {
+                final annotatedImagePath = await Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => ImageAnnotationScreen(imagePath: path),
+                    ),
+                  );
+
+                  if (annotatedImagePath != null) {
+                    onSave(path, annotatedImagePath);
+                  }
+              },
+              child: SizedBox(
+                width: 100,
+                height: 100,
+                child: Image.file(File(path), fit: BoxFit.cover),
+              ),
+            ),
+            // Delete button
+            Positioned(
+              top: 4,
+              right: 4,
+              child: GestureDetector(
+                onTap: () {
+                  imageFilePaths.remove(path);
+                  onChange();
+                },
+                child: Container(
+                  decoration: const BoxDecoration(
+                    color: Colors.black54,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.close, color: Colors.white, size: 20),
+                ),
+              ),
+            ),
+            // Edit button
+            Positioned(
+              bottom: 4,
+              left: 4,
+              child: GestureDetector(
                 onTap: () async {
                   final annotatedImagePath = await Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => ImageAnnotationScreen(imagePath: path),
-                      ),
-                    );
+                    MaterialPageRoute(
+                      builder: (context) => ImageAnnotationScreen(imagePath: path),
+                    ),
+                  );
 
-                    if (annotatedImagePath != null) {
-                      onSave(path, annotatedImagePath);
-                    }
+                  if (annotatedImagePath != null) {
+                    onSave(path, annotatedImagePath);
+                  }
                 },
-                child: SizedBox(
-                  width: 100,
-                  height: 100,
-                  child: Image.file(File(path), fit: BoxFit.cover),
+                child: Container(
+                  decoration: const BoxDecoration(
+                    color: Colors.black54,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.edit, color: Colors.white, size: 20),
                 ),
               ),
-              // Delete button
-              Positioned(
-                top: 4,
-                right: 4,
+            ),
+          ],
+        );
+      }).toList(),
+    ),
+  );
+}
+
+Widget buildSingleImageShowcase(
+  BuildContext context,
+  String imageFilePath,
+  VoidCallback onDelete,
+) {
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 8),
+    child: Stack(
+      children: [
+        GestureDetector(
+          onTap: () {
+            // Show image full screen
+            showDialog(
+              context: context,
+              builder: (_) => Dialog(
+                backgroundColor: Colors.transparent,
                 child: GestureDetector(
-                  onTap: () {
-                    imageFilePaths.remove(path);
-                    onChange();
-                  },
-                  child: Container(
-                    decoration: const BoxDecoration(
-                      color: Colors.black54,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(Icons.close, color: Colors.white, size: 20),
+                  onTap: () => Navigator.of(context).pop(),
+                  child: InteractiveViewer(
+                    child: Image.file(File(imageFilePath)),
                   ),
                 ),
               ),
-              // Edit button
-              Positioned(
-                bottom: 4,
-                left: 4,
-                child: GestureDetector(
-                  onTap: () async {
-                    final annotatedImagePath = await Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => ImageAnnotationScreen(imagePath: path),
-                      ),
-                    );
-
-                    if (annotatedImagePath != null) {
-                      onSave(path, annotatedImagePath);
-                    }
-                  },
-                  child: Container(
-                    decoration: const BoxDecoration(
-                      color: Colors.black54,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(Icons.edit, color: Colors.white, size: 20),
-                  ),
-                ),
+            );
+          },
+          child: SizedBox(
+            width: 100,
+            height: 100,
+            child: Image.file(File(imageFilePath), fit: BoxFit.cover),
+          ),
+        ),
+        // Delete button
+        Positioned(
+          top: 4,
+          right: 4,
+          child: GestureDetector(
+            onTap: onDelete,
+            child: Container(
+              decoration: const BoxDecoration(
+                color: Colors.black54,
+                shape: BoxShape.circle,
               ),
-            ],
-          );
-        }).toList(),
-      ),
-    );
-  }
+              child: const Icon(Icons.close, color: Colors.white, size: 20),
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
+}
 
+
+Widget buildSingleImageShowcaseBig(
+  BuildContext context,
+  String imageFilePath,
+  VoidCallback onDelete,
+) {
+  final double width = MediaQuery.of(context).size.width * 0.9;
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 8),
+    child: Stack(
+      children: [
+        GestureDetector(
+          onTap: () {},
+          child: SizedBox(
+            width: width,
+            height: width, // same as width for square
+            child: Image.file(File(imageFilePath), fit: BoxFit.cover),
+          ),
+        ),
+        Positioned(
+          top: 4,
+          right: 4,
+          child: GestureDetector(
+            onTap: onDelete,
+            child: Container(
+              decoration: const BoxDecoration(
+                color: Colors.black54,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.close, color: Colors.white, size: 20),
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
+}
 
 Widget buildImageInput(
   String label,
@@ -110,8 +198,7 @@ Widget buildImageInput(
 Widget buildImageInputForSingleImage(
   String label,
   BuildContext context,
-  String imageFilePath,
-  VoidCallback onChange,) {
+  void Function(String) onChange) {
   return Row(
     crossAxisAlignment: CrossAxisAlignment.center,
     children: [
@@ -121,7 +208,7 @@ Widget buildImageInputForSingleImage(
       IconButton(
         icon: const Icon(Icons.upload, size: 28, color: Color(0xFF333333)),
         tooltip: 'Upload Images',
-        onPressed: () => _showImageSourceActionSheet(context, imageFilePath, onChange),
+        onPressed: () => _showImageSourceActionSheet(context, onChange),
       )
     ]
   );
@@ -133,8 +220,7 @@ Widget buildImageInputForSingleImage(
 // Single image
 void _showImageSourceActionSheet(
   BuildContext context,
-  String imageFilePath,
-  VoidCallback onChange,
+  void Function(String) onChange,
 ) {
   showModalBottomSheet(
     context: context,
@@ -147,7 +233,7 @@ void _showImageSourceActionSheet(
               title: const Text(AppStrings.photoLibrary),
               onTap: () {
                 Navigator.of(context).pop();
-                pickImageFromSource(imageFilePath, onChange, ImageSource.gallery);
+                pickImageFromSource(onChange, ImageSource.gallery);
               },
             ),
             ListTile(
@@ -155,7 +241,7 @@ void _showImageSourceActionSheet(
               title: const Text(AppStrings.photoCamera),
               onTap: () {
                 Navigator.of(context).pop();
-                pickImageFromSource(imageFilePath, onChange, ImageSource.camera);
+                pickImageFromSource(onChange, ImageSource.camera);
               },
             )
           ]
@@ -202,8 +288,7 @@ void _showImageSourceActionSheet(
 
 
 Future<void> pickImageFromSource(
-  String imageFilePath,
-  VoidCallback onChange,
+  void Function(String) onChange,
   ImageSource source
 ) async {
   final ImagePicker picker = ImagePicker();
@@ -211,15 +296,13 @@ Future<void> pickImageFromSource(
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
       String imagePath = await saveImageToAppDir(File(image.path));
-      imageFilePath = imagePath;
-      onChange();
+      onChange(imagePath);
     }
   } else {
     final XFile? image = await picker.pickImage(source: ImageSource.camera);
     if (image != null) {
       String imagePath = await saveImageToAppDir(File(image.path));
-      imageFilePath = imagePath;
-      onChange();
+      onChange(imagePath);
     }
   }
 }

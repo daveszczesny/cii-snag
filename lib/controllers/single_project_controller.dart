@@ -126,6 +126,11 @@ class SingleProjectController {
   String? get getStatus {
     return project.status.name;
   }
+
+  DateTime? get getDateCreated {
+    return project.dateCreated;
+  }
+
   DateTime? get getDateCompleted {
     return project.dateCompleted;
   }
@@ -150,6 +155,33 @@ class SingleProjectController {
 
   List<Tag>? get getTags {
     return project.createdTags;
+  }
+
+  void setMainImagePath(String path) {
+    project.mainImagePath = path;
+    project.save();
+  }
+
+  void setDescription(String description) {
+    project.description = description;
+    project.save();
+  }
+
+  void setLocation(String location) {
+    project.location = location;
+    project.save();
+  }
+  void setClient(String client) {
+    project.client = client;
+    project.save();
+  }
+  void setContractor(String contractor) {
+    project.contractor = contractor;
+    project.save();
+  }
+  void setProjectRef(String projectRef) {
+    project.projectRef = projectRef;
+    project.save();
   }
 
   void removeCategory(String name) {

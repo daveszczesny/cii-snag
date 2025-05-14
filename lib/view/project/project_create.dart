@@ -4,6 +4,7 @@ import 'package:cii/models/category.dart' as cii;
 import 'package:cii/models/tag.dart';
 import 'package:cii/utils/common.dart';
 import 'package:cii/view/utils/constants.dart';
+import 'package:cii/view/utils/image.dart';
 import 'package:cii/view/utils/selector.dart';
 import 'package:cii/view/utils/text.dart';
 import 'package:flutter/material.dart';
@@ -27,6 +28,8 @@ class _ProjectCreateState extends State<ProjectCreate> {
   final TextEditingController _contractorController = TextEditingController();
   final List<cii.Category> _categories = List<cii.Category>.from(cii.Category.defaultCategories);
   final List<Tag> _tags = []; // no default tags
+
+  String imagePath = '';
 
   late ProjectController projectController;
 
@@ -65,10 +68,17 @@ class _ProjectCreateState extends State<ProjectCreate> {
       contractor: contractor,
       categories: _categories,
       tags: _tags,
+      imagePath: imagePath
     );
 
     // navigate back
     Navigator.pop(context);
+  }
+
+  void onChange(String path) {
+    setState((){
+      imagePath = path;
+    });
   }
 
   @override
@@ -94,6 +104,17 @@ class _ProjectCreateState extends State<ProjectCreate> {
               const SizedBox(height: 28.0),
               buildLongTextInput(AppStrings.projectDescription, AppStrings.projectDescriptionExample, _descriptionController),
               const SizedBox(height: 28.0),
+              buildImageInputForSingleImage('Upload Project Thumbnail', context, onChange),
+              
+              if (imagePath != '') ... [
+                buildSingleImageShowcase(context, imagePath, () {
+                  imagePath = '';
+                  setState(() {});
+                }),
+                const SizedBox(height: 28.0)
+              ] else ... [
+                const SizedBox(height: 28.0)
+              ],
               buildTextInput(AppStrings.projectLocation, AppStrings.projectLocationExample, _locationController),
               const SizedBox(height: 28.0),
               buildTextInput(AppStrings.projectRef, AppStrings.projectRefExample, _projectRefController),
