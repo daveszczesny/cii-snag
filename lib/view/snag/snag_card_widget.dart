@@ -93,10 +93,6 @@ class _SnagCardWidgetState extends State<SnagCardWidget> {
           MaterialPageRoute(builder: (context) => SnagDetail(projectController: widget.projectController, snag: widget.snagController))
         );
         break;
-      case 'share':
-        break;
-      case 'edit':
-        break;
       case 'delete':
         showDialog(
           context: context,
@@ -127,8 +123,22 @@ class _SnagCardWidgetState extends State<SnagCardWidget> {
     }
   }
 
+  Widget gesturePill(VoidCallback tap, Color color, String text){
+    return GestureDetector(
+      onTap: tap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(text, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w300, fontSize: 14)),
+      )
+    );
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget old_build(BuildContext context) {
     return GestureDetector(
       onTap: () {
         Navigator.of(context).push(
@@ -197,7 +207,7 @@ class _SnagCardWidgetState extends State<SnagCardWidget> {
                                   width: 90,
                                   padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
                                   decoration: BoxDecoration(
-                                    color: Status.getStatus(widget.snagController.status.name, context)!.color,
+                                    color: Status.getStatus(widget.snagController.status.name)!.color,
                                     borderRadius: BorderRadius.circular(20.0),
                                   ),
                                   alignment: Alignment.center,
@@ -256,14 +266,10 @@ class _SnagCardWidgetState extends State<SnagCardWidget> {
                         value: 'view',
                         child: Text(AppStrings.viewSnag),
                       ),
-                      PopupMenuItem<String>(
-                        value: 'share',
-                        child: Text(AppStrings.shareSnag),
-                      ),
-                      PopupMenuItem<String>(
-                        value: 'edit',
-                        child: Text(AppStrings.editSnag),
-                      ),
+                      // PopupMenuItem<String>( // TODO: remove share option for now (until Version 2.0)
+                      //   value: 'share',
+                      //   child: Text(AppStrings.shareSnag),
+                      // ),
                       PopupMenuDivider(
                         height: 1.0,
                       ),
@@ -281,4 +287,130 @@ class _SnagCardWidgetState extends State<SnagCardWidget> {
       ),
     );
   }
+
+
+
+  @override
+  Widget build(BuildContext context) {
+    final status = widget.snagController.status;
+
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => SnagDetail(
+              projectController: widget.projectController,
+              snag: widget.snagController,
+              onStatusChanged: widget.onStatusChanged,
+            ),
+          ),
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 16.0),
+        // Card outline
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 8, spreadRadius: 2, offset: const Offset(0, 0))
+          ]
+        ),
+        child: Stack(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(14.0),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  // Image or grey box
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(15),
+                    child: (() {
+                      // Check if the image path is not null and the file exists
+                      // If it does, display the image; otherwise, display a grey box
+                      final imagePaths = widget.snagController.imagePaths;
+                      if (imagePaths.isNotEmpty && imagePaths[0].isNotEmpty && File(imagePaths[0]).existsSync()) {
+                        return Image.file(File(imagePaths[0]), width: 75, height: 75, fit: BoxFit.cover);
+                      } else {
+                        return Container(width: 75, height: 75, color: Colors.grey[300], child: const Icon(Icons.image, color: Colors.white54, size: 36));
+                      }
+                    })(),
+                  ),
+                  const SizedBox(width: 14),
+                  // Project info column
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Image.asset(widget.snagController.priority.icon, width: 16, height: 16),
+                            const SizedBox(width: 8),
+                            Text(
+                              widget.snagController.name,
+                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w400, color: Colors.black, fontFamily: 'Roboto'),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 18),
+                        Row(
+                          children: [
+                            // status pill
+                            gesturePill(() => _showStatusModal(context), status.color ?? Colors.blue, status.name),
+                            const SizedBox(width: 8),
+                            // Category pill
+                            if (widget.snagController.categories.isNotEmpty) ... [
+                              gesturePill(() => _showCategoryModal(context), widget.snagController.categories[0].color, widget.snagController.categories[0].name),
+                            ]
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 40), // Reserve space for chevron
+                ],
+              ),
+            ),
+            // PopupMenuButton at top right
+            Positioned(
+              top: 0,
+              right: 0,
+              child: PopupMenuButton<String>(
+                onSelected: onSelect,
+                itemBuilder: (BuildContext context) {
+                  return [
+                    const PopupMenuItem<String>(
+                      value: 'view',
+                      child: Text(AppStrings.viewSnag),
+                    ),
+                    const PopupMenuDivider(height: 1.0),
+                    const PopupMenuItem<String>(
+                      value: 'delete',
+                      child: Text(AppStrings.deleteProject, style: TextStyle(color: AppColors.red)),
+                    ),
+                  ];
+                },
+              ),
+            ),
+            // Chevron icon vertically centered at right
+            const Positioned(
+              right: 8,
+              top: 14,
+              bottom: 0,
+              child: Center(
+                child: Icon(Icons.chevron_right, size: 32, color: Colors.black38),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+
+
+
 }

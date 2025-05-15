@@ -54,7 +54,7 @@ class Status extends HiveObject {
     blocked,
   ];
 
-  static Status? getStatus(String name, BuildContext context) {
+  static Status? getStatus(String name) {
     switch (name.toLowerCase()) {
       case 'todo':
       case 'to do':

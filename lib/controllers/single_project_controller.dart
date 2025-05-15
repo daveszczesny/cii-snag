@@ -79,7 +79,7 @@ class SingleProjectController {
   }
 
   int getTotalSnagsByStatus(Status status) {
-    return project.snags.where((snag) => snag.status == status).length;
+    return project.snags.where((snag) => snag.status.name == status.name).length;
   }
 
   int getTotalSnagsByPriority(String priority) {
@@ -182,6 +182,11 @@ class SingleProjectController {
   void setProjectRef(String projectRef) {
     project.projectRef = projectRef;
     project.save();
+  }
+
+  void setStatus(String status) {
+    project.status = Status.getStatus(status) ?? Status.todo;
+    saveProject();
   }
 
   void removeCategory(String name) {

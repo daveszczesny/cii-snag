@@ -2,6 +2,7 @@ import 'package:cii/models/project.dart';
 import 'package:cii/utils/colors/app_colors.dart';
 import 'package:flutter/material.dart';
 
+
 Widget buildTextDetail(String label, String text) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -119,6 +120,118 @@ Widget buildDropdownInput(String label, List<String> options, TextEditingControl
     ],
   );
 }
+
+Widget buildCustomSegmentedControl({
+  required String label,
+  required List<String> options,
+  required ValueNotifier<String> selectedNotifier,
+}) {
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(label, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600, fontFamily: 'Roboto')),
+      const SizedBox(height: 12.0),
+      Container(
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey.shade400, width: 1),
+          borderRadius: BorderRadius.circular(30),
+        ),
+        child: ValueListenableBuilder<String>(
+          valueListenable: selectedNotifier,
+          builder: (context, value, _) {
+            return Row(
+              mainAxisSize: MainAxisSize.min,
+              children: List.generate(options.length, (index) {
+                final isSelected = value == options[index];
+                return Expanded(
+                  child: GestureDetector(
+                    onTap: () => selectedNotifier.value = options[index],
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 150),
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      decoration: BoxDecoration(
+                        color: isSelected ? Colors.blue : Colors.transparent,
+                        borderRadius: BorderRadius.horizontal(
+                          left: index == 0 ? const Radius.circular(30) : Radius.zero,
+                          right: index == options.length - 1 ? const Radius.circular(30) : Radius.zero,
+                        ),
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        options[index],
+                        style: TextStyle(
+                          color: isSelected ? Colors.white : Colors.black87,
+                          fontWeight: FontWeight.w500,
+                          fontSize: 14,
+                          fontFamily: 'Roboto',
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              }),
+            );
+          },
+        ),
+      ),
+    ],
+  );
+}
+
+Widget buildSegmentedControl({
+  required String label,
+  required List<String> options,
+  required ValueNotifier<String> selectedNotifier,
+}) {
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(label, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600, fontFamily: 'Roboto')),
+      const SizedBox(height: 12.0),
+      ValueListenableBuilder<String>(
+        valueListenable: selectedNotifier,
+        builder: (context, value, _) {
+          return SegmentedButton<String>(
+            segments: options.map((e) => ButtonSegment(
+              value: e,
+              label: Text(
+                e,
+                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w300, fontFamily: 'Roboto'),
+              ),
+            )).toList(),
+            selected: {value},
+            onSelectionChanged: (Set<String> newSelection) {
+              selectedNotifier.value = newSelection.first;
+            },
+            showSelectedIcon: false,
+            style: ButtonStyle(
+              side: WidgetStateProperty.all(BorderSide.none),
+              // padding: WidgetStateProperty.all(const EdgeInsets.symmetric(horizontal: 16, vertical: 8)),
+              shape: WidgetStateProperty.all(
+                RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30), // Large value for pill shape
+                ),
+              ),
+              backgroundColor: WidgetStateProperty.resolveWith<Color?>((states) {
+                if (states.contains(WidgetState.selected)) {
+                  return Colors.blue;
+                }
+                return null;
+              }),
+              foregroundColor: WidgetStateProperty.resolveWith<Color?>((states) {
+                if (states.contains(WidgetState.selected)) {
+                  return Colors.white;
+                }
+                return null;
+              }),
+            ),
+          );
+        },
+      ),
+    ],
+  );
+}
+
 
 Widget buildDropdownInputForObjects({
   required String label,

@@ -1,10 +1,12 @@
 import 'package:cii/controllers/single_project_controller.dart';
+import 'package:cii/models/status.dart';
 import 'package:cii/view/utils/constants.dart';
 import 'package:cii/view/utils/image.dart';
 import 'package:cii/view/utils/selector.dart';
 import 'package:cii/view/utils/text.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:path/path.dart';
 
 class ProjectDetailPage extends StatefulWidget {
   final SingleProjectController projectController;
@@ -21,6 +23,34 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
   final TextEditingController clientController = TextEditingController();
   final TextEditingController contractorController = TextEditingController();
   final TextEditingController projectRefController = TextEditingController();
+  final TextEditingController statusController = TextEditingController();
+
+  late ValueNotifier<String> selectedStatusOption;
+  final List<String> statusOptions = Status.values.map((e) => e.name).toList(); // get the name of each status
+
+  @override
+  void initState() {
+    super.initState();
+
+    final currentStatus = widget.projectController.getStatus ?? statusOptions.first;
+
+    final initialStatus = statusOptions.firstWhere(
+      (s) => s.toLowerCase() == currentStatus.toLowerCase(),
+      orElse: () => statusOptions.first
+    );
+    selectedStatusOption = ValueNotifier<String>(initialStatus);
+
+    selectedStatusOption.addListener(() {
+      widget.projectController.setStatus(selectedStatusOption.value);
+      setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    selectedStatusOption.dispose();
+    super.dispose();
+  }
 
   // format dateCreated
   String formatDate(DateTime date) {
@@ -33,7 +63,7 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
       child: Column(
         children: [
           Padding (
-            padding: const EdgeInsets.all(38.0),
+            padding: const EdgeInsets.all(24),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -129,6 +159,8 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
                       widget.projectController.setProjectRef(projectRefController.text);
                     });
                 }),
+                const SizedBox(height: 28.0),
+                buildCustomSegmentedControl(label: 'Status', options: statusOptions, selectedNotifier: selectedStatusOption),
                 const SizedBox(height: 28.0),
                 ObjectSelector(
                   label: AppStrings.category,

@@ -173,7 +173,7 @@ class _ScreenState extends State<Screen> {
             selectedIndex: _index,
             onDestinationSelected: onItemTapped,
             destinations: [
-              NavigationDestination(icon: Icon(_index == 0 ? Icons.home_filled : Icons.home_outlined,),label: AppStrings.home),
+              NavigationDestination(icon: Icon(_index == 0 ? Icons.home_filled : Icons.home_outlined,),label: 'Projects'),
               NavigationDestination(icon: Icon(_index == 1 ? Icons.search : Icons.search_outlined,),label: AppStrings.search),
               NavigationDestination(icon: Icon(_index == 2 ? Icons.notifications : Icons.notifications_outlined,),label: AppStrings.notifications),
               NavigationDestination(icon: Icon(_index == 3 ? Icons.add : Icons.add_outlined), label: AppStrings.add)

@@ -26,7 +26,7 @@ void main() async {
   Hive.registerAdapter(ProjectAdapter());
   Hive.registerAdapter(StatusAdapter());
   Hive.registerAdapter(SnagAdapter());
-  Hive.deleteBoxFromDisk('companies');
+  // Hive.deleteBoxFromDisk('companies');
   await Hive.openBox<Company>('companies');
   await Hive.openBox<Project>('projects');
 

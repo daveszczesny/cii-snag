@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 
 final ThemeData lightTheme = ThemeData(
   brightness: Brightness.light,
-  primaryColor: AppColors.primaryGreen,
+  primaryColor: Colors.white,
   scaffoldBackgroundColor: AppColors.backgroundColor,
   cardColor: AppColors.cardColor,
   colorScheme: const ColorScheme.light(
@@ -15,8 +15,8 @@ final ThemeData lightTheme = ThemeData(
     onError: Colors.white,
   ),
   appBarTheme: const AppBarTheme(
-    backgroundColor: AppColors.primaryGreen,
-    foregroundColor: Colors.white,
+    backgroundColor: Colors.white,
+    foregroundColor: Colors.black,
   ),
   textTheme: const TextTheme(
     bodyLarge: TextStyle(color: AppColors.primaryGreen),

@@ -4,6 +4,7 @@ import 'package:cii/models/category.dart' as cii;
 import 'package:cii/models/priority.dart';
 import 'package:cii/models/project.dart';
 import 'package:cii/models/snag.dart';
+import 'package:cii/models/status.dart';
 import 'package:cii/models/tag.dart';
 import 'package:cii/view/project/project_detail.dart';
 import 'package:cii/view/utils/constants.dart';
@@ -32,7 +33,6 @@ class _SnagCreateState extends State<SnagCreate> {
   final TextEditingController projectInputController = TextEditingController();
   cii.Category? snagCategory;
   List<Tag>? snagTags = [];
-  final List<String> priorityOptions = ['Low', 'Medium', 'High'];
 
   List<String> imageFilePaths = [];
   Map<String, String> annotatedImages = {};
@@ -41,12 +41,24 @@ class _SnagCreateState extends State<SnagCreate> {
   late List<Project> filteredProjects = [];
   late SingleProjectController? projectController;
 
+  // status
+  late ValueNotifier<String> selectedStatusOption;
+  final List<String> statusOptions = Status.values.map((e) => e.name).toList(); // get the name of each status
+
+  // priority
+  late ValueNotifier<String> selectedPriorityOption;
+  final List<String> priorityOptions = ['Low', 'Medium', 'High'];
+
 
   @override
   void initState() {
     super.initState();
     projectController = widget.projectController;
     selectProject();
+
+    selectedStatusOption = ValueNotifier<String>(statusOptions.first);
+    selectedPriorityOption = ValueNotifier<String>(priorityOptions.first);
+
   }
 
   void selectProject() async {
@@ -97,6 +109,7 @@ class _SnagCreateState extends State<SnagCreate> {
           priority: priority,
           imagePaths: imageFilePaths,
           annotatedImagePaths: annotatedImages,
+          status: Status.getStatus(selectedStatusOption.value),
         )
       );
 
@@ -146,7 +159,7 @@ class _SnagCreateState extends State<SnagCreate> {
 
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.all(38.0),
+          padding: const EdgeInsets.all(24.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -180,7 +193,9 @@ class _SnagCreateState extends State<SnagCreate> {
               ],
               buildTextInput(AppStrings.assignee, AppStrings.assigneeExample, assigneeController),
               const SizedBox(height: 28.0),
-              buildDropdownInput(AppStrings.priority, priorityOptions, priorityController),
+              buildCustomSegmentedControl(label: 'Priority', options: priorityOptions, selectedNotifier: selectedPriorityOption),
+              const SizedBox(height: 28.0),
+              buildCustomSegmentedControl(label: 'Status', options: statusOptions, selectedNotifier: selectedStatusOption),
               const SizedBox(height: 28.0),
               if (projectController != null) ... [
                 ObjectSelector(

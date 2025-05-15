@@ -5,6 +5,7 @@ import 'package:cii/controllers/snag_controller.dart';
 import 'package:cii/models/status.dart';
 import 'package:cii/view/utils/constants.dart';
 import 'package:cii/view/utils/image.dart';
+import 'package:cii/view/utils/text.dart';
 import 'package:flutter/material.dart';
 
 class SnagDetail extends StatefulWidget {
@@ -20,6 +21,9 @@ class SnagDetail extends StatefulWidget {
 
 class _SnagDetailState extends State<SnagDetail> {
 
+  late ValueNotifier<String> selectedStatusOption;
+  final List<String> statusOptions = Status.values.map((e) => e.name).toList(); // get the name of each status
+
   List<String> progressImageFilePaths = [];
   List<String> imageFilePaths = [];
   List<String> annotatedImageFilePaths = [];
@@ -27,6 +31,25 @@ class _SnagDetailState extends State<SnagDetail> {
   @override
   void initState() {
     super.initState();
+
+    final currentStatus = widget.snag.status.name;
+
+    final initialStatus = statusOptions.firstWhere(
+      (s) => s.toLowerCase() == currentStatus.toLowerCase(),
+      orElse: () => statusOptions.first
+    );
+    selectedStatusOption = ValueNotifier<String>(initialStatus);
+
+    selectedStatusOption.addListener(() {
+      setState(() {
+        widget.snag.status = Status.values.firstWhere(
+          (s) => s.name == selectedStatusOption.value,
+          orElse: () => Status.todo
+        );
+        widget.projectController.saveProject();
+        widget.onStatusChanged!();
+      });
+    });
   }
 
   void _showStatusModal(BuildContext context) {
@@ -131,7 +154,7 @@ class _SnagDetailState extends State<SnagDetail> {
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.all(38.0),
+              padding: const EdgeInsets.all(24.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -196,27 +219,7 @@ class _SnagDetailState extends State<SnagDetail> {
                   ],
 
                   // Status
-                  GestureDetector(
-                    onTap: () => _showStatusModal(context),
-                    child: Container(
-                      width: 90,
-                      padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
-                      decoration: BoxDecoration(
-                        color: Status.getStatus(widget.snag.status.name, context)!.color,
-                        borderRadius: BorderRadius.circular(20.0),
-                      ),
-                      alignment: Alignment.center,
-                      child: Text(
-                        widget.snag.status.name,
-                        style: const TextStyle(
-                          fontSize: 12.0,
-                          fontWeight: FontWeight.w400,
-                          color: Colors.black,
-                          fontFamily: 'Roboto',
-                        )
-                      )
-                    )
-                  ),
+                  buildCustomSegmentedControl(label: 'Status', options: statusOptions, selectedNotifier: selectedStatusOption),
 
                   const SizedBox(height: 24.0),
                   // Progress Pictures (only if not completed)
