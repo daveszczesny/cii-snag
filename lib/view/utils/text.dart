@@ -7,9 +7,20 @@ Widget buildTextDetail(String label, String text) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600, fontFamily: 'Roboto')),
-        const SizedBox(height: 12.0),
-        Text(text, style: const TextStyle(color: Color(0xFF333333), fontSize: 16, fontWeight: FontWeight.w300, fontFamily: 'Roboto'))
+        Text(label, style: const TextStyle(color: Color(0xFF333333), fontSize: 14, fontWeight: FontWeight.w300, fontFamily: 'Roboto')),
+        const SizedBox(height: 6.0),
+        Text(text, style: const TextStyle(color: Colors.black, fontSize: 16, fontWeight: FontWeight.w400, fontFamily: 'Roboto'))
+      ],
+    );
+}
+
+Widget buildJustifiedTextDetail(String label, String text) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: const TextStyle(color: Color(0xFF333333), fontSize: 14, fontWeight: FontWeight.w300, fontFamily: 'Roboto')),
+        const SizedBox(height: 6.0),
+        Text(text, style: const TextStyle(color: Colors.black, fontSize: 16, fontWeight: FontWeight.w400, fontFamily: 'Roboto'), textAlign: TextAlign.justify)
       ],
     );
 }
@@ -18,12 +29,12 @@ Widget buildEditableTextDetail(BuildContext context, String label, String text, 
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      Text(label, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600, fontFamily: 'Roboto')),
+      Text(label, style: const TextStyle(color: Color(0xFF333333), fontSize: 14, fontWeight: FontWeight.w300, fontFamily: 'Roboto')),
       Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Expanded(
-            child: Text(text, style: const TextStyle(color: Color(0xFF333333), fontSize: 16, fontWeight: FontWeight.w300, fontFamily: 'Roboto')),
+            child: Text(text, style: const TextStyle(color: Colors.black, fontSize: 16, fontWeight: FontWeight.w400, fontFamily: 'Roboto')),
           ),
           IconButton(
             icon: const Icon(Icons.edit, size: 20),
@@ -61,15 +72,15 @@ Widget buildTextInput(String label, String hintText, TextEditingController contr
       children: [
         Row(
           children: [
-            Text(label, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600, fontFamily: 'Roboto')),
+            Text(label, style: const TextStyle(color: Color(0xFF333333), fontSize: 14, fontWeight: FontWeight.w300, fontFamily: 'Roboto')),
             if (!optional) const Text(' *',style: TextStyle(color: Colors.red, fontSize: 20, fontWeight: FontWeight.w600, fontFamily: 'Roboto')),
           ],
         ),
-        const SizedBox(height: 12.0),
         TextField(
           controller: controller,
+          style: const TextStyle(color: Colors.black, fontSize: 16, fontWeight: FontWeight.w400, fontFamily: 'Roboto'),
           decoration: InputDecoration(
-            hintText: hintText, hintStyle: const TextStyle(color: Color(0xFF333333), fontSize: 16, fontWeight: FontWeight.w300, fontFamily: 'Roboto'),
+            hintText: hintText, hintStyle: const TextStyle(color: Color(0xFF333333), fontSize: 14, fontWeight: FontWeight.w300, fontFamily: 'Roboto'),
             enabledBorder: const UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFF333333))),
             focusedBorder: const UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFF333333))),
           ),
@@ -82,16 +93,17 @@ Widget buildLongTextInput(label, hintText, controller) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600, fontFamily: 'Roboto')),
-        const SizedBox(height: 12.0),
+        Text(label, style: const TextStyle(color: Color(0xFF333333), fontSize: 14, fontWeight: FontWeight.w300, fontFamily: 'Roboto')),
+        const SizedBox(height: 8.0),
         TextField(
           controller: controller,
           maxLines: null,
+          style: const TextStyle(color: Colors.black, fontSize: 16, fontWeight: FontWeight.w400, fontFamily: 'Roboto'),
           decoration: InputDecoration(
             hintText: hintText,
-            hintStyle: const TextStyle(color: Color(0xFF333333), fontSize: 16, fontWeight: FontWeight.w300, fontFamily: 'Roboto'),
-            enabledBorder: const OutlineInputBorder(borderSide: BorderSide(color: Color(0xFF333333))),
-            focusedBorder: const OutlineInputBorder(borderSide: BorderSide(color: Color(0xFF333333))),
+            hintStyle: const TextStyle(color: Color(0xFF333333), fontSize: 14, fontWeight: FontWeight.w300, fontFamily: 'Roboto'),
+            enabledBorder: const OutlineInputBorder(borderSide: BorderSide(color: Color(0xFF333333), width: 0.5)),
+            focusedBorder: const OutlineInputBorder(borderSide: BorderSide(color: Color(0xFF333333), width: 0.5)),
           ),
         ),
       ],
@@ -129,7 +141,7 @@ Widget buildCustomSegmentedControl({
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      Text(label, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600, fontFamily: 'Roboto')),
+      Text(label, style: const TextStyle(color: Color(0xFF333333), fontSize: 14, fontWeight: FontWeight.w300, fontFamily: 'Roboto')),
       const SizedBox(height: 12.0),
       Container(
         decoration: BoxDecoration(
@@ -148,7 +160,7 @@ Widget buildCustomSegmentedControl({
                     onTap: () => selectedNotifier.value = options[index],
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 150),
-                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      padding: const EdgeInsets.symmetric(vertical: 6), // was 10
                       decoration: BoxDecoration(
                         color: isSelected ? Colors.blue : Colors.transparent,
                         borderRadius: BorderRadius.horizontal(
@@ -162,7 +174,7 @@ Widget buildCustomSegmentedControl({
                         style: TextStyle(
                           color: isSelected ? Colors.white : Colors.black87,
                           fontWeight: FontWeight.w500,
-                          fontSize: 14,
+                          fontSize: 12,
                           fontFamily: 'Roboto',
                         ),
                       ),

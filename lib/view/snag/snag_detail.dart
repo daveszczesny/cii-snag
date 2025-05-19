@@ -7,6 +7,7 @@ import 'package:cii/view/utils/constants.dart';
 import 'package:cii/view/utils/image.dart';
 import 'package:cii/view/utils/text.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class SnagDetail extends StatefulWidget {
   final SingleProjectController projectController;
@@ -21,16 +22,24 @@ class SnagDetail extends StatefulWidget {
 
 class _SnagDetailState extends State<SnagDetail> {
 
+  // Text editing controllers
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController descriptionController= TextEditingController();
+  final TextEditingController locationController = TextEditingController();
+  final TextEditingController assigneeController = TextEditingController();
+
   late ValueNotifier<String> selectedStatusOption;
   final List<String> statusOptions = Status.values.map((e) => e.name).toList(); // get the name of each status
 
-  List<String> progressImageFilePaths = [];
-  List<String> imageFilePaths = [];
-  List<String> annotatedImageFilePaths = [];
+  late List<String> imageFilePaths;
+  String selectedImage = '';
+
+  bool isEditable = false;
 
   @override
   void initState() {
     super.initState();
+    imageFilePaths = widget.snag.imagePaths;
 
     final currentStatus = widget.snag.status.name;
 
@@ -52,35 +61,52 @@ class _SnagDetailState extends State<SnagDetail> {
     });
   }
 
-  void _showStatusModal(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      builder: (BuildContext context) {
-        return Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: FractionallySizedBox(
-            heightFactor: 0.7,
-            child: Column(
-              children: Status.values
-              // .where((status) => status.name.toLowerCase() != 'completed')
-              .map((status) {
-                return ListTile(
-                  title: Text(status.name),
-                  onTap: () {
-                    setState(() {
-                      widget.snag.status = status;
-                    });
-                    widget.onStatusChanged!();
-                    Navigator.pop(context);
-                  },
-                );
-              }).toList(),
-            )
-          )
-        );
-      },
-    );
+  void onChange({String p = ''}) {
+    final annotatedImages = widget.snag.annotatedImagePaths;
+    if (selectedImage == '') {
+      // check if an annotated image exists
+      if (annotatedImages.isNotEmpty) {
+        if (annotatedImages.containsKey(imageFilePaths[0])) {
+          selectedImage = annotatedImages[imageFilePaths[0]]!;
+        } else {
+          selectedImage = imageFilePaths[0];
+        }
+      } else {
+        selectedImage = imageFilePaths.isNotEmpty ? imageFilePaths[0] : '';
+      }
+
+    } else {
+      if (annotatedImages.isNotEmpty) {
+        if (annotatedImages.containsKey(p)) {
+          selectedImage = annotatedImages[p]!;
+        } else {
+          selectedImage = p;
+        }
+      } else {
+        selectedImage = p;
+      }
+    }
+    widget.onStatusChanged!();
+    setState(() {});
   }
+
+  void saveAnnotatedImage(String originalPath, String path) {
+    setState(() {
+      widget.snag.annotatedImagePaths[originalPath] = path;
+      onChange(p: originalPath);
+    });
+  }
+
+  String getAnnotatedImage(String path) {
+    final annotatedImages = widget.snag.annotatedImagePaths;
+    if (annotatedImages.isNotEmpty) {
+      if (annotatedImages.containsKey(path)) {
+        return annotatedImages[path]!;
+      }
+    }
+    return path;
+  }
+
 
   void _showCategoryModal(BuildContext context) {
     showModalBottomSheet(
@@ -112,30 +138,83 @@ class _SnagDetailState extends State<SnagDetail> {
     );
   }
 
-  void onChangeSnagImage(){
-    setState(() {
-      bool reloadParent = false;
-      if (widget.snag.imagePaths.isEmpty) {
-        reloadParent = true;
-      }
-
-      widget.snag.imagePaths.addAll(imageFilePaths);
-      if (reloadParent) {
-        widget.onStatusChanged!();
-      }
-    });
+  String formatDate(DateTime date) {
+    return DateFormat('yyyy-MM-dd').format(date);
   }
 
-  void onChangeProgressImage() {
-    setState(() {
-      for (final path in progressImageFilePaths) {
-        if (!widget.snag.progressImagePaths.contains(path)) {
-          widget.snag.addProgressImagePath(path);
-        }
-      }
-      progressImageFilePaths.clear();
-      widget.projectController.saveProject();
-    });
+  Widget snagDetailEditable(BuildContext context) {
+    final name = widget.snag.name; 
+    final description = widget.snag.description != '' ? widget.snag.description : 'No Description';
+    final id = widget.snag.getId; // not nullable
+    final dateCreated = formatDate(widget.snag.dateCreated);
+    final assignee = widget.snag.assignee != '' ? widget.snag.assignee : 'Unassigned';
+    final location = widget.snag.location != '' ? widget.snag.location : 'No Location';
+    const double gap = 16;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        buildTextDetail('ID', id),
+        const SizedBox(height: gap),
+        buildEditableTextDetail(context, 'Snag Name', name, nameController,
+          onChanged: () {
+            setState(() {
+              widget.snag.setName(nameController.text);
+            });
+          }),
+        const SizedBox(height: gap),
+        buildEditableTextDetail(context, 'Description', description, descriptionController,
+          onChanged: () {
+            setState(() {
+              widget.snag.setDescription(descriptionController.text);
+            });
+          }),
+        const SizedBox(height: gap),
+        buildTextDetail('Date Created', dateCreated),
+        const SizedBox(height: gap),
+        buildEditableTextDetail(context, 'Assignee', assignee, assigneeController,
+          onChanged: () {
+            setState(() {
+              widget.snag.setAssignee(assigneeController.text);
+            });
+          }),
+        const SizedBox(height: gap),
+        buildEditableTextDetail(context, 'Location', location, locationController,
+          onChanged: () {
+            setState(() {
+              widget.snag.setLocation(locationController.text);
+            });
+          }),
+      ],
+    );
+  }
+
+  Widget snagDetailNoEdit() {
+    final name = widget.snag.name; 
+    final description = widget.snag.description != '' ? widget.snag.description : 'No Description';
+    final id = widget.snag.getId; // not nullable
+    final dateCreated = formatDate(widget.snag.dateCreated);
+    final assignee = widget.snag.assignee != '' ? widget.snag.assignee : 'Unassigned';
+    final location = widget.snag.location != '' ? widget.snag.location : 'No Location';
+
+    const double gap = 16;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        buildTextDetail('ID', id),
+        const SizedBox(height: gap),
+        buildTextDetail('Snag Name', name),
+        const SizedBox(height: gap),
+        buildJustifiedTextDetail('Description', description),
+        const SizedBox(height: gap),
+        buildTextDetail('Date Created', dateCreated),
+        const SizedBox(height: gap),
+        buildTextDetail('Assignee', assignee),
+        const SizedBox(height: gap),
+        buildTextDetail('Location', location),
+      ],
+    );
+    
   }
 
   @override
@@ -158,108 +237,58 @@ class _SnagDetailState extends State<SnagDetail> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-
-                  // Page Contents
-                  if (widget.snag.getId != '') ... [
-                    Text('${AppStrings.id}: ${widget.snag.getId}'),
-                    const SizedBox(height: 28.0)
-                  ],
-                  if (widget.snag.name != '') ...[
-                    Text('${AppStrings.name}: ${widget.snag.name}'),
-                    const SizedBox(height: 28.0)
-                  ],
-
-                  if (widget.snag.imagePaths != null && widget.snag.imagePaths!.isNotEmpty) ... [
-                    const Text('Image'),
-                    const SizedBox(height: 8.0),
-                    SizedBox(
-                      height: 200,
-                      child: GridView.builder(
-                        physics: const NeverScrollableScrollPhysics(),
-                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 3,
-                          crossAxisSpacing: 4.0,
-                          mainAxisSpacing: 4.0,
-                        ),
-                        itemCount: widget.snag.imagePaths!.length,
-                        itemBuilder: (context, index) {
-                          final imagePath = (widget.snag.annotatedImagePaths != null &&
-                            widget.snag.annotatedImagePaths!.isNotEmpty &&
-                            widget.snag.annotatedImagePaths!.containsKey(widget.snag.imagePaths![index]))
-                            ? widget.snag.annotatedImagePaths![widget.snag.imagePaths![index]]!
-                            : widget.snag.imagePaths![index];
-
-                          return GestureDetector(
-                            onTap: () {
-                              showDialog(
-                                context: context,
-                                builder: (_) => Dialog(
-                                  backgroundColor: Colors.transparent,
-                                  child: GestureDetector(
-                                    onTap: () => Navigator.of(context).pop(),
-                                    child: InteractiveViewer(child: Image.file(File(imagePath)))
-                                  ),
-                                )
-                              );
-                            },
-                            child: Image.file(File(imagePath), fit: BoxFit.cover),
-                          );
-                        }
+                  // edit button
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      GestureDetector(
+                        onTap: () { isEditable = !isEditable; setState(() {}); },
+                        child: const Icon(Icons.edit, color: Colors.black, size: 24.0),
                       ),
+                    ]
+                  ),
+                  const SizedBox(height: 12),
+                  if (imageFilePaths.isEmpty || File(imageFilePaths[0]).existsSync() == false) ... [
+                    buildMultipleImageInput_V2(context, imageFilePaths, onChange),
+                  ] else ... [
+                    showImageWithEditAbility(context, selectedImage != '' ? selectedImage : getAnnotatedImage(imageFilePaths[0]), saveAnnotatedImage)
+                  ],
+
+                  const SizedBox(height: 14.0),
+
+                  // small image showcase
+                  if (imageFilePaths.isNotEmpty && File(imageFilePaths[0]).existsSync()) ... [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        buildImageShowcase(context, onChange, saveAnnotatedImage, imageFilePaths),
+                        if (imageFilePaths.length < 5) ... [
+                          buildMultipleImageInput_V2(context, imageFilePaths, onChange, large: false),
+                        ],
+                      ],
+                    ),
+                    const SizedBox(height: 28.0),
+                  ],
+
+                  buildCustomSegmentedControl(label: 'Status', options: statusOptions, selectedNotifier: selectedStatusOption),
+                  const SizedBox(height: 28),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 8),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (isEditable) ... [
+                          snagDetailEditable(context)
+                        ] else ... [
+                          snagDetailNoEdit()
+                        ]
+                      ],
                     )
-                  ],
+                  ),
 
-                  // add more snag images
-                  buildImageInput('Add Snag Images', context, imageFilePaths, onChangeSnagImage),
-                  
-
-                  if (widget.snag.location != '') ... [
-                    Text('${AppStrings.projectLocation}: ${widget.snag.location}'),
-                    const SizedBox(height: 28.0)
-                  ],
+                  const Divider(height: 20, thickness: 0.5, color: Colors.grey),
 
                   // Status
-                  buildCustomSegmentedControl(label: 'Status', options: statusOptions, selectedNotifier: selectedStatusOption),
-
-                  const SizedBox(height: 24.0),
-                  // Progress Pictures (only if not completed)
-                  if (widget.snag.status.name != Status.completed.name) ... [
-                    buildImageInput(AppStrings.addProgressPictures, context, progressImageFilePaths, onChangeProgressImage)
-                  ],
-
-                  if (widget.snag.progressImagePaths.isNotEmpty) ... [
-                    const Text(AppStrings.progressPictures),
-                    const SizedBox(height: 8.0),
-                    SizedBox(
-                      height: 200,
-                      child: GridView.builder(
-                        physics: const NeverScrollableScrollPhysics(),
-                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 3,
-                          crossAxisSpacing: 4.0,
-                          mainAxisSpacing: 4.0,
-                        ),
-                        itemCount: widget.snag.progressImagePaths!.length,
-                        itemBuilder: (context, index) {
-                          return GestureDetector(
-                            onTap: () {
-                              showDialog(
-                                context: context,
-                                builder: (_) => Dialog(
-                                  backgroundColor: Colors.transparent,
-                                  child: GestureDetector(
-                                    onTap: () => Navigator.of(context).pop(),
-                                    child: InteractiveViewer(child: Image.file(File(widget.snag.progressImagePaths![index])))
-                                  ),
-                                )
-                              );
-                            },
-                            child: Image.file(File(widget.snag.progressImagePaths![index]), fit: BoxFit.cover),
-                          );
-                        }
-                      ),
-                    )
-                  ],
 
                   // Category and Tags
                   if (widget.snag.categories.isNotEmpty) ... [
@@ -333,15 +362,6 @@ class _SnagDetailState extends State<SnagDetail> {
                           )
                         );
                     }).toList()),
-                    const SizedBox(height: 28.0)
-                  ],
-
-                  if (widget.snag.assignee != '') ... [
-                    Text('${AppStrings.assignee}: ${widget.snag.assignee}'),
-                    const SizedBox(height: 28.0)
-                  ],
-                  if (widget.snag.finalRemarks != '') ... [
-                    Text('${AppStrings.finalRemarks}: ${widget.snag.finalRemarks}'),
                     const SizedBox(height: 28.0)
                   ],
                 ],

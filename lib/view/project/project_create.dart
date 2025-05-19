@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:cii/controllers/project_controller.dart';
 import 'package:cii/models/project.dart';
 import 'package:cii/models/category.dart' as cii;
@@ -81,6 +83,30 @@ class _ProjectCreateState extends State<ProjectCreate> {
     });
   }
 
+  Widget onDelete(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Delete Image'),
+      content: const Text('Are you sure you want to delete this image?'),
+      actions: [
+        TextButton(
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+          child: const Text('Cancel')
+        ),
+        TextButton(
+          onPressed: () {
+            Navigator.of(context).pop();
+            // delete the image
+            imagePath = '';
+            setState(() {});
+          },
+          child: const Text('Delete')
+        )
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context){
     return Scaffold(
@@ -100,21 +126,18 @@ class _ProjectCreateState extends State<ProjectCreate> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              if (imagePath != '' && File(imagePath).existsSync()) ... [
+                  buildThumbnailImageShowcase(context, imagePath, onDelete: onDelete),
+                  const SizedBox(height: 24.0),
+                ] else ... [
+                  // if there is no project image allow the user to add one
+                  buildImageInput_V2(context, (v) => setState(() {imagePath = v;})),
+                  const SizedBox(height: 24.0),
+              ],
               buildTextInput(AppStrings.projectTite, AppStrings.projectTitleExample, _nameController),
               const SizedBox(height: 28.0),
               buildLongTextInput(AppStrings.projectDescription, AppStrings.projectDescriptionExample, _descriptionController),
               const SizedBox(height: 28.0),
-              buildImageInputForSingleImage('Upload Project Thumbnail', context, onChange),
-              
-              if (imagePath != '') ... [
-                buildSingleImageShowcase(context, imagePath, () {
-                  imagePath = '';
-                  setState(() {});
-                }),
-                const SizedBox(height: 28.0)
-              ] else ... [
-                const SizedBox(height: 28.0)
-              ],
               buildTextInput(AppStrings.projectLocation, AppStrings.projectLocationExample, _locationController),
               const SizedBox(height: 28.0),
               buildTextInput(AppStrings.projectRef, AppStrings.projectRefExample, _projectRefController),

@@ -37,6 +37,8 @@ class _SnagCreateState extends State<SnagCreate> {
   List<String> imageFilePaths = [];
   Map<String, String> annotatedImages = {};
 
+  String selectedImage = '';
+
   late ProjectController controller;
   late List<Project> filteredProjects = [];
   late SingleProjectController? projectController;
@@ -120,13 +122,39 @@ class _SnagCreateState extends State<SnagCreate> {
     }
   }  
 
-  void onChange() {
+  void onChange({String p = ''}) {
+    if (selectedImage == '') {
+
+      // check if an annotated image exists
+      if (annotatedImages.isNotEmpty) {
+        if (annotatedImages.containsKey(imageFilePaths[0])) {
+          selectedImage = annotatedImages[imageFilePaths[0]]!;
+        } else {
+          selectedImage = imageFilePaths[0];
+        }
+      } else {
+        selectedImage = imageFilePaths.isNotEmpty ? imageFilePaths[0] : '';
+      }
+
+    } else {
+      if (annotatedImages.isNotEmpty) {
+        if (annotatedImages.containsKey(p)) {
+          selectedImage = annotatedImages[p]!;
+        } else {
+          selectedImage = p;
+        }
+      } else {
+        selectedImage = p;
+      }
+    }
+
     setState(() {});
   }
 
   void saveAnnotatedImage(String originalPath, String path) {
     setState(() {
       annotatedImages[originalPath] = path;
+      onChange(p: originalPath);
     });
   }
 
@@ -180,18 +208,32 @@ class _SnagCreateState extends State<SnagCreate> {
                 ),
                 const SizedBox(height: 28.0),
               ],
+              // buildImageInput(AppStrings.uploadImage, context, imageFilePaths, onChange),
 
-              buildTextInput(AppStrings.snagName, AppStrings.snagNameExample, nameController),
-              const SizedBox(height: 28.0),
-              buildTextInput(AppStrings.projectLocation, AppStrings.snagLocationExample, locationController),
-              const SizedBox(height: 28.0),
-              buildImageInput(AppStrings.uploadImage, context, imageFilePaths, onChange),
+              if (imageFilePaths.isEmpty) ... [
+                buildMultipleImageInput_V2(context, imageFilePaths, onChange),
+              ] else ... [
+                showImageWithEditAbility(context, selectedImage != '' ? selectedImage : imageFilePaths[0], saveAnnotatedImage)
+              ],
+
               const SizedBox(height: 14.0),
               if (imageFilePaths.isNotEmpty) ... [
-                buildImageShowcase(context, onChange, saveAnnotatedImage, imageFilePaths),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    buildImageShowcase(context, onChange, saveAnnotatedImage, imageFilePaths),
+                    if (imageFilePaths.length < 5) ... [
+                      buildMultipleImageInput_V2(context, imageFilePaths, onChange, large: false),
+                    ],
+                  ],
+                ),
                 const SizedBox(height: 28.0),
               ],
+              buildTextInput(AppStrings.snagName, AppStrings.snagNameExample, nameController),
+              const SizedBox(height: 28.0),
               buildTextInput(AppStrings.assignee, AppStrings.assigneeExample, assigneeController),
+              const SizedBox(height: 28.0),
+              buildTextInput(AppStrings.projectLocation, AppStrings.snagLocationExample, locationController),
               const SizedBox(height: 28.0),
               buildCustomSegmentedControl(label: 'Priority', options: priorityOptions, selectedNotifier: selectedPriorityOption),
               const SizedBox(height: 28.0),

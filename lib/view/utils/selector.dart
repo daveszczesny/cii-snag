@@ -141,12 +141,7 @@ class _ObjectSelectorState<T> extends State<ObjectSelector<T>> {
           children: [
             Text(
               widget.label,
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
-                fontFamily: 'Roboto',
-              ),
-            ),
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w300, fontFamily: 'Roboto')),
             const SizedBox(width: 8.0),
             GestureDetector(
               onTap: () {
@@ -167,9 +162,8 @@ class _ObjectSelectorState<T> extends State<ObjectSelector<T>> {
             Expanded(
               child: TextField(
                 controller: _controller,
-                decoration: InputDecoration(
-                  hintText: 'Create new ${widget.label}',
-                ),
+                decoration: InputDecoration(hintText: 'Create new ${widget.label}'),
+                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w400, fontFamily: 'Roboto'),
               ),
             ),
             GestureDetector(
@@ -194,8 +188,8 @@ class _ObjectSelectorState<T> extends State<ObjectSelector<T>> {
         Text(
           'Project ${widget.pluralLabel}',
           style: TextStyle(
-            fontSize: 12.0,
-            fontWeight: FontWeight.w400,
+            fontSize: 10.0,
+            fontWeight: FontWeight.w300,
             color: Theme.of(context).textTheme.bodyLarge?.color,
             fontFamily: 'Roboto',
           )
@@ -217,7 +211,7 @@ class _ObjectSelectorState<T> extends State<ObjectSelector<T>> {
                   minWidth: 110,
                   maxWidth: 150,
                 ),
-                padding: const EdgeInsets.symmetric(horizontal: 18.0, vertical: 8.0),
+                padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 6.0),
                 decoration: BoxDecoration(
                   color: color,
                   borderRadius: BorderRadius.circular(20.0),

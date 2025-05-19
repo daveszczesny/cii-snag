@@ -359,7 +359,7 @@ class _SnagCardWidgetState extends State<SnagCardWidget> {
                         Row(
                           children: [
                             // status pill
-                            gesturePill(() => _showStatusModal(context), status.color ?? Colors.blue, status.name),
+                            gesturePill(() => _showStatusModal(context), Colors.black, status.name),
                             const SizedBox(width: 8),
                             // Category pill
                             if (widget.snagController.categories.isNotEmpty) ... [
@@ -389,7 +389,7 @@ class _SnagCardWidgetState extends State<SnagCardWidget> {
                     const PopupMenuDivider(height: 1.0),
                     const PopupMenuItem<String>(
                       value: 'delete',
-                      child: Text(AppStrings.deleteProject, style: TextStyle(color: AppColors.red)),
+                      child: Text(AppStrings.deleteSnag, style: TextStyle(color: AppColors.red)),
                     ),
                   ];
                 },

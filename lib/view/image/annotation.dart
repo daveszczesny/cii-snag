@@ -44,30 +44,46 @@ class _ImageAnnotationScreenState extends State<ImageAnnotationScreen> {
   }
 
    void saveImage() async {
-    final image = await imagePainterController.exportImage();
-    final imageName = '${DateTime.now().millisecondsSinceEpoch}.png';
-    final directory = (await getApplicationDocumentsDirectory()).path;
-    await Directory('$directory/snagImages').create(recursive: true);
-    final fullPath = '$directory/snagImages/$imageName';
-    final imgFile = File(fullPath);
-    if (image != null) {
-      imgFile.writeAsBytesSync(image);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          duration: const Duration(seconds: 2),
-          backgroundColor: Colors.grey[700],
-          padding: const EdgeInsets.only(left: 10),
-          content: const Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(AppStrings.imageAnnotationExport,
-                  style: TextStyle(color: Colors.white)),
-            ],
-          ),
+  // Show loading dialog
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (context) => const Center(
+      child: CircularProgressIndicator(),
+    ),
+  );
+
+  final image = await imagePainterController.exportImage();
+  final imageName = '${DateTime.now().millisecondsSinceEpoch}.png';
+  final directory = (await getApplicationDocumentsDirectory()).path;
+  await Directory('$directory/snagImages').create(recursive: true);
+  final fullPath = '$directory/snagImages/$imageName';
+  final imgFile = File(fullPath);
+
+  if (image != null) {
+    imgFile.writeAsBytesSync(image);
+    // Dismiss loading dialog
+    Navigator.of(context).pop();
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        duration: const Duration(seconds: 1),
+        backgroundColor: Colors.grey[700],
+        padding: const EdgeInsets.only(left: 10),
+        content: const Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('Image saved',
+                style: TextStyle(color: Colors.white)),
+          ],
         ),
-      );
-      Navigator.pop(context, fullPath);
-    }
+      ),
+    );
+    Navigator.pop(context, fullPath);
+  } else {
+    // Dismiss loading dialog if something went wrong
+    Navigator.of(context).pop();
   }
+}
 
 }

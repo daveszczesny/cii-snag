@@ -87,6 +87,11 @@ class SnagController {
     return snag.categories ?? [];
   }
 
+  void setName(String v) { snag.name = v; }
+  void setDescription(String v) { snag.description = v; }
+  void setLocation(String v) { snag.location = v; }
+  void setAssignee(String v) { snag.assignee= v; }
+
   void setTag(Tag tag) {
     snag.tags ??= [];
     snag.tags!.add(tag);

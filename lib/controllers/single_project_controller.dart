@@ -157,31 +157,36 @@ class SingleProjectController {
     return project.createdTags;
   }
 
+  void setName(String name) {
+    project.name = name;
+    saveProject();
+  }
+
   void setMainImagePath(String path) {
     project.mainImagePath = path;
-    project.save();
+    saveProject();
   }
 
   void setDescription(String description) {
     project.description = description;
-    project.save();
+    saveProject();
   }
 
   void setLocation(String location) {
     project.location = location;
-    project.save();
+    saveProject();
   }
   void setClient(String client) {
     project.client = client;
-    project.save();
+    saveProject();
   }
   void setContractor(String contractor) {
     project.contractor = contractor;
-    project.save();
+    saveProject();
   }
   void setProjectRef(String projectRef) {
     project.projectRef = projectRef;
-    project.save();
+    saveProject();
   }
 
   void setStatus(String status) {
@@ -200,13 +205,13 @@ class SingleProjectController {
   void addTag(String name, Color color) {
     project.createdTags ??= <Tag>[];
     project.createdTags?.add(Tag(name: name, color: color));
-    project.save();
+    saveProject();
   }
 
   void addCategory(String name, Color color) {
     project.createdCategories ??= <cii.Category>[];
     project.createdCategories?.add(cii.Category(name: name, color: color));
-    project.save();
+    saveProject();
   }
 
 }
