@@ -105,4 +105,10 @@ class ProjectController {
     }
     yield filteredProjects;
   }
+
+  bool isUniqueProjectRef(String ref) {
+    return projectBox.values
+        .where((project) => project.projectRef == ref)
+        .isEmpty;
+  }
 }

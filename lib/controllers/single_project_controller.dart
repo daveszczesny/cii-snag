@@ -9,7 +9,6 @@ import 'package:flutter/material.dart';
 class SingleProjectController {
   final Project project;
 
-
   SingleProjectController(this.project);
 
   void updateProject(Project updatedProject) {
@@ -31,6 +30,7 @@ class SingleProjectController {
   void addSnag(Snag snag) {
     project.snags.add(snag);
     project.dateModified = DateTime.now();
+    project.snagsCreatedCount++;
     saveProject();
   }
 
@@ -212,6 +212,16 @@ class SingleProjectController {
     project.createdCategories ??= <cii.Category>[];
     project.createdCategories?.add(cii.Category(name: name, color: color));
     saveProject();
+  }
+
+  void sortCategories() {
+    cii.Category.sortCategories(project.createdCategories!);
+  }
+
+  int getSnagsCreatedCount() {
+    // this represents the total number of snags created in the project
+    // regardless if the snag was deleted or not
+    return project.snagsCreatedCount;
   }
 
 }

@@ -49,6 +49,26 @@ class _ProjectCreateState extends State<ProjectCreate> {
     final String client = _clientController.text;
     final String contractor = _contractorController.text;
 
+    if (projectRef.isEmpty) {
+      // do not allow empty project ref
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Project reference cannot be empty'),
+          duration: Duration(seconds: 2),
+        )
+      );
+      return;
+    } else if (projectController.isUniqueProjectRef(projectRef) == false) {
+      // do not allow duplicate project ref
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Project reference already exists: $projectRef'),
+          duration: const Duration(seconds: 2),
+        )
+      );
+      return;
+    }
+
     if (name.isEmpty) {
       // if the name is empty, create a default name 'Project #$no' and also show a snackbar
       int no = projectController.getAllProjects().length + 1;
@@ -136,11 +156,11 @@ class _ProjectCreateState extends State<ProjectCreate> {
               ],
               buildTextInput(AppStrings.projectTite, AppStrings.projectTitleExample, _nameController),
               const SizedBox(height: 28.0),
+              buildTextInput(AppStrings.projectRef, AppStrings.projectRefExample, _projectRefController, optional: false),
+              const SizedBox(height: 28.0),
               buildLongTextInput(AppStrings.projectDescription, AppStrings.projectDescriptionExample, _descriptionController),
               const SizedBox(height: 28.0),
               buildTextInput(AppStrings.projectLocation, AppStrings.projectLocationExample, _locationController),
-              const SizedBox(height: 28.0),
-              buildTextInput(AppStrings.projectRef, AppStrings.projectRefExample, _projectRefController),
               const SizedBox(height: 28.0),
               buildTextInput(AppStrings.projectClient, AppStrings.projectClientExample, _clientController),
               const SizedBox(height: 28.0),
@@ -156,8 +176,10 @@ class _ProjectCreateState extends State<ProjectCreate> {
                 onCreate: (name, color) {
                   setState(() {
                     _categories.add(cii.Category(name: capitilize(name), color: color));
+                    cii.Category.sortCategories(_categories);
                   });
                 },
+                hasColorSelector: false,
               ),
               const SizedBox(height: 28.0),
               ObjectSelector(
@@ -171,7 +193,8 @@ class _ProjectCreateState extends State<ProjectCreate> {
                   setState(() {
                     _tags.add(Tag(name: capitilize(name), color: color));
                   });
-                }
+                },
+                hasColorSelector: true,
               ),
               const SizedBox(height: 35.0),
               buildTextButton(AppStrings.projectCreate, createProject),

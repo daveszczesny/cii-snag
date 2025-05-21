@@ -59,6 +59,7 @@ class _SnagCardWidgetState extends State<SnagCardWidget> {
     showModalBottomSheet(
       context: context, 
       builder: (BuildContext context) {
+        widget.projectController.sortCategories();
         final categories = widget.projectController.getCategories!;
         return Padding(
           padding: const EdgeInsets.all(16.0),
@@ -123,176 +124,66 @@ class _SnagCardWidgetState extends State<SnagCardWidget> {
     }
   }
 
-  Widget gesturePill(VoidCallback tap, Color color, String text){
+  Widget gesturePill(VoidCallback tap, Color color, String text, {bool borderOnly = false}){
+
+    const double pillWidth = 9;
+    const double pillHeight = 4;
+    
+    if (borderOnly) {
+      return GestureDetector(
+        onTap: tap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: pillWidth, vertical: pillHeight),
+          decoration: BoxDecoration(
+            color: Colors.transparent,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: color, width: 0.5),
+          ),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 100), // Set your max width here
+            child: Text(
+              text,
+              style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w300, fontSize: 12),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ),
+      );
+    }
+
     return GestureDetector(
       onTap: tap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Text(text, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w300, fontSize: 14)),
-      )
-    );
-  }
-
-  @override
-  Widget old_build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (context) => SnagDetail(
-              projectController: widget.projectController,
-              snag: widget.snagController,
-              onStatusChanged: widget.onStatusChanged,
-            ),
-          ),
-        );
-      },
-      child: SizedBox(
-        height: 110,
-        child: Card(
-          color: Theme.of(context).cardColor,
-          margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-          child: Stack(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Row(
-                  children: [
-                    if (widget.snagController.imagePaths.isNotEmpty) ... [
-                      Container(
-                        width: 50, height: 50, color: Colors.grey,
-                        child: Image.file(File(widget.snagController.imagePaths[0]), width: 50, height: 50, fit: BoxFit.cover),
-                      ),
-                      const SizedBox(width: 16.0),
-                    ],
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Image.asset(
-                                widget.snagController.priority.icon,
-                                width: 16.0,
-                                height: 16.0,
-                              ),
-                              const SizedBox(width: 8.0),
-                              Expanded(
-                                child: Text(
-                                  widget.snagController.name,
-                                  style: const TextStyle(
-                                    fontSize: 18.0,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppColors.primaryGreen,
-                                    fontFamily: 'Roboto',
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
-                                  maxLines: 1,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8.0),
-                          Row(
-                            children: [
-                              // Status pill
-                              GestureDetector(
-                                onTap: () => _showStatusModal(context),
-                                child: Container(
-                                  width: 90,
-                                  padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
-                                  decoration: BoxDecoration(
-                                    color: Status.getStatus(widget.snagController.status.name)!.color,
-                                    borderRadius: BorderRadius.circular(20.0),
-                                  ),
-                                  alignment: Alignment.center,
-                                  child: Text(
-                                    widget.snagController.status.name,
-                                    style: const TextStyle(
-                                      fontSize: 12.0,
-                                      fontWeight: FontWeight.w400,
-                                      color: Colors.black,
-                                      fontFamily: 'Roboto',
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              // Category pill (show only if categories is not empty)
-                              if (widget.snagController.categories.isNotEmpty) ...[
-                                const SizedBox(width: 8.0),
-                                GestureDetector(
-                                  onTap: () => _showCategoryModal(context),
-                                  child: Container(
-                                    width: 90,
-                                    padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
-                                    decoration: BoxDecoration(
-                                      color: widget.snagController.categories[0].color,
-                                      borderRadius: BorderRadius.circular(20.0),
-                                    ),
-                                    alignment: Alignment.center,
-                                    child: Text(
-                                      widget.snagController.categories[0].name,
-                                      style: const TextStyle(
-                                        fontSize: 12.0,
-                                        fontWeight: FontWeight.w400,
-                                        color: Colors.black,
-                                        fontFamily: 'Roboto',
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ]
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Positioned(
-                top: 0,
-                right: 0,
-                child: PopupMenuButton<String>(
-                  onSelected: onSelect,
-                  itemBuilder: (BuildContext context) {
-                    return const [
-                      PopupMenuItem<String>(
-                        value: 'view',
-                        child: Text(AppStrings.viewSnag),
-                      ),
-                      // PopupMenuItem<String>( // TODO: remove share option for now (until Version 2.0)
-                      //   value: 'share',
-                      //   child: Text(AppStrings.shareSnag),
-                      // ),
-                      PopupMenuDivider(
-                        height: 1.0,
-                      ),
-                      PopupMenuItem<String>(
-                        value: 'delete',
-                        child: Text(AppStrings.deleteSnag, style: TextStyle(color: AppColors.red)),
-                      ),
-                    ];
-                  },
-                ),
-              ),
-            ],
+        padding: const EdgeInsets.symmetric(horizontal: pillWidth, vertical: pillHeight),
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: color, width: 0.5),
+        ),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 100), // Set your max width here
+          child: Text(
+            text,
+            style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w300, fontSize: 12),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ),
     );
   }
 
-
-
   @override
   Widget build(BuildContext context) {
     final status = widget.snagController.status;
+    final assignee = widget.snagController.assignee != '' ? widget.snagController.assignee : 'Unassigned';
+
+    const unassignedIcon = 'lib/assets/icons/png/assignee_unassigned.png';
+    const assignedIcon = 'lib/assets/icons/png/assignee_assigned.png';
+
+    final assigneeIcon = assignee == 'Unassigned' ? unassignedIcon : assignedIcon;
+    const double assigneeIconSize = 16;
 
     return GestureDetector(
       onTap: () {
@@ -355,15 +246,25 @@ class _SnagCardWidgetState extends State<SnagCardWidget> {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 18),
+                        const SizedBox(height: 2),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(assignee, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w300, color: Colors.black, fontFamily: 'Roboto')),
+                            const SizedBox(width: 4),
+                            Image.asset(assigneeIcon, width: assigneeIconSize, height: assigneeIconSize),
+                          ],
+                        ),
+
+                        const SizedBox(height: 6),
                         Row(
                           children: [
                             // status pill
-                            gesturePill(() => _showStatusModal(context), Colors.black, status.name),
+                            gesturePill(() => _showStatusModal(context), (status.color ?? Colors.blue).withOpacity(0.5), status.name),
                             const SizedBox(width: 8),
                             // Category pill
                             if (widget.snagController.categories.isNotEmpty) ... [
-                              gesturePill(() => _showCategoryModal(context), widget.snagController.categories[0].color, widget.snagController.categories[0].name),
+                              gesturePill(() => _showCategoryModal(context), Colors.black, widget.snagController.categories[0].name, borderOnly: true),
                             ]
                           ],
                         ),
@@ -396,21 +297,12 @@ class _SnagCardWidgetState extends State<SnagCardWidget> {
               ),
             ),
             // Chevron icon vertically centered at right
-            const Positioned(
-              right: 8,
-              top: 14,
-              bottom: 0,
-              child: Center(
-                child: Icon(Icons.chevron_right, size: 32, color: Colors.black38),
-              ),
+            const Positioned(right: 8, top: 14, bottom: 0,
+              child: Center(child: Icon(Icons.chevron_right, size: 32, color: Colors.black38)),
             ),
           ],
         ),
       ),
     );
   }
-
-
-
-
 }

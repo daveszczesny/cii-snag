@@ -251,10 +251,10 @@ class _ProjectCardWidgetState extends State<ProjectCardWidget> {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                               decoration: BoxDecoration(
-                                color: Status.getStatus(status)!.color, 
+                                color: (Status.getStatus(status)!.color ?? Colors.blue).withOpacity(0.5), 
                                 borderRadius: BorderRadius.circular(12)
                               ),
-                              child: Text(status, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w300, fontSize: 12)),
+                              child: Text(status, style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w300, fontSize: 12)),
                             ),
                           ],
                         ),

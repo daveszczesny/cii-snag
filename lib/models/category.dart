@@ -29,4 +29,20 @@ class Category extends HiveObject {
         Category(name: 'Safety', color: AppColors.safetyRed),
       ];
 
+  static void sortCategories(List<Category> categories) {
+    if (categories == null || categories.isEmpty) return;
+
+    final defaultNames = Category.defaultCategories.map((cat) => cat.name).toList();
+
+    categories.sort((a, b) {
+      final aIsDefault = defaultNames.contains(a.name);
+      final bIsDefault = defaultNames.contains(b.name);
+
+      if (aIsDefault && !bIsDefault) return -1;
+      if (!aIsDefault && bIsDefault) return 1;
+
+      return a.name.length.compareTo(b.name.length);
+    });
+  }
+
 }

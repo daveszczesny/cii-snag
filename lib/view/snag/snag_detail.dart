@@ -160,6 +160,7 @@ class _SnagDetailState extends State<SnagDetail> {
           onChanged: () {
             setState(() {
               widget.snag.setName(nameController.text);
+              widget.onStatusChanged!();
             });
           }),
         const SizedBox(height: gap),
@@ -176,6 +177,7 @@ class _SnagDetailState extends State<SnagDetail> {
           onChanged: () {
             setState(() {
               widget.snag.setAssignee(assigneeController.text);
+              widget.onStatusChanged!();
             });
           }),
         const SizedBox(height: gap),

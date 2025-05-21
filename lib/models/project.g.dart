@@ -34,13 +34,14 @@ class ProjectAdapter extends TypeAdapter<Project> {
       status: fields[14] as Status?,
       createdCategories: (fields[17] as List?)?.cast<Category>(),
       createdTags: (fields[16] as List?)?.cast<Tag>(),
+      snagsCreatedCount: fields[18] as int?,
     )..snags = (fields[15] as List).cast<Snag>();
   }
 
   @override
   void write(BinaryWriter writer, Project obj) {
     writer
-      ..writeByte(18)
+      ..writeByte(19)
       ..writeByte(0)
       ..write(obj.uuid)
       ..writeByte(1)
@@ -76,7 +77,9 @@ class ProjectAdapter extends TypeAdapter<Project> {
       ..writeByte(16)
       ..write(obj.createdTags)
       ..writeByte(17)
-      ..write(obj.createdCategories);
+      ..write(obj.createdCategories)
+      ..writeByte(18)
+      ..write(obj.snagsCreatedCount);
   }
 
   @override

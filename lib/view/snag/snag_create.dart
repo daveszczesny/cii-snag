@@ -81,6 +81,16 @@ class _SnagCreateState extends State<SnagCreate> {
     }
   }
 
+  String createSnagId() {
+    // get date in yyyyMMdd format
+    String date = DateTime.now().toString().substring(0, 10).replaceAll('-', '');
+    final projectRef = projectController?.getProjectRef ?? 'PID';
+    final snagCount = projectController?.getTotalSnags() ?? 0;
+    final formattedSnagCount = (snagCount + 1).toString().padLeft(4, '0');
+    String snagId = '$projectRef$date-$formattedSnagCount';
+    return snagId;
+  }
+
   void createSnag() {
     String name = nameController.text;
     final String assignee = assigneeController.text;
@@ -100,9 +110,11 @@ class _SnagCreateState extends State<SnagCreate> {
     }
 
     if (projectController != null) {
+      final snagId = createSnagId();
       projectController?.addSnag(
         Snag(
           projectId: projectController!.getProjectId ?? 'PID',
+          id: snagId,
           name: name,
           location: location,
           assignee: assignee,
@@ -250,6 +262,7 @@ class _SnagCreateState extends State<SnagCreate> {
                   onCreate: (name, color) {
                     setState(() {
                       projectController?.addCategory(name, color);
+                      projectController?.sortCategories();
                     });
                   },
                   onSelect: (obj) {

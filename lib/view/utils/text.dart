@@ -190,6 +190,7 @@ Widget buildCustomSegmentedControl({
   );
 }
 
+// TODO: Remove this function
 Widget buildSegmentedControl({
   required String label,
   required List<String> options,

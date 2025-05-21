@@ -81,6 +81,9 @@ class Project extends HiveObject {
   @HiveField(17)
   List<Category>? createdCategories;
 
+  @HiveField(18)
+  int snagsCreatedCount;
+
 
   Project({
     String? uuid,
@@ -100,6 +103,7 @@ class Project extends HiveObject {
     Status? status,
     List<Category>? createdCategories,
     List<Tag>? createdTags,
+    int? snagsCreatedCount,
   })
   :
     uuid = uuid ?? const Uuid().v4(),
@@ -108,7 +112,8 @@ class Project extends HiveObject {
     dateModified = dateModified ?? DateTime.now(),
     status = status ?? Status.todo,
     createdCategories = createdCategories ?? [],
-    createdTags = createdTags ?? [];
+    createdTags = createdTags ?? [],
+    snagsCreatedCount = snagsCreatedCount ?? 0;
 
   static String humanReadableId(String name) {
     // Generate a human-readable ID

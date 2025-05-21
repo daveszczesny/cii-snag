@@ -12,6 +12,7 @@ class ObjectSelector<T> extends StatefulWidget {
   final void Function(String name, Color color) onCreate;
   final void Function(T)? onSelect;
   final bool allowMultiple;
+  final bool hasColorSelector;
 
   const ObjectSelector({
     super.key,
@@ -24,6 +25,7 @@ class ObjectSelector<T> extends StatefulWidget {
     required this.onCreate,
     this.onSelect,
     this.allowMultiple = false,
+    this.hasColorSelector = true,
   });
 
   @override
@@ -66,13 +68,13 @@ class _ObjectSelectorState<T> extends State<ObjectSelector<T>> {
 
   void _pickColor() async {
     final colors = [
-      Colors.amber,
-      Colors.red,
-      Colors.green,
-      Colors.blue,
-      Colors.purple,
-      Colors.orange,
-      Colors.teal,
+      Colors.amber.withOpacity(0.5),
+      Colors.red.withOpacity(0.5),
+      Colors.green.withOpacity(0.5),
+      Colors.blue.withOpacity(0.5),
+      Colors.purple.withOpacity(0.5),
+      Colors.orange.withOpacity(0.5),
+      Colors.teal.withOpacity(0.5),
     ];
     Color? picked = await showDialog<Color>(
       context: context,
@@ -162,21 +164,23 @@ class _ObjectSelectorState<T> extends State<ObjectSelector<T>> {
             Expanded(
               child: TextField(
                 controller: _controller,
-                decoration: InputDecoration(hintText: 'Create new ${widget.label}'),
+                decoration: InputDecoration(hintText: 'Add new ${widget.label}'),
                 style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w400, fontFamily: 'Roboto'),
               ),
             ),
-            GestureDetector(
-              onTap: _pickColor,
-              child: Container(
-                width: 28, height: 28,
-                decoration: BoxDecoration(
-                  color: _selectedColor,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.black26)
+            if (widget.hasColorSelector) ... [
+              GestureDetector(
+                onTap: _pickColor,
+                child: Container(
+                  width: 28, height: 28,
+                  decoration: BoxDecoration(
+                    color: _selectedColor,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.black26)
+                  )
                 )
-              )
-            ),
+              ),
+            ],
             IconButton(
               icon: const Icon(Icons.add),
               onPressed: _onAdd,
@@ -207,17 +211,12 @@ class _ObjectSelectorState<T> extends State<ObjectSelector<T>> {
             return GestureDetector(
               onTap: () => widget.onSelect == null ? null : _handleTap(obj),
               child: Container(
-                constraints: const BoxConstraints(
-                  minWidth: 110,
-                  maxWidth: 150,
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 6.0),
+                padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 5.0),
                 decoration: BoxDecoration(
-                  color: color,
+                  color: isSelected ? (color).withOpacity(0.5) : Colors.transparent,
                   borderRadius: BorderRadius.circular(20.0),
-                  border: Border.all(color: isSelected ? Colors.black : Colors.transparent, width: 2),
+                  border: Border.all(color: Colors.black, width: 0.5),
                 ),
-                alignment: Alignment.center,
                 child:Text(
                   name,
                   style: TextStyle(

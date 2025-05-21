@@ -10,7 +10,7 @@ import 'package:image_picker/image_picker.dart';
 Widget buildImageShowcase(BuildContext context, onChange, onSave, List<String> imageFilePaths) {
 
   final double screenWidth = MediaQuery.of(context).size.width;
-  final double size = (screenWidth - 24) / 6; // subdivide the screen width by 6 incl. padding
+  final double size = (screenWidth - 48) / 6; // subdivide the screen width by 6 incl. padding
 
   return Padding(
     padding: const EdgeInsets.symmetric(vertical: 8),
@@ -317,7 +317,7 @@ Widget buildMultipleImageInput_V2(BuildContext context, List<String> imagePaths,
     height = 120;
   } else {
     final double screenWidth = MediaQuery.of(context).size.width;
-    width = (screenWidth - 24) / 6; 
+    width = (screenWidth - 48) / 6; 
     height = width;
   }
 

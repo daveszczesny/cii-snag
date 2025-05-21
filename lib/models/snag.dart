@@ -100,13 +100,8 @@ class Snag extends HiveObject {
     this.categories,
   }):
     uuid = uuid ?? const Uuid().v4(),
-    id = id ?? createHumanReadableId(projectId ?? 'PID'),
+    id = id ?? 'PID',
     dateCreated = dateCreated ?? DateTime.now(),
     status = status ?? Status.todo,
     priority = priority ?? Priority.low;
-
-
-    static String createHumanReadableId(String projectId) {
-      return '$projectId-${const Uuid().v4().split('-')[0]}';
-    }
 }
