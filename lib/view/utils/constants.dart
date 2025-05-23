@@ -46,22 +46,22 @@ class AppStrings {
   static String projectNameDefault(String name) =>  'Project name is empty. Default name $name will be used';
 
   static const String projectTite = 'Project Title';
-  static const String projectTitleExample = 'Ex. My new project';
+  static const String projectTitleExample = 'E.g. My new project';
 
   static const String projectDescription = 'Description';
-  static const String projectDescriptionExample = 'Ex. Short desciption of project';
+  static const String projectDescriptionExample = 'E.g. Short desciption of project';
 
   static const String projectLocation = 'Location';
-  static const String projectLocationExample = 'Ex. London';
+  static const String projectLocationExample = 'E.g. London';
 
   static const String projectRef = 'Project Ref';
-  static const String projectRefExample = 'Ex. PID012';
+  static const String projectRefExample = 'E.g. PID012';
 
   static const String projectClient = 'Client';
-  static const String projectClientExample = 'Ex. London Underground';
+  static const String projectClientExample = 'E.g. London Underground';
 
   static const String projectContractor = 'Contractor';
-  static const String projectContractorExample = 'Ex. Emico';
+  static const String projectContractorExample = 'E.g. Emico';
   static const String projectCreate = 'Create Project';
 
   // Project Details
@@ -75,12 +75,12 @@ class AppStrings {
   
   static const String snagName = 'Snag Name';
   static const String name = 'Name';
-  static const String snagNameExample = 'Ex. Broken Light';
+  static const String snagNameExample = 'E.g. Broken Light';
 
   static const String assignee = 'Assignee';
-  static const String assigneeExample = 'Ex. John Doe';
+  static const String assigneeExample = 'E.g. John Doe';
 
-  static const String snagLocationExample = 'Ex. Living Room';
+  static const String snagLocationExample = 'E.g. Living Room';
 
   static const String progressPictures = 'Progress Pictures';
   static const String addProgressPictures = 'Add $progressPictures';

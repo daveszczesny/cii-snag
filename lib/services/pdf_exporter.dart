@@ -2,91 +2,84 @@
 import 'dart:io';
 import 'package:cii/controllers/single_project_controller.dart';
 import 'package:cii/models/status.dart';
+import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:share_plus/share_plus.dart';
+import 'package:flutter/services.dart';
 
 Future<void> savePdfFile(SingleProjectController controller) async {
   final pdf = pw.Document();
   final projectName = controller.getName!;
-  final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
+
+
+  final logoBytes = await rootBundle.load('lib/assets/logo/CII_logo.png');
+  final logoImage = pw.MemoryImage(logoBytes.buffer.asUint8List());
 
   pdf.addPage(
-    pw.Page(
-      build: (pw.Context context) => pw.Stack(
-        children: [
-          pw.Positioned(
-            left: 0,
-            top: PdfPageFormat.a4.availableHeight / 2 - 40,
-            child: pw.Column(
-              crossAxisAlignment: pw.CrossAxisAlignment.start,
-              children: [
-                pw.Text(
-                  projectName,
-                  style: pw.TextStyle(fontSize: 32, fontWeight: pw.FontWeight.bold),
-                ),
-                pw.SizedBox(height: 8),
-                pw.Container(width: PdfPageFormat.a4.availableHeight * 0.85, height: 2, color: PdfColors.grey700)
-              ]
-            )
-          ),
-          pw.Positioned(
-            bottom: 24, left:0, right:0, child: pw.Text('Produced by CII', style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.normal))
-          ),
-          pw.Positioned(
-            bottom: 24, right: 0, child: pw.Text(today, style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.normal))
-          )
-        ]
-      )
-    )
+    pw.MultiPage(
+      pageFormat: PdfPageFormat.a4,
+      margin: const pw.EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+      build: (pw.Context context) => [
+        pw.SizedBox(height: PdfPageFormat.a4.availableHeight * 0.45),
+        // Project name (middle left)
+        pw.Row(
+          mainAxisAlignment: pw.MainAxisAlignment.start,
+          children: [
+            pw.SizedBox(width: 10),
+            pw.Text(projectName,style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold)),
+          ]
+        ),
+        pw.SizedBox(height: 24),
+        pw.Container(
+          width: PdfPageFormat.a4.availableWidth,
+          height: 2,
+          color: PdfColors.grey700,
+          margin: const pw.EdgeInsets.only(top: 2, bottom: 16),
+        ),
+      ],
+      footer: (context) => getFooter(context, logoImage)
+    ),
   );
 
+
   // PAGE 2
+
   pdf.addPage(
-    pw.Page(
-      build: (pw.Context context) => pw.Stack(
-        children: [
-          pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
-            children: [
-              // Project name (top middle)
-              pw.Center(
-                child: pw.Text(
-                  projectName,
-                  style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold),
-                ),
-              ),
-              pw.SizedBox(height: 24),
-              // "Project Details" with underline
-              pw.Text(
-                "Project Details",
-                style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
-              ),
-              pw.Container(
-                width: PdfPageFormat.a4.availableWidth,
-                height: 2,
-                color: PdfColors.grey700,
-                margin: const pw.EdgeInsets.only(top: 2, bottom: 16),
-              ),
-              // Project attributes (example)
-              pw.Text("Location: ${controller.getLocation ?? '-'}", style: const pw.TextStyle(fontSize: 14)),
-              pw.Text("Client: ${controller.getClient ?? '-'}", style: const pw.TextStyle(fontSize: 14)),
-              pw.Text("Contractor: ${controller.getContractor ?? '-'}", style: const pw.TextStyle(fontSize: 14)),
-              pw.Text("Reference: ${controller.getProjectRef ?? '-'}", style: const pw.TextStyle(fontSize: 14)),
-              pw.Text("Status: ${controller.getStatus ?? '-'}", style: const pw.TextStyle(fontSize: 14)),
-              pw.Text("Created: ${controller.getDateCreated != null ? DateFormat('yyyy-MM-dd').format(controller.getDateCreated!) : '-'}", style: const pw.TextStyle(fontSize: 14)),
-            ],
+    pw.MultiPage(
+      pageFormat: PdfPageFormat.a4,
+      margin: const pw.EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+      build: (pw.Context context) => [
+        // Project name (top middle)
+        pw.Center(
+          child: pw.Text(
+            projectName,
+            style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold),
           ),
-          pw.Positioned(
-            bottom: 24, left:0, right:0, child: pw.Text('Produced by CII', style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.normal))
-          ),
-          pw.Positioned(
-            bottom: 24, right: 0, child: pw.Text('Page 2/6', style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.normal))
-          ),
-        ]
-      )
+        ),
+        pw.SizedBox(height: 24),
+        // "Project Details" with underline
+        pw.Text(
+          "Project Details",
+          style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
+        ),
+        pw.Container(
+          width: PdfPageFormat.a4.availableWidth,
+          height: 2,
+          color: PdfColors.grey700,
+          margin: const pw.EdgeInsets.only(top: 2, bottom: 16),
+        ),
+        // Project attributes (example)
+        pw.Text("Location: ${controller.getLocation ?? '-'}", style: const pw.TextStyle(fontSize: 14)),
+        pw.Text("Client: ${controller.getClient ?? '-'}", style: const pw.TextStyle(fontSize: 14)),
+        pw.Text("Contractor: ${controller.getContractor ?? '-'}", style: const pw.TextStyle(fontSize: 14)),
+        pw.Text("Reference: ${controller.getProjectRef ?? '-'}", style: const pw.TextStyle(fontSize: 14)),
+        pw.Text("Status: ${controller.getStatus ?? '-'}", style: const pw.TextStyle(fontSize: 14)),
+        pw.Text("Created: ${controller.getDateCreated != null ? DateFormat('yyyy-MM-dd').format(controller.getDateCreated!) : '-'}", style: const pw.TextStyle(fontSize: 14)),
+      ],
+      footer: (context) => getFooter(context, logoImage)
     ),
   );
 
@@ -221,25 +214,50 @@ Future<void> savePdfFile(SingleProjectController controller) async {
         ),
       ];
     },
-    footer: (context) => pw.Row(
-      mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-      children: [
-        pw.Text('Produced by CII', style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.normal)),
-        pw.Text('Page ${context.pageNumber}', style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.normal)),
-      ],
-    ),
+    footer: (context) => getFooter(context, logoImage)
   ),
 );
 
   final directory = await getApplicationDocumentsDirectory();
-  final file = File('${directory.path}/example.pdf');
+  final file = File('${directory.path}/$projectName.pdf');
   await file.writeAsBytes(await pdf.save());
-
-  print('PDF saved temp to ${file.path}');
 
   await Share.shareXFiles([XFile(file.path)]);
 
-  // question should we track the pdf file? Or delete it after sharing?
+  // TODO: track the pdf file in the database
   await file.delete();
 
+}
+
+
+
+pw.Widget getFooter(pw.Context context, pw.ImageProvider logoImage) {
+  return pw.Container(
+    width: PdfPageFormat.a4.availableWidth,
+    height: 40, // Adjust as needed
+    child: pw.Row(
+      crossAxisAlignment: pw.CrossAxisAlignment.center,
+      children: [
+        // Left: Logo
+        pw.Image(logoImage, width: 60, height: 30, fit: pw.BoxFit.contain),
+
+        // Center: Produced by CII (centered)
+        pw.Expanded(
+          child: pw.Container(
+            alignment: pw.Alignment.center,
+            child: pw.Text(
+              'Produced by CII',
+              style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.normal),
+            ),
+          ),
+        ),
+
+        // Right: Page number
+        pw.Text(
+          'Page ${context.pageNumber}',
+          style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.normal),
+        ),
+      ],
+    ),
+  );
 }

@@ -26,7 +26,7 @@ class SnagCreate extends StatefulWidget {
 class _SnagCreateState extends State<SnagCreate> {
 
   final TextEditingController nameController = TextEditingController();
-  // final TextEditingController priorityController = TextEditingController();
+  final TextEditingController descriptionController = TextEditingController();
   final TextEditingController assigneeController = TextEditingController();
   final TextEditingController locationController = TextEditingController();
   final TextEditingController priorityController = TextEditingController();
@@ -95,7 +95,7 @@ class _SnagCreateState extends State<SnagCreate> {
     String name = nameController.text;
     final String assignee = assigneeController.text;
     final String location = locationController.text;
-    final Priority priority = Priority.getPriorityByString(priorityController.text);
+    final Priority priority = Priority.getPriorityByString(selectedPriorityOption.value);
 
     if (name.isEmpty) {
       // if the name is empty, create a default name 'Snag #$no' and also show a snackbar
@@ -242,6 +242,8 @@ class _SnagCreateState extends State<SnagCreate> {
                 const SizedBox(height: 28.0),
               ],
               buildTextInput(AppStrings.snagName, AppStrings.snagNameExample, nameController),
+              const SizedBox(height: 28.0),
+              buildLongTextInput("Description", "E.g. Explain the snag", descriptionController),
               const SizedBox(height: 28.0),
               buildTextInput(AppStrings.assignee, AppStrings.assigneeExample, assigneeController),
               const SizedBox(height: 28.0),

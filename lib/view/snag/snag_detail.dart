@@ -156,37 +156,16 @@ class _SnagDetailState extends State<SnagDetail> {
       children: [
         buildTextDetail('ID', id),
         const SizedBox(height: gap),
-        buildEditableTextDetail(context, 'Snag Name', name, nameController,
-          onChanged: () {
-            setState(() {
-              widget.snag.setName(nameController.text);
-              widget.onStatusChanged!();
-            });
-          }),
+        buildTextInput(AppStrings.snagName, name, nameController),
         const SizedBox(height: gap),
-        buildEditableTextDetail(context, 'Description', description, descriptionController,
-          onChanged: () {
-            setState(() {
-              widget.snag.setDescription(descriptionController.text);
-            });
-          }),
+        buildLongTextInput('Description', description, descriptionController),
         const SizedBox(height: gap),
         buildTextDetail('Date Created', dateCreated),
         const SizedBox(height: gap),
-        buildEditableTextDetail(context, 'Assignee', assignee, assigneeController,
-          onChanged: () {
-            setState(() {
-              widget.snag.setAssignee(assigneeController.text);
-              widget.onStatusChanged!();
-            });
-          }),
+        buildTextInput('Assignee', assignee, assigneeController),
         const SizedBox(height: gap),
-        buildEditableTextDetail(context, 'Location', location, locationController,
-          onChanged: () {
-            setState(() {
-              widget.snag.setLocation(locationController.text);
-            });
-          }),
+        buildTextInput('Location', location, locationController),
+        const SizedBox(height: gap),
       ],
     );
   }
@@ -224,12 +203,96 @@ class _SnagDetailState extends State<SnagDetail> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.snag.name),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
+        leading: isEditable == false ? IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ) : GestureDetector(
+            onTap: () {
+              // cancel the edit
+              // check if anything has changed
+              if (
+                (nameController.text != '' && nameController.text != widget.snag.name) ||
+                (descriptionController.text != '' && descriptionController.text != widget.snag.description) ||
+                (assigneeController.text != '' && assigneeController.text != widget.snag.assignee) ||
+                (locationController.text != '' && locationController.text != widget.snag.location)
+              ) {
+                // show a dialog to confirm
+                showDialog(
+                  context: context,
+                  builder: (context) {
+                    return AlertDialog(
+                      title: const Text('Discard Changes'),
+                      content: const Text('Are you sure you want to discard the changes?'),
+                      actions: [
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                          child: const Text('Cancel')
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            setState(() {
+                              isEditable = !isEditable;
+                            });
+                          },
+                          child: const Text('Discard')
+                        )
+                      ],
+                    );
+                  }
+                );
+              } else {
+                isEditable = !isEditable;
+              }
+              setState(() {});
+            },
+            child: const Icon(Icons.close)
+          ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 15),
+            child: GestureDetector(
+              onTap: () {
+                setState(() {
+                  if (isEditable) {
+                    // set snag details
+                    final newName = nameController.text;
+                    if (newName != '') {
+                      widget.snag.setName(newName);
+                    }
+                    final newDescription = descriptionController.text;
+                    if (newDescription != '') {
+                      widget.snag.setDescription(newDescription);
+                    }
+                    final newAssignee = assigneeController.text;
+                    if (newAssignee != '') {
+                      widget.snag.setAssignee(newAssignee);
+                    }
+                    final newLocation = locationController.text;
+                    if (newLocation != '') {
+                      widget.snag.setLocation(newLocation);
+                    }
+                    widget.projectController.saveProject();
+                    widget.onStatusChanged!();
+                  } else {
+                    nameController.text = widget.snag.name;
+                    descriptionController.text = widget.snag.description;
+                    assigneeController.text = widget.snag.assignee;
+                    locationController.text = widget.snag.location;
+                  }
+                });
+                isEditable = !isEditable;
+              },
+              child: isEditable ?
+                const Icon(Icons.check)
+                : const Text('Edit')
+            )
+          )
+        ],
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -239,16 +302,6 @@ class _SnagDetailState extends State<SnagDetail> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // edit button
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      GestureDetector(
-                        onTap: () { isEditable = !isEditable; setState(() {}); },
-                        child: const Icon(Icons.edit, color: Colors.black, size: 24.0),
-                      ),
-                    ]
-                  ),
                   const SizedBox(height: 12),
                   if (imageFilePaths.isEmpty || File(imageFilePaths[0]).existsSync() == false) ... [
                     buildMultipleImageInput_V2(context, imageFilePaths, onChange),

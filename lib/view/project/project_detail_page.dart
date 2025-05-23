@@ -11,7 +11,8 @@ import 'package:intl/intl.dart';
 
 class ProjectDetailPage extends StatefulWidget {
   final SingleProjectController projectController;
-  const ProjectDetailPage({super.key, required this.projectController});
+  final bool isInEditMode;
+  const ProjectDetailPage({super.key, required this.projectController, required this.isInEditMode});
 
   @override
   State<ProjectDetailPage> createState() => _ProjectDetailPageState();
@@ -189,15 +190,15 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    GestureDetector(
-                      onTap: () { isEditable = !isEditable; setState(() {}); },
-                      child: const Icon(Icons.edit, color: Colors.black, size: 24.0),
-                    ),
-                  ]
-                ),
+                // Row(
+                //   mainAxisAlignment: MainAxisAlignment.end,
+                //   children: [
+                //     GestureDetector(
+                //       onTap: () { isEditable = !isEditable; setState(() {}); },
+                //       child: const Icon(Icons.edit, color: Colors.black, size: 24.0),
+                //     ),
+                //   ]
+                // ),
 
                 const SizedBox(height: 12),
 
@@ -215,7 +216,7 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
                   child:Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                    if (isEditable) ... [
+                    if (widget.isInEditMode) ... [
                       projectDetailEditable(context)
                     ] else ... [
                       projectDetailNoEdit()

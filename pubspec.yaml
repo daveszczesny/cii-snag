@@ -59,3 +59,5 @@ flutter:
     - lib/assets/icons/png/image_upload.png
     - lib/assets/icons/png/assignee_unassigned.png
     - lib/assets/icons/png/assignee_assigned.png
+
+    - lib/assets/logo/CII_logo.png

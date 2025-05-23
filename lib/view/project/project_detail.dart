@@ -4,6 +4,7 @@ import 'package:cii/view/snag/snag_create.dart';
 import 'package:cii/view/snag/snag_list.dart';
 import 'package:cii/view/utils/constants.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 
 class ProjectDetail extends StatefulWidget {
   final SingleProjectController projectController;
@@ -20,15 +21,17 @@ class _ProjectDetailState extends State<ProjectDetail> {
   late List<Widget> pages;
   late List<String> titles;
   late int selectedIndex;
+  late bool isInEditMode;
 
   @override
   void initState() {
     super.initState();
+    isInEditMode = false;
     pages = [
       // page for snag list
       SnagList(projectController: widget.projectController),
       // page for project details
-      ProjectDetailPage(projectController: widget.projectController),
+      ProjectDetailPage(projectController: widget.projectController, isInEditMode: isInEditMode),
       // page to create snag
       SnagCreate(projectController: widget.projectController),
     ];
@@ -47,7 +50,61 @@ class _ProjectDetailState extends State<ProjectDetail> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(titles[selectedIndex])
+        title: Text(titles[selectedIndex]),
+        actions: [
+          if (selectedIndex == 1) ... [
+            if (!isInEditMode) ... [
+              Padding(
+                padding: const EdgeInsets.only(right: 15),
+                child: PopupMenuButton<String>(
+                  onSelected: (String value) {
+                    switch (value) {
+                      case 'edit':
+                        setState(() {
+                          isInEditMode = !isInEditMode;
+                          pages[1] = ProjectDetailPage(
+                            projectController: widget.projectController,
+                            isInEditMode: isInEditMode
+                          );
+                          selectedIndex = 1;
+                        });
+                        break;
+                    }
+                  },
+                  itemBuilder: (BuildContext context) {
+                    return [
+                      const PopupMenuItem<String>(
+                        value: 'edit',
+                        child: Text('Edit Project')
+                      ),
+                      const PopupMenuItem<String>(
+                        value: 'settings',
+                        child: Text('Project Settings')
+                      )
+                    ];
+                  },
+                )
+              )
+            ] else ... [
+              Padding(
+                padding: const EdgeInsets.only(right: 15),
+                child: GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      isInEditMode = !isInEditMode;
+                      pages[1] = ProjectDetailPage(
+                        projectController: widget.projectController,
+                        isInEditMode: isInEditMode
+                      );
+                      selectedIndex = 1;
+                    });
+                  },
+                  child: const Text("Confirm")
+                )
+              )
+            ]
+          ]
+        ],
       ),
       body: pages[selectedIndex],
       bottomNavigationBar: NavigationBar(
