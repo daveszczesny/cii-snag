@@ -25,6 +25,7 @@ class ProjectAdapter extends TypeAdapter<Project> {
       comments: (fields[5] as List?)?.cast<Comment>(),
       dateCreated: fields[6] as DateTime?,
       dateModified: fields[7] as DateTime?,
+      dueDate: fields[19] as DateTime?,
       dateCompleted: fields[8] as DateTime?,
       projectRef: fields[9] as String?,
       client: fields[10] as String?,
@@ -41,7 +42,7 @@ class ProjectAdapter extends TypeAdapter<Project> {
   @override
   void write(BinaryWriter writer, Project obj) {
     writer
-      ..writeByte(19)
+      ..writeByte(20)
       ..writeByte(0)
       ..write(obj.uuid)
       ..writeByte(1)
@@ -79,7 +80,9 @@ class ProjectAdapter extends TypeAdapter<Project> {
       ..writeByte(17)
       ..write(obj.createdCategories)
       ..writeByte(18)
-      ..write(obj.snagsCreatedCount);
+      ..write(obj.snagsCreatedCount)
+      ..writeByte(19)
+      ..write(obj.dueDate);
   }
 
   @override

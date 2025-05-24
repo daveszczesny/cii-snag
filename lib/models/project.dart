@@ -84,6 +84,9 @@ class Project extends HiveObject {
   @HiveField(18)
   int snagsCreatedCount;
 
+  @HiveField(19)
+  DateTime? dueDate;
+
 
   Project({
     String? uuid,
@@ -94,6 +97,7 @@ class Project extends HiveObject {
     this.comments,
     DateTime? dateCreated,
     DateTime? dateModified,
+    DateTime? dueDate,
     this.dateCompleted,
     this.projectRef,
     this.client,
@@ -110,6 +114,7 @@ class Project extends HiveObject {
     id = id ?? humanReadableId(name),
     dateCreated = dateCreated ?? DateTime.now(),
     dateModified = dateModified ?? DateTime.now(),
+    dueDate = dueDate ?? DateTime.now(),
     status = status ?? Status.todo,
     createdCategories = createdCategories ?? [],
     createdTags = createdTags ?? [],

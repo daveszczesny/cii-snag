@@ -11,6 +11,7 @@ import 'package:cii/view/utils/selector.dart';
 import 'package:cii/view/utils/text.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
+import 'package:intl/intl.dart';
 
 class ProjectCreate extends StatefulWidget {
   const ProjectCreate({super.key});
@@ -28,6 +29,7 @@ class _ProjectCreateState extends State<ProjectCreate> {
   final TextEditingController _projectRefController = TextEditingController();
   final TextEditingController _clientController = TextEditingController();
   final TextEditingController _contractorController = TextEditingController();
+  final TextEditingController _dueDateController = TextEditingController();
   final List<cii.Category> _categories = List<cii.Category>.from(cii.Category.defaultCategories);
   final List<Tag> _tags = []; // no default tags
 
@@ -48,6 +50,20 @@ class _ProjectCreateState extends State<ProjectCreate> {
     final String projectRef = _projectRefController.text;
     final String client = _clientController.text;
     final String contractor = _contractorController.text;
+    final String dueDate = _dueDateController.text;
+
+    final dueDateTime = parseDate(dueDate);
+
+    if (dueDateTime == null) {
+      // show snackbar if the date is invalid
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Invalid date format. Please use dd.MM.yyyy or dd-MM-yyyy'),
+          duration: Duration(seconds: 2),
+        )
+      );
+      return;
+    }
 
     if (projectRef.isEmpty) {
       // do not allow empty project ref
@@ -90,7 +106,8 @@ class _ProjectCreateState extends State<ProjectCreate> {
       contractor: contractor,
       categories: _categories,
       tags: _tags,
-      imagePath: imagePath
+      imagePath: imagePath,
+      dueDate: dueDateTime,
     );
 
     // navigate back
@@ -165,6 +182,8 @@ class _ProjectCreateState extends State<ProjectCreate> {
               buildTextInput(AppStrings.projectClient, AppStrings.projectClientExample, _clientController),
               const SizedBox(height: 28.0),
               buildTextInput(AppStrings.projectContractor, AppStrings.projectContractorExample, _contractorController),
+              const SizedBox(height: 28.0),
+              buildDatePickerInput(context, 'Due Date', '12.05.2025', _dueDateController),
               const SizedBox(height: 28.0),
               ObjectSelector(
                 label: AppStrings.category,

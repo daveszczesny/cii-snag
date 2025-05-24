@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:cii/controllers/single_project_controller.dart';
 import 'package:cii/models/status.dart';
+import 'package:cii/utils/common.dart';
+import 'package:cii/view/project/project_analytics.dart';
 import 'package:cii/view/utils/constants.dart';
 import 'package:cii/view/utils/image.dart';
 import 'package:cii/view/utils/selector.dart';
@@ -12,13 +14,17 @@ import 'package:intl/intl.dart';
 class ProjectDetailPage extends StatefulWidget {
   final SingleProjectController projectController;
   final bool isInEditMode;
-  const ProjectDetailPage({super.key, required this.projectController, required this.isInEditMode});
+  const ProjectDetailPage({
+    Key? key,
+    required this.projectController,
+    required this.isInEditMode,
+    }) : super(key: key);
 
   @override
-  State<ProjectDetailPage> createState() => _ProjectDetailPageState();
+  State<ProjectDetailPage> createState() => ProjectDetailPageState();
 }
 
-class _ProjectDetailPageState extends State<ProjectDetailPage> {
+class ProjectDetailPageState extends State<ProjectDetailPage> {
 
   final TextEditingController nameController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
@@ -27,6 +33,7 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
   final TextEditingController contractorController = TextEditingController();
   final TextEditingController projectRefController = TextEditingController();
   final TextEditingController statusController = TextEditingController();
+  final TextEditingController dueDateController = TextEditingController();
 
   late ValueNotifier<String> selectedStatusOption;
   final List<String> statusOptions = Status.values.map((e) => e.name).toList(); // get the name of each status
@@ -56,6 +63,34 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
     selectedStatusOption.dispose();
     super.dispose();
   }
+
+  Map<String, String> getChanges() {
+    final changes = <String, String>{};
+    if (widget.projectController.getName != nameController.text) {
+      changes['name'] = nameController.text;
+    }
+    if (widget.projectController.getDescription != descriptionController.text) {
+      changes['description'] = descriptionController.text;
+    }
+    if (widget.projectController.getLocation != locationController.text) {
+      changes['location'] = locationController.text;
+    }
+    if (widget.projectController.getClient != clientController.text) {
+      changes['client'] = clientController.text;
+    }
+    if (widget.projectController.getContractor != contractorController.text) {
+      changes['contractor'] = contractorController.text;
+    }
+    if (widget.projectController.getProjectRef != projectRefController.text) {
+      changes['projectRef'] = projectRefController.text;
+    }
+    if (widget.projectController.getDueDateString != dueDateController.text && dueDateController.text.isNotEmpty) {
+      print('Due date changed: ${dueDateController.text}');
+      changes['dueDate'] = dueDateController.text;
+    }
+    return changes;
+  }
+
 
   Widget onDelete(BuildContext context) {
     return AlertDialog(
@@ -88,64 +123,33 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
 
   Widget projectDetailEditable(BuildContext context) {
     const double gap = 16;
+
+    final projectName = widget.projectController.getName != '' ? widget.projectController.getName! : 'No Name';
+    final projectDescription = widget.projectController.getDescription != '' ? widget.projectController.getDescription! : 'No Description';
+    final projectLocation = widget.projectController.getLocation != '' ? widget.projectController.getLocation! :  'No Location';
+    final projectClient = widget.projectController.getClient != '' ? widget.projectController.getClient! : 'No Client';
+    final projectContractor = widget.projectController.getContractor != '' ? widget.projectController.getContractor! : 'No Contractor';
+    final dueDate = widget.projectController.getDueDate != null ? widget.projectController.getDueDateString! : 'No Due Date';
+
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-
-        buildEditableTextDetail(context, 'Project Name', widget.projectController.getName!, nameController, onChanged: () {
-          setState(() {
-            widget.projectController.setName(nameController.text);
-          });
-        }),
+        buildTextInput("Project Name", projectName, nameController),
+        const SizedBox(height: gap),
+        buildLongTextInput(AppStrings.projectDescription, projectDescription, descriptionController),
+        const SizedBox(height: gap),
+        buildTextInput(AppStrings.projectLocation, projectLocation, locationController),
+        const SizedBox(height: gap),
+        buildTextInput(AppStrings.projectClient, projectClient, clientController),
+        const SizedBox(height: gap),
+        buildTextInput(AppStrings.projectContractor, projectContractor, contractorController),
         const SizedBox(height: gap),
         buildTextDetail('Date Created', formatDate(widget.projectController.getDateCreated!)), // date created is not editable
         const SizedBox(height: gap),
-        buildEditableTextDetail(context, AppStrings.projectDescription, 
-          widget.projectController.getDescription != '' ? widget.projectController.getDescription! : 'Empty description',
-          descriptionController,
-          onChanged: () {
-            setState(() {
-              widget.projectController.setDescription(descriptionController.text);
-            });
-        }),
+        buildDatePickerInput(context, 'Due Date', dueDate, dueDateController),
         const SizedBox(height: gap),
-        buildEditableTextDetail(context, AppStrings.projectLocation, 
-          widget.projectController.getLocation != '' ? widget.projectController.getLocation! : 'Empty Location',
-          locationController,
-          onChanged: () {
-            setState(() {
-              widget.projectController.setLocation(locationController.text);
-            });
-        }),
-        const SizedBox(height: gap),
-        buildEditableTextDetail(context, AppStrings.projectClient, 
-          widget.projectController.getClient != '' ? widget.projectController.getClient! : 'No Client',
-          clientController,
-          onChanged: () {
-            setState(() {
-              widget.projectController.setClient(clientController.text);
-            });
-        }),
-        const SizedBox(height: gap),
-
-        buildEditableTextDetail(context, AppStrings.projectContractor, 
-          widget.projectController.getContractor != '' ? widget.projectController.getContractor! : 'No Contractor',
-          contractorController,
-          onChanged: () {
-            setState(() {
-              widget.projectController.setContractor(contractorController.text);
-            });
-        }),
-        const SizedBox(height: gap),
-
-        buildEditableTextDetail(context, AppStrings.projectRef, 
-          widget.projectController.getProjectRef != '' ? widget.projectController.getProjectRef! : 'No Project Reference',
-          projectRefController,
-          onChanged: () {
-            setState(() {
-              widget.projectController.setProjectRef(projectRefController.text);
-            });
-        }),
+        buildTextDetail(AppStrings.projectRef, widget.projectController.getProjectRef!),
       ],
     );
   }
@@ -156,6 +160,13 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
     final projectClient = widget.projectController.getClient != '' ? widget.projectController.getClient! : 'No Client';
     final projectContractor = widget.projectController.getContractor != '' ? widget.projectController.getContractor! : 'No Contractor';
     final projectRef = widget.projectController.getProjectRef != '' ? widget.projectController.getProjectRef! : 'No Project Reference';
+    final dueDate = widget.projectController.getDueDate != null ? widget.projectController.getDueDateString! : 'No Due Date';
+
+    nameController.text = widget.projectController.getName ?? '';
+    descriptionController.text = widget.projectController.getDescription ?? '';
+    locationController.text = widget.projectController.getLocation ?? '';
+    clientController.text = widget.projectController.getClient ?? '';
+    contractorController.text = widget.projectController.getContractor ?? '';
 
     const double gap = 16;
 
@@ -164,8 +175,6 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
       children: [
         buildTextDetail('Project Name', widget.projectController.getName!),
         const SizedBox(height: gap),
-        buildTextDetail('Date Created', formatDate(widget.projectController.getDateCreated!)),
-        const SizedBox(height: gap),
         buildJustifiedTextDetail(AppStrings.projectDescription, projectDescription),
         const SizedBox(height: gap),
         buildTextDetail(AppStrings.projectLocation, projectLocation),
@@ -173,6 +182,10 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
         buildTextDetail(AppStrings.projectClient, projectClient),
         const SizedBox(height: gap),
         buildTextDetail(AppStrings.projectContractor, projectContractor),
+        const SizedBox(height: gap),
+        buildTextDetail('Date Created', formatDate(widget.projectController.getDateCreated!)),
+        const SizedBox(height: gap),
+        buildTextDetail('Due Date', dueDate),
         const SizedBox(height: gap),
         buildTextDetail(AppStrings.projectRef, projectRef),
       ],
@@ -190,16 +203,6 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Row(
-                //   mainAxisAlignment: MainAxisAlignment.end,
-                //   children: [
-                //     GestureDetector(
-                //       onTap: () { isEditable = !isEditable; setState(() {}); },
-                //       child: const Icon(Icons.edit, color: Colors.black, size: 24.0),
-                //     ),
-                //   ]
-                // ),
-
                 const SizedBox(height: 12),
 
                 if (imagePath != null && imagePath != '' && File(imagePath).existsSync()) ... [
@@ -255,6 +258,13 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
                       });
                     }
                   ),
+
+                  // Project Analytics
+                  const SizedBox(height: 28.0),
+                  const Divider(height: 20, thickness: 0.5, color: Colors.grey),
+                  const SizedBox(height: 32.0),
+                  ProjectAnalytics(projectController: widget.projectController),
+                  const SizedBox(height: 32.0),
 
                 ])
                 ),

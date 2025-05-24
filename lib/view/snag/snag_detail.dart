@@ -5,6 +5,7 @@ import 'package:cii/controllers/snag_controller.dart';
 import 'package:cii/models/status.dart';
 import 'package:cii/view/utils/constants.dart';
 import 'package:cii/view/utils/image.dart';
+import 'package:cii/view/utils/selector.dart';
 import 'package:cii/view/utils/text.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -261,21 +262,16 @@ class _SnagDetailState extends State<SnagDetail> {
                   if (isEditable) {
                     // set snag details
                     final newName = nameController.text;
+                    // name isn't nullable
                     if (newName != '') {
                       widget.snag.setName(newName);
                     }
                     final newDescription = descriptionController.text;
-                    if (newDescription != '') {
-                      widget.snag.setDescription(newDescription);
-                    }
+                    widget.snag.setDescription(newDescription);
                     final newAssignee = assigneeController.text;
-                    if (newAssignee != '') {
-                      widget.snag.setAssignee(newAssignee);
-                    }
+                    widget.snag.setAssignee(newAssignee);
                     final newLocation = locationController.text;
-                    if (newLocation != '') {
-                      widget.snag.setLocation(newLocation);
-                    }
+                    widget.snag.setLocation(newLocation);
                     widget.projectController.saveProject();
                     widget.onStatusChanged!();
                   } else {
@@ -340,10 +336,9 @@ class _SnagDetailState extends State<SnagDetail> {
                       ],
                     )
                   ),
-
+                  const SizedBox(height: 28.0),
                   const Divider(height: 20, thickness: 0.5, color: Colors.grey),
-
-                  // Status
+                  const SizedBox(height: 28.0),
 
                   // Category and Tags
                   if (widget.snag.categories.isNotEmpty) ... [
@@ -362,7 +357,7 @@ class _SnagDetailState extends State<SnagDetail> {
                             ),
                             padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
                             decoration: BoxDecoration(
-                              color: cat.color,
+                              color: cat.color.withOpacity(0.5),
                               borderRadius: BorderRadius.circular(20.0),
                             ),
                             alignment: Alignment.center,
@@ -381,6 +376,26 @@ class _SnagDetailState extends State<SnagDetail> {
                         );
                     }).toList()),
                     const SizedBox(height: 28.0)
+                  ] else ... [
+                    ObjectSelector(
+                      label: AppStrings.category,
+                      pluralLabel: AppStrings.categories,
+                      hint: AppStrings.categoryHint,
+                      options: widget.projectController.getCategories ?? [],
+                      getName: (cat) => cat.name,
+                      getColor: (cat) => cat.color,
+                      onCreate: (name, color) {
+                        setState(() {
+                          widget.projectController.addCategory(name, color);
+                          widget.projectController.sortCategories();
+                        });
+                      },
+                      onSelect: (obj) {
+                        setState(() {
+                          widget.snag.setCategory(obj);
+                        });
+                      },
+                    )
                   ],
 
                   if (widget.snag.tags.isNotEmpty) ... [
@@ -418,6 +433,8 @@ class _SnagDetailState extends State<SnagDetail> {
                         );
                     }).toList()),
                     const SizedBox(height: 28.0)
+                  ] else ... [
+                    // if there are no tags selected...
                   ],
                 ],
               ),

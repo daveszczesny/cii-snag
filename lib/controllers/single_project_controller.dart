@@ -4,7 +4,9 @@ import 'package:cii/models/snag.dart';
 import 'package:cii/models/category.dart' as cii;
 import 'package:cii/models/status.dart';
 import 'package:cii/models/tag.dart';
+import 'package:cii/utils/common.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class SingleProjectController {
   final Project project;
@@ -157,6 +159,14 @@ class SingleProjectController {
     return project.createdTags;
   }
 
+  DateTime? get getDueDate {
+    return project.dueDate;
+  }
+
+  String? get getDueDateString {
+    return project.dueDate != null ? DateFormat('dd.MM.yyyy').format(project.dueDate!) : null;
+  }
+
   void setName(String name) {
     project.name = name;
     saveProject();
@@ -218,10 +228,52 @@ class SingleProjectController {
     cii.Category.sortCategories(project.createdCategories!);
   }
 
+  List<Snag> getSnagsByCategory(String cat) {
+    return project.snags.where((snag) =>
+      snag.categories != null &&
+      snag.categories!.isNotEmpty &&
+      snag.categories!.first.name.toLowerCase() == cat.toLowerCase()
+    ).toList();
+  }
+
+  List<Snag> getSnagsWithNoCategory() {
+    return project.snags.where((snag) => snag.categories == null || snag.categories!.isEmpty).toList();
+  }
+
   int getSnagsCreatedCount() {
     // this represents the total number of snags created in the project
     // regardless if the snag was deleted or not
     return project.snagsCreatedCount;
+  }
+
+  void updateDetail(String key, String value) {
+    switch (key) {
+      case 'name':
+        project.name = value;
+        break;
+      case 'description':
+        project.description = value;
+        break;
+      case 'location':
+        project.location = value;
+        break;
+      case 'client':
+        project.client = value;
+        break;
+      case 'contractor':
+        project.contractor = value;
+        break;
+      case 'projectRef':
+        project.projectRef = value;
+        break;
+      case 'dueDate':
+        project.dueDate = parseDate(value);
+        break;
+      default:
+        print('Unknown key: $key');
+        return;
+    }
+    saveProject();
   }
 
 }

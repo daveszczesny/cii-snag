@@ -89,6 +89,41 @@ Widget buildTextInput(String label, String hintText, TextEditingController contr
     );
 }
 
+Widget buildDatePickerInput(BuildContext context, String label, String hintText, TextEditingController controller, {bool optional = true}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text(label, style: const TextStyle(color: Color(0xFF333333), fontSize: 14, fontWeight: FontWeight.w300, fontFamily: 'Roboto')),
+            if (!optional) const Text(' *',style: TextStyle(color: Colors.red, fontSize: 20, fontWeight: FontWeight.w600, fontFamily: 'Roboto')),
+          ],
+        ),
+        TextField(
+          controller: controller,
+          style: const TextStyle(color: Colors.black, fontSize: 16, fontWeight: FontWeight.w400, fontFamily: 'Roboto'),
+          decoration: InputDecoration(
+            hintText: hintText, hintStyle: const TextStyle(color: Color(0xFF333333), fontSize: 14, fontWeight: FontWeight.w300, fontFamily: 'Roboto'),
+            enabledBorder: const UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFF333333))),
+            focusedBorder: const UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFF333333))),
+          ),
+          onTap: () async {
+            FocusScope.of(context).requestFocus(FocusNode());
+            DateTime? selectedDate = await showDatePicker(
+              context: context,
+              initialDate: DateTime.now(),
+              firstDate: DateTime.utc(DateTime.now().year, DateTime.now().month, DateTime.now().day),
+              lastDate: DateTime.utc(DateTime.now().year + 20, 12, 31),
+            );
+            if (selectedDate != null) {
+              controller.text = '${selectedDate.day.toString().padLeft(2, '0')}.${selectedDate.month.toString().padLeft(2, '0')}.${selectedDate.year}';
+            }
+          }
+        ),
+      ],
+    );
+}
+
 Widget buildLongTextInput(label, hintText, controller) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

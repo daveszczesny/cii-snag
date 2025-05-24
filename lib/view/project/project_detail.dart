@@ -18,6 +18,8 @@ class ProjectDetail extends StatefulWidget {
 
 class _ProjectDetailState extends State<ProjectDetail> {
 
+  final GlobalKey<ProjectDetailPageState> _detailKey = GlobalKey<ProjectDetailPageState>();
+
   late List<Widget> pages;
   late List<String> titles;
   late int selectedIndex;
@@ -31,7 +33,7 @@ class _ProjectDetailState extends State<ProjectDetail> {
       // page for snag list
       SnagList(projectController: widget.projectController),
       // page for project details
-      ProjectDetailPage(projectController: widget.projectController, isInEditMode: isInEditMode),
+      ProjectDetailPage(key: _detailKey, projectController: widget.projectController, isInEditMode: isInEditMode),
       // page to create snag
       SnagCreate(projectController: widget.projectController),
     ];
@@ -51,6 +53,66 @@ class _ProjectDetailState extends State<ProjectDetail> {
     return Scaffold(
       appBar: AppBar(
         title: Text(titles[selectedIndex]),
+        leading: isInEditMode
+            ? IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: () {
+                  setState(() {
+                    print('Close pressed');
+                    print('isInEditMode: $isInEditMode');
+                    print('Is _detailKey.currentstate null? ${_detailKey.currentState == null}');
+                    print('Changes detected: ${_detailKey.currentState?.getChanges().isNotEmpty}');
+                    // check if there are any changes
+                    if (_detailKey.currentState?.getChanges().isNotEmpty ?? false) {
+                      // show confirmation dialog
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: const Text('Discard Changes?'),
+                            content: const Text('You have unsaved changes. Do you want to discard them?'),
+                            actions: [
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                                child: const Text('Cancel')
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                  setState(() {
+                                    isInEditMode = false;
+                                    pages[1] = ProjectDetailPage(
+                                      key: _detailKey,
+                                      projectController: widget.projectController,
+                                      isInEditMode: isInEditMode
+                                    );
+                                    selectedIndex = 1;
+                                  });
+                                },
+                                child: const Text('Discard')
+                              )
+                            ],
+                          );
+                        }
+                      );
+                    } else {
+                      isInEditMode = false;
+                      pages[1] = ProjectDetailPage(
+                        key: _detailKey,
+                        projectController: widget.projectController,
+                        isInEditMode: isInEditMode
+                      );
+                      selectedIndex = 1;
+                    }
+
+                  });
+                },
+              )
+            : null,
+
+
         actions: [
           if (selectedIndex == 1) ... [
             if (!isInEditMode) ... [
@@ -63,6 +125,7 @@ class _ProjectDetailState extends State<ProjectDetail> {
                         setState(() {
                           isInEditMode = !isInEditMode;
                           pages[1] = ProjectDetailPage(
+                            key: _detailKey,
                             projectController: widget.projectController,
                             isInEditMode: isInEditMode
                           );
@@ -91,15 +154,24 @@ class _ProjectDetailState extends State<ProjectDetail> {
                 child: GestureDetector(
                   onTap: () {
                     setState(() {
+                      // apply changes
+                      final changes = _detailKey.currentState?.getChanges();
+                      if (changes != null && changes.isNotEmpty) {
+                        changes.forEach((k, v) {
+                          widget.projectController.updateDetail(k, v);
+                        });
+                      }
+
                       isInEditMode = !isInEditMode;
                       pages[1] = ProjectDetailPage(
+                        key: _detailKey,
                         projectController: widget.projectController,
                         isInEditMode: isInEditMode
                       );
                       selectedIndex = 1;
                     });
                   },
-                  child: const Text("Confirm")
+                  child: const Icon(Icons.check)
                 )
               )
             ]
