@@ -2,7 +2,6 @@ import 'package:cii/controllers/single_project_controller.dart';
 import 'package:cii/models/category.dart';
 import 'package:cii/models/status.dart';
 import 'package:flutter/material.dart';
-import 'package:fl_chart/fl_chart.dart' as fl_chart;
 import 'package:pie_chart/pie_chart.dart';
 
 class ProjectAnalytics extends StatefulWidget {
@@ -30,6 +29,20 @@ class _ProjectAnalyticsState extends State<ProjectAnalytics> {
     if (totalSections == 0) {
       return const SizedBox.shrink();
     }
+
+    final Map<String, double> dataMap = {
+      'Completed': totalCompleted.toDouble(),
+      'New': totalNew.toDouble(),
+      'On Hold': totalOnHold.toDouble(),
+      'In Progress': totalInProgress.toDouble(),
+    };
+
+    final List<Color> colorList = [
+      Colors.green.withOpacity(0.5),
+      Colors.blue.withOpacity(0.5),
+      Colors.red.withOpacity(0.5),
+      Colors.yellow.withOpacity(0.5),
+    ];
 
     // final totalCompletedPercentage = (totalCompleted / totalSnags * 100).toInt();
     // final totalNewPercentage = (totalNew / totalSnags * 100).toInt();
@@ -61,67 +74,27 @@ class _ProjectAnalyticsState extends State<ProjectAnalytics> {
               // const SizedBox(height: 8),
               // Text('Completed: $totalCompletedPercentage%', style: const TextStyle(fontSize: 14)),
               // const SizedBox(height: 24),
-              const Center(
-                child: Column(
-                  children: [
-                    Row(
-                      children: [
-                        _LegendItem(color: Colors.green, text: 'Completed'),
-                        SizedBox(width: 16),
-                        _LegendItem(color: Colors.blue, text: 'New'),
-                      ],
-                    ),
-                    Row(
-                      children: [
-                        _LegendItem(color: Colors.red, text: 'On Hold'),
-                        SizedBox(width: 16),
-                        _LegendItem(color: Colors.yellow, text: 'In Progress'),
-                      ],
-                    )
-                  ],
+              PieChart(
+                dataMap: dataMap,
+                colorList: colorList,
+                chartRadius: MediaQuery.of(context).size.width / 3.2,
+                chartType: ChartType.ring,
+                ringStrokeWidth: 32,
+                legendOptions: const LegendOptions(
+                  showLegendsInRow: true,
+                  legendPosition: LegendPosition.top,
+                  showLegends: true,
+                ),
+                chartValuesOptions: const ChartValuesOptions(
+                  showChartValueBackground: true,
+                  showChartValues: true,
+                  showChartValuesOutside: true,
+                  showChartValuesInPercentage: true,
+                  decimalPlaces: 0,
+                  chartValueStyle: TextStyle(fontSize: 12, fontWeight: FontWeight.w300, color: Colors.black),
                 ),
               ),
-              const SizedBox(height: 2),
-              SizedBox(
-                height: 250,
-                child: fl_chart.PieChart(
-                  fl_chart.PieChartData(
-                    sections: [
-                      if (totalCompleted > 0) ... [
-                        fl_chart.PieChartSectionData(
-                          value: totalCompleted.toDouble(),
-                          color: Colors.green,
-                          showTitle: false
-                        ),
-                      ],
-                      if (totalNew > 0) ... [
-                        fl_chart.PieChartSectionData(
-                          value: totalNew.toDouble(),
-                          color: Colors.blue,
-                          showTitle: false
-                        ),
-                      ],
-                      if (totalOnHold > 0) ... [
-                        fl_chart.PieChartSectionData(
-                          value: totalOnHold.toDouble(),
-                          color: Colors.red,
-                          showTitle: false
-                        ),
-                      ],
-                      if (totalInProgress > 0) ... [
-                        fl_chart.PieChartSectionData(
-                          value: totalInProgress.toDouble(),
-                          color: Colors.yellow,
-                          showTitle: false
-                        ),
-                      ]
-                    ],
-                    sectionsSpace: 2,
-                    centerSpaceRadius: 32,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 32),
             ],
           )
         )
@@ -246,6 +219,7 @@ class _ProjectAnalyticsState extends State<ProjectAnalytics> {
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    const SizedBox(height: 12),
                     Text(categoryName, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
                     const SizedBox(height: 8),
                     ClipRRect(
@@ -253,9 +227,9 @@ class _ProjectAnalyticsState extends State<ProjectAnalytics> {
                       child: Container(
                         height: 8,
                         decoration: BoxDecoration(
-                          border: Border.all(color: const Color(0xFFE0E0E0), width: 0.5),
+                          border: Border.all(color: Color.fromARGB(255, 255, 255, 255), width: 0.4),
                           borderRadius: BorderRadius.circular(8),
-                          color: Colors.grey,
+                          color: Colors.transparent,
                         ),
                         child: LayoutBuilder(
                           builder: (context, constraints) {
@@ -281,7 +255,7 @@ class _ProjectAnalyticsState extends State<ProjectAnalytics> {
                             // Order: green (completed), yellow (in progress), white (todo), red (on hold)
                             addBar(completedPercent, Colors.green);
                             addBar(inProgressPercent, Colors.yellow);
-                            addBar(todoPercent, Colors.blue);
+                            addBar(todoPercent, Colors.grey[300]!);
                             addBar(onHoldPercent, Colors.red);
 
                             return Stack(children: bars);

@@ -58,12 +58,9 @@ class _ProjectDetailState extends State<ProjectDetail> {
                 icon: const Icon(Icons.close),
                 onPressed: () {
                   setState(() {
-                    print('Close pressed');
-                    print('isInEditMode: $isInEditMode');
-                    print('Is _detailKey.currentstate null? ${_detailKey.currentState == null}');
-                    print('Changes detected: ${_detailKey.currentState?.getChanges().isNotEmpty}');
                     // check if there are any changes
                     if (_detailKey.currentState?.getChanges().isNotEmpty ?? false) {
+                      print('Changes detected ${_detailKey.currentState?.getChanges()}');
                       // show confirmation dialog
                       showDialog(
                         context: context,

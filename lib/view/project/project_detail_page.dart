@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:cii/controllers/single_project_controller.dart';
 import 'package:cii/models/status.dart';
-import 'package:cii/utils/common.dart';
 import 'package:cii/view/project/project_analytics.dart';
 import 'package:cii/view/utils/constants.dart';
 import 'package:cii/view/utils/image.dart';
@@ -31,7 +30,6 @@ class ProjectDetailPageState extends State<ProjectDetailPage> {
   final TextEditingController locationController = TextEditingController();
   final TextEditingController clientController = TextEditingController();
   final TextEditingController contractorController = TextEditingController();
-  final TextEditingController projectRefController = TextEditingController();
   final TextEditingController statusController = TextEditingController();
   final TextEditingController dueDateController = TextEditingController();
 
@@ -80,9 +78,6 @@ class ProjectDetailPageState extends State<ProjectDetailPage> {
     }
     if (widget.projectController.getContractor != contractorController.text) {
       changes['contractor'] = contractorController.text;
-    }
-    if (widget.projectController.getProjectRef != projectRefController.text) {
-      changes['projectRef'] = projectRefController.text;
     }
     if (widget.projectController.getDueDateString != dueDateController.text && dueDateController.text.isNotEmpty) {
       print('Due date changed: ${dueDateController.text}');

@@ -54,17 +54,6 @@ class _ProjectCreateState extends State<ProjectCreate> {
 
     final dueDateTime = parseDate(dueDate);
 
-    if (dueDateTime == null) {
-      // show snackbar if the date is invalid
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Invalid date format. Please use dd.MM.yyyy or dd-MM-yyyy'),
-          duration: Duration(seconds: 2),
-        )
-      );
-      return;
-    }
-
     if (projectRef.isEmpty) {
       // do not allow empty project ref
       ScaffoldMessenger.of(context).showSnackBar(

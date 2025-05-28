@@ -114,7 +114,7 @@ class Project extends HiveObject {
     id = id ?? humanReadableId(name),
     dateCreated = dateCreated ?? DateTime.now(),
     dateModified = dateModified ?? DateTime.now(),
-    dueDate = dueDate ?? DateTime.now(),
+    dueDate = dueDate,
     status = status ?? Status.todo,
     createdCategories = createdCategories ?? [],
     createdTags = createdTags ?? [],
