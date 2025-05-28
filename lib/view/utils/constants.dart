@@ -112,7 +112,7 @@ class AppStrings {
 
   // Status
   static const String status = 'Status';
-  static const String statusTodo = 'To Do';
+  static const String statusTodo = 'New';
   static const String statusInProgress = 'In Progress';
   static const String statusCompleted = 'Completed';
   static const String statusBlocked = 'On Hold';
