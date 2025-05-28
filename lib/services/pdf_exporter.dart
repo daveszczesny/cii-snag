@@ -2,7 +2,7 @@
 import 'dart:io';
 import 'package:cii/controllers/single_project_controller.dart';
 import 'package:cii/models/status.dart';
-import 'package:flutter/material.dart';
+import 'package:cii/view/utils/constants.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
@@ -108,7 +108,7 @@ Future<void> savePdfFile(SingleProjectController controller) async {
             ),
             pw.Padding(
               padding: const pw.EdgeInsets.all(6),
-              child: pw.Text('Snag Name', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+              child: pw.Text('${AppStrings.snag()} Name', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
             ),
             pw.Padding(
               padding: const pw.EdgeInsets.all(6),
@@ -116,7 +116,7 @@ Future<void> savePdfFile(SingleProjectController controller) async {
             ),
             pw.Padding(
               padding: const pw.EdgeInsets.all(6),
-              child: pw.Text('Snag Status', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+              child: pw.Text('${AppStrings.snag()} Status', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
             ),
           ],
         ),

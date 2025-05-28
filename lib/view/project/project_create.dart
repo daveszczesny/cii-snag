@@ -11,7 +11,6 @@ import 'package:cii/view/utils/selector.dart';
 import 'package:cii/view/utils/text.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
-import 'package:intl/intl.dart';
 
 class ProjectCreate extends StatefulWidget {
   const ProjectCreate({super.key});
@@ -177,7 +176,7 @@ class _ProjectCreateState extends State<ProjectCreate> {
               ObjectSelector(
                 label: AppStrings.category,
                 pluralLabel: AppStrings.categories,
-                hint: AppStrings.categoryHint,
+                hint: AppStrings.categoryHint(),
                 options: _categories,
                 getName: (cat) => cat.name,
                 getColor: (cat) => cat.color,
@@ -193,7 +192,7 @@ class _ProjectCreateState extends State<ProjectCreate> {
               ObjectSelector(
                 label: AppStrings.tag,
                 pluralLabel: AppStrings.tags,
-                hint: AppStrings.tagHint,
+                hint: AppStrings.tagHint(),
                 options: _tags,
                 getName: (tag) => tag.name,
                 getColor: (tag) => tag.color,

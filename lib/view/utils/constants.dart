@@ -15,11 +15,11 @@ class AppStrings {
   static const String priority = 'Priority';
   static const String category = 'Category';
   static const String categories = 'Categories';
-  static const String categoryHint = 'This allows you to group snags into categories. Each snag can be assigned a single category';
+  static String categoryHint() => 'This allows you to group ${AppTerminology.plurlaSnag.toLowerCase()} into categories. Each ${AppTerminology.singularSnag.toLowerCase()} can be assigned a single category';
 
   static const String tag = 'Tag';
   static const String tags = 'Tags';
-  static const String tagHint = 'This allows you to assign tags to snags. Each snag can be assigned multiple tags';
+  static String tagHint() => 'This allows you to assign tags to ${AppTerminology.plurlaSnag.toLowerCase()}. Each ${AppTerminology.singularSnag.toLowerCase()} can be assigned multiple tags';
 
   static const String imageAnnotation = 'Image Annotation';
   static const String imageAnnotationExport = 'Image exported successfully';
@@ -35,8 +35,11 @@ class AppStrings {
 
   // Text labels
   static const String project = 'Project';
-  static const String snag = 'Snag';
-  static const String snags = 'Snags';
+  static String snag() => AppTerminology.singularSnag;
+  static String snags() => AppTerminology.plurlaSnag;
+
+  static String snagsInProject(String projectName) => '${AppTerminology.plurlaSnag} in $projectName';
+  static String createInProject(String projectName) => 'Create ${AppTerminology.singularSnag} in $projectName';
 
   // Project List
   static const String myProjects = 'My Projects';
@@ -69,11 +72,12 @@ class AppStrings {
   static const String projectId = 'Project ID';
 
   // Snag Create
-  static String snagNameDefault(String name) =>  'Snag name is empty. Default name $name will be used';
 
-  static const String snagCreate = 'Create Snag';
+  static String snagNameDefault(String name) =>  '${AppTerminology.singularSnag} name is empty. Default name $name will be used';
+
+  static String snagCreate() => 'Create ${AppTerminology.singularSnag}';
   
-  static const String snagName = 'Snag Name';
+  static String snagName() => '${AppTerminology.singularSnag} Name';
   static const String name = 'Name';
   static const String snagNameExample = 'E.g. Broken Light';
 
@@ -88,23 +92,23 @@ class AppStrings {
   static const String finalRemarks = 'Final Remarks';
 
   // Card Widget
-  static const String noSnagsFound = 'No Snags Found';
+  static String noSnagsFound() => 'No ${AppTerminology.plurlaSnag} Found';
 
   // Quick actions : Project
   static const String viewProject = 'View Project';
   static const String shareProject = 'Export Project';
   static const String editProject = 'Edit Project';
   static const String deleteProject = 'Delete Project';
-  static const String addSnag = 'Add Snag';
+  static String addSnag() => 'Add ${AppTerminology.singularSnag}';
   static const String deleteProjectConfirmation = 'Are you sure you want to delete this project?';
   static const String cancel = 'Cancel';
   static const String delete = 'Delete';
 
   // Quick actions : Snag
-  static const String viewSnag = 'View Snag';
-  static const String shareSnag = 'Share Snag';
-  static const String editSnag = 'Edit Snag';
-  static const String deleteSnag = 'Delete Snag';
+  static String viewSnag() => 'View ${AppTerminology.singularSnag}';
+  static String shareSnag() => 'Share ${AppTerminology.singularSnag}';
+  static String editSnag() => 'Edit ${AppTerminology.singularSnag}';
+  static String deleteSnag() => 'Delete ${AppTerminology.singularSnag}';
 
   // Status
   static const String status = 'Status';
@@ -118,4 +122,15 @@ class AppStrings {
 class AppSizing {
   // Bottom navigation bar height
   static const double bottomNavBarHeight = 60.0;
+}
+
+
+class AppTerminology {
+  static String singularSnag = 'Snag';
+  static String plurlaSnag = 'Snags';
+
+  static void setSnagTerm({required String singular, required String plural}) {
+    singularSnag = singular;
+    plurlaSnag = plural;
+  }
 }

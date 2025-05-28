@@ -1,6 +1,7 @@
 import 'package:cii/controllers/single_project_controller.dart';
 import 'package:cii/models/category.dart';
 import 'package:cii/models/status.dart';
+import 'package:cii/view/utils/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:pie_chart/pie_chart.dart';
 
@@ -298,7 +299,7 @@ class _ProjectAnalyticsState extends State<ProjectAnalytics> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 24),
-              Text('Total Snags: $totalSnags', style: const TextStyle(fontSize: 14)),
+              Text('Total ${AppStrings.snags()}: $totalSnags', style: const TextStyle(fontSize: 14)),
               const SizedBox(height: 12),
               // if daysToCompletion is not null then create a linear progress bar with the percentage of days completed
 

@@ -283,14 +283,14 @@ class _SnagCardWidgetState extends State<SnagCardWidget> {
                 onSelected: onSelect,
                 itemBuilder: (BuildContext context) {
                   return [
-                    const PopupMenuItem<String>(
+                    PopupMenuItem<String>(
                       value: 'view',
-                      child: Text(AppStrings.viewSnag),
+                      child: Text(AppStrings.viewSnag()),
                     ),
                     const PopupMenuDivider(height: 1.0),
-                    const PopupMenuItem<String>(
+                    PopupMenuItem<String>(
                       value: 'delete',
-                      child: Text(AppStrings.deleteSnag, style: TextStyle(color: AppColors.red)),
+                      child: Text(AppStrings.deleteSnag(), style: TextStyle(color: AppColors.red)),
                     ),
                   ];
                 },

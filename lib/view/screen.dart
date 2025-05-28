@@ -105,9 +105,9 @@ class _ScreenState extends State<Screen> {
                   );
                 }
               ),
-              const Text(
-                AppStrings.snag,
-                style: TextStyle(fontSize: 14, fontFamily: 'Roboto', fontWeight: FontWeight.w300)
+              Text(
+                AppStrings.snag(),
+                style: const TextStyle(fontSize: 14, fontFamily: 'Roboto', fontWeight: FontWeight.w300)
               )
             ],
           )

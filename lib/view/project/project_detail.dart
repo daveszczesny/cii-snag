@@ -40,9 +40,9 @@ class _ProjectDetailState extends State<ProjectDetail> {
 
     final projectName = widget.projectController.getName!;
     titles = [
-      'Snags in $projectName',
+      AppStrings.snagsInProject(projectName),
       projectName,
-      'Create Snag in $projectName',
+      AppStrings.createInProject(projectName)
     ];
 
     selectedIndex = widget.index ?? 0;
@@ -60,7 +60,6 @@ class _ProjectDetailState extends State<ProjectDetail> {
                   setState(() {
                     // check if there are any changes
                     if (_detailKey.currentState?.getChanges().isNotEmpty ?? false) {
-                      print('Changes detected ${_detailKey.currentState?.getChanges()}');
                       // show confirmation dialog
                       showDialog(
                         context: context,
@@ -180,21 +179,21 @@ class _ProjectDetailState extends State<ProjectDetail> {
         height: 60,
         selectedIndex: selectedIndex,
         onDestinationSelected: (int index) => setState(() => selectedIndex = index),
-        destinations: const [
+        destinations: [
           // page for snag list
           NavigationDestination(
-            icon: Icon(Icons.list),
-            label: AppStrings.snags,
+            icon: const Icon(Icons.list),
+            label: AppStrings.snags(),
           ),
 
           // page for project details
-          NavigationDestination(
+          const NavigationDestination(
             icon: Icon(Icons.info),
             label: AppStrings.projectDetails,
           ),
 
           // page to create snag
-          NavigationDestination(
+          const NavigationDestination(
             icon: Icon(Icons.add),
             label: AppStrings.add,
           ),

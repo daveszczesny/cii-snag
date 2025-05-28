@@ -135,7 +135,7 @@ class _ProjectCardWidgetState extends State<ProjectCardWidget> {
                         const SizedBox(height: 6),
                         Row(
                           children: [
-                            Text('$snagCount snags', style: const TextStyle(fontSize: 14, color: Colors.black87, fontFamily: 'Roboto')),
+                            Text('$snagCount ${AppStrings.snags()}', style: const TextStyle(fontSize: 14, color: Colors.black87, fontFamily: 'Roboto')),
                             const SizedBox(width: 10),
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
@@ -210,9 +210,9 @@ class _ProjectCardWidgetState extends State<ProjectCardWidget> {
                       value: 'view',
                       child: Text(AppStrings.viewProject),
                     ),
-                    const PopupMenuItem<String>(
+                    PopupMenuItem<String>(
                       value: 'add',
-                      child: Text(AppStrings.addSnag),
+                      child: Text(AppStrings.addSnag()),
                     ),
                     const PopupMenuItem<String>(
                       value: 'export',

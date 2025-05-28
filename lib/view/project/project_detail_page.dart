@@ -229,7 +229,7 @@ class ProjectDetailPageState extends State<ProjectDetailPage> {
                   ObjectSelector(
                     label: AppStrings.category,
                     pluralLabel: AppStrings.categories,
-                    hint: AppStrings.categoryHint,
+                    hint: AppStrings.categoryHint(),
                     options: widget.projectController.getCategories ?? [],
                     getName: (cat) => cat.name,
                     getColor: (cat) => cat.color,
@@ -243,7 +243,7 @@ class ProjectDetailPageState extends State<ProjectDetailPage> {
                   ObjectSelector(
                     label: AppStrings.tag,
                     pluralLabel: AppStrings.tags,
-                    hint: AppStrings.tagHint,
+                    hint: AppStrings.tagHint(),
                     options: widget.projectController.getTags ?? [],
                     getName: (tag) => tag.name,
                     getColor: (tag) => tag.color,

@@ -100,7 +100,7 @@ class _SnagCreateState extends State<SnagCreate> {
     if (name.isEmpty) {
       // if the name is empty, create a default name 'Snag #$no' and also show a snackbar
       int no = projectController!.getTotalSnags() + 1;
-      name = '${AppStrings.snag} #$no';
+      name = '${AppStrings.snag()} #$no';
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(AppStrings.snagNameDefault(name)),
@@ -187,7 +187,7 @@ class _SnagCreateState extends State<SnagCreate> {
       // AppBar is only shown if user is using QUICK ADD
       appBar: widget.projectController == null
         ? AppBar(
-          title: const Text(AppStrings.snagCreate),
+          title: Text(AppStrings.snagCreate()),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: () {
@@ -220,7 +220,6 @@ class _SnagCreateState extends State<SnagCreate> {
                 ),
                 const SizedBox(height: 28.0),
               ],
-              // buildImageInput(AppStrings.uploadImage, context, imageFilePaths, onChange),
 
               if (imageFilePaths.isEmpty) ... [
                 buildMultipleImageInput_V2(context, imageFilePaths, onChange),
@@ -241,9 +240,9 @@ class _SnagCreateState extends State<SnagCreate> {
                 ),
                 const SizedBox(height: 28.0),
               ],
-              buildTextInput(AppStrings.snagName, AppStrings.snagNameExample, nameController),
+              buildTextInput(AppStrings.snagName(), AppStrings.snagNameExample, nameController),
               const SizedBox(height: 28.0),
-              buildLongTextInput("Description", "E.g. Explain the snag", descriptionController),
+              buildLongTextInput("Description", "E.g. Explain the ${AppStrings.snag()}", descriptionController),
               const SizedBox(height: 28.0),
               buildTextInput(AppStrings.assignee, AppStrings.assigneeExample, assigneeController),
               const SizedBox(height: 28.0),
@@ -257,7 +256,7 @@ class _SnagCreateState extends State<SnagCreate> {
                 ObjectSelector(
                   label: AppStrings.category,
                   pluralLabel: AppStrings.categories,
-                  hint: AppStrings.categoryHint,
+                  hint: AppStrings.categoryHint(),
                   options: projectController?.getCategories ?? [],
                   getName: (cat) => cat.name,
                   getColor: (cat) => cat.color,
@@ -281,7 +280,7 @@ class _SnagCreateState extends State<SnagCreate> {
                 ObjectSelector(
                   label: AppStrings.tag,
                   pluralLabel: AppStrings.tags,
-                  hint: AppStrings.tagHint,
+                  hint: AppStrings.tagHint(),
                   options: projectController?.getTags ?? [],
                   getName: (tag) => tag.name,
                   getColor: (tag) => tag.color,
@@ -303,7 +302,7 @@ class _SnagCreateState extends State<SnagCreate> {
                 ),
               ],
               const SizedBox(height: 35.0),
-              buildTextButton(AppStrings.snagCreate, createSnag),
+              buildTextButton(AppStrings.snagCreate(), createSnag),
               const SizedBox(height: 12.0),
             ],
           )

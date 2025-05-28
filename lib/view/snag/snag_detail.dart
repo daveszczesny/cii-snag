@@ -157,7 +157,7 @@ class _SnagDetailState extends State<SnagDetail> {
       children: [
         buildTextDetail('ID', id),
         const SizedBox(height: gap),
-        buildTextInput(AppStrings.snagName, name, nameController),
+        buildTextInput(AppStrings.snagName(), name, nameController),
         const SizedBox(height: gap),
         buildLongTextInput('Description', description, descriptionController),
         const SizedBox(height: gap),
@@ -380,7 +380,7 @@ class _SnagDetailState extends State<SnagDetail> {
                     ObjectSelector(
                       label: AppStrings.category,
                       pluralLabel: AppStrings.categories,
-                      hint: AppStrings.categoryHint,
+                      hint: AppStrings.categoryHint(),
                       options: widget.projectController.getCategories ?? [],
                       getName: (cat) => cat.name,
                       getColor: (cat) => cat.color,
