@@ -19,7 +19,14 @@ class _ProjectListViewState extends State<ProjectListView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Projects')
+        title: const Text('Projects'),
+        leading: IconButton(
+          icon: const Icon(Icons.settings_outlined),
+          onPressed: () {
+            // Navigate to settings page
+            Navigator.pushNamed(context, '/settings');
+          },
+        ),
       ),
       body: const ProjectListTabWidget(),
       

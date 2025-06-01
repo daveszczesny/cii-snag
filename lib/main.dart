@@ -7,6 +7,7 @@ import 'package:cii/models/project.dart';
 import 'package:cii/models/snag.dart';
 import 'package:cii/models/status.dart';
 import 'package:cii/models/tag.dart';
+import 'package:cii/view/settings/settings.dart';
 import 'package:cii/theme.dart';
 import 'package:cii/view/screen.dart';
 import 'package:cii/view/utils/constants.dart';
@@ -44,6 +45,9 @@ class MainApp extends StatelessWidget {
       darkTheme: darkTheme,
       themeMode: ThemeMode.light,
       home: const Screen(),
+      routes: {
+        '/settings': (context) => const SettingsPage(),
+      }
     );
   }
 }
