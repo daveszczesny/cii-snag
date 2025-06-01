@@ -79,6 +79,9 @@ class Snag extends HiveObject {
   @HiveField(16)
   List<Category>? categories;
 
+  @HiveField(20)
+  String? reviewedBy;
+
   Snag({
     String? uuid,
     String? id,
@@ -98,6 +101,7 @@ class Snag extends HiveObject {
     this.dateCompleted,
     this.tags,
     this.categories,
+    this.reviewedBy,
   }):
     uuid = uuid ?? const Uuid().v4(),
     id = id ?? 'PID',

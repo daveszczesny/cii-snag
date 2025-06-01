@@ -33,6 +33,12 @@ class SingleProjectController {
     project.snags.add(snag);
     project.dateModified = DateTime.now();
     project.snagsCreatedCount++;
+
+    // change the status of a project to 'In Progress' if it was previously 'New'
+    if (project.status.name == Status.todo.name) {
+      project.status = Status.inProgress;
+    }
+    
     saveProject();
   }
 

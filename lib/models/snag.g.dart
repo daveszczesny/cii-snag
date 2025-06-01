@@ -35,6 +35,7 @@ class SnagAdapter extends TypeAdapter<Snag> {
       dateCompleted: fields[13] as DateTime?,
       tags: (fields[15] as List?)?.cast<Tag>(),
       categories: (fields[16] as List?)?.cast<Category>(),
+      reviewedBy: fields[20] as String?,
     )
       ..progressImagePaths = (fields[18] as List?)?.cast<String>()
       ..finalImagePaths = (fields[19] as List?)?.cast<String>();
@@ -43,7 +44,7 @@ class SnagAdapter extends TypeAdapter<Snag> {
   @override
   void write(BinaryWriter writer, Snag obj) {
     writer
-      ..writeByte(20)
+      ..writeByte(21)
       ..writeByte(0)
       ..write(obj.uuid)
       ..writeByte(1)
@@ -83,7 +84,9 @@ class SnagAdapter extends TypeAdapter<Snag> {
       ..writeByte(15)
       ..write(obj.tags)
       ..writeByte(16)
-      ..write(obj.categories);
+      ..write(obj.categories)
+      ..writeByte(20)
+      ..write(obj.reviewedBy);
   }
 
   @override

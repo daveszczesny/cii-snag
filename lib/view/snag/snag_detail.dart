@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:cii/controllers/single_project_controller.dart';
 import 'package:cii/controllers/snag_controller.dart';
 import 'package:cii/models/status.dart';
+import 'package:cii/utils/common.dart';
 import 'package:cii/view/utils/constants.dart';
 import 'package:cii/view/utils/image.dart';
 import 'package:cii/view/utils/selector.dart';
@@ -50,15 +51,32 @@ class _SnagDetailState extends State<SnagDetail> {
     );
     selectedStatusOption = ValueNotifier<String>(initialStatus);
 
-    selectedStatusOption.addListener(() {
-      setState(() {
-        widget.snag.status = Status.values.firstWhere(
-          (s) => s.name == selectedStatusOption.value,
-          orElse: () => Status.todo
+    selectedStatusOption.addListener(() async {
+      final newStatus = Status.values.firstWhere(
+        (s) => s.name == selectedStatusOption.value,
+        orElse: () => Status.todo
+      );
+
+      // If status is completed, show the remarks dialog
+      if (newStatus == Status.completed) {
+        await buildFinalRemarksWidget(
+          context,
+          widget.snag,
+          widget.projectController,
+          () {
+            setState(() {});
+          },
+          List<String>.from(widget.snag.finalImagePaths),
+          width: MediaQuery.of(context).size.width * 0.95,
+          height: MediaQuery.of(context).size.height * 0.8,
         );
-        widget.projectController.saveProject();
-        widget.onStatusChanged!();
-      });
+      } else {
+        setState(() {
+          widget.snag.status = newStatus;
+          widget.projectController.saveProject();
+          widget.onStatusChanged?.call();
+        });
+      }
     });
   }
 
@@ -167,6 +185,12 @@ class _SnagDetailState extends State<SnagDetail> {
         const SizedBox(height: gap),
         buildTextInput('Location', location, locationController),
         const SizedBox(height: gap),
+        if (widget.snag.finalRemarks.isNotEmpty) ... [
+          const SizedBox(height: gap),
+          buildTextDetail("Reviewed By", widget.snag.reviewedBy),
+          const SizedBox(height: gap),
+          buildTextDetail('Final remarks', widget.snag.finalRemarks),
+        ]
       ],
     );
   }
@@ -194,9 +218,14 @@ class _SnagDetailState extends State<SnagDetail> {
         buildTextDetail('Assignee', assignee),
         const SizedBox(height: gap),
         buildTextDetail('Location', location),
+        if (widget.snag.finalRemarks.isNotEmpty) ... [
+          const SizedBox(height: gap),
+          buildTextDetail('Reviewed By', widget.snag.reviewedBy),
+          const SizedBox(height: gap),
+          buildTextDetail('Final remarks', widget.snag.finalRemarks),
+        ]
       ],
     );
-    
   }
 
   @override
@@ -336,6 +365,19 @@ class _SnagDetailState extends State<SnagDetail> {
                       ],
                     )
                   ),
+
+                  if (widget.snag.finalImagePaths.isNotEmpty) ... [
+                    const SizedBox(height: 16.0),
+                    const Text('Final Images', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 8.0),
+                    buildImageShowcase(
+                      context,
+                      ({String p = ''}) {setState(() {});},
+                      () {},
+                      widget.snag.finalImagePaths
+                    ),
+                  ],
+
                   const SizedBox(height: 28.0),
                   const Divider(height: 20, thickness: 0.5, color: Colors.grey),
                   const SizedBox(height: 28.0),

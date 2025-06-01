@@ -46,6 +46,10 @@ class SnagController {
     return snag.finalRemarks ?? '';
   }
 
+  String get reviewedBy {
+    return snag.reviewedBy ?? '';
+  }
+
   List<String> get imagePaths {
     return snag.imagePaths ?? [];
   }
@@ -79,22 +83,33 @@ class SnagController {
     return snag.description ?? '';
   }
 
+
   List<Tag> get tags {
     return snag.tags ?? [];
+  }
+
+  List<String> get finalImagePaths {
+    return snag.finalImagePaths ?? [];
   }
 
   List<cii.Category> get categories {
     return snag.categories ?? [];
   }
 
+
   void setName(String v) { snag.name = v; }
   void setDescription(String v) { snag.description = v; }
   void setLocation(String v) { snag.location = v; }
   void setAssignee(String v) { snag.assignee= v; }
-
+  void setFinalRemarks(String v) { snag.finalRemarks = v; }
   void setTag(Tag tag) {
     snag.tags ??= [];
     snag.tags!.add(tag);
+  }
+  void setReviewedBy(String value) { snag.reviewedBy = value; }
+
+  void setFinalImagePaths(List<String> paths) {
+    snag.finalImagePaths = List<String>.from(paths);
   }
 
   void setCategory(cii.Category category) {

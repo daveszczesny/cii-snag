@@ -4,9 +4,13 @@ import 'package:cii/controllers/single_project_controller.dart';
 import 'package:cii/controllers/snag_controller.dart';
 import 'package:cii/models/status.dart';
 import 'package:cii/utils/colors/app_colors.dart';
+import 'package:cii/utils/common.dart';
 import 'package:cii/view/snag/snag_detail.dart';
 import 'package:cii/view/utils/constants.dart';
+import 'package:cii/view/utils/image.dart';
+import 'package:cii/view/utils/text.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 
 class SnagCardWidget extends StatefulWidget {
   final SingleProjectController projectController;
@@ -26,9 +30,11 @@ class SnagCardWidget extends StatefulWidget {
 
 class _SnagCardWidgetState extends State<SnagCardWidget> {
 
-  void _showStatusModal(BuildContext context) {
+  List<String> finalImagePaths = [];
+
+  void _showStatusModal(BuildContext parentContext) {
     showModalBottomSheet(
-      context: context,
+      context: parentContext,
       builder: (BuildContext context) {
         return Padding(
           padding: const EdgeInsets.all(16.0),
@@ -39,12 +45,28 @@ class _SnagCardWidgetState extends State<SnagCardWidget> {
               .map((status) {
                 return ListTile(
                   title: Text(status.name),
-                  onTap: () {
-                    setState(() {
-                      widget.snagController.status = status;
-                    });
-                    widget.onStatusChanged();
-                    Navigator.pop(context);
+                  onTap: () async {
+                    Navigator.pop(context); // Close the bottom sheet first
+                    if (status.name == Status.completed.name) {
+                      await Future.delayed(const Duration(milliseconds: 200)); // Wait for the sheet to close
+                      final width = MediaQuery.of(parentContext).size.width * 0.95;
+                      final height = MediaQuery.of(parentContext).size.height * 0.8;
+                      await buildFinalRemarksWidget(
+                        parentContext,
+                        widget.snagController,
+                        widget.projectController,
+                        widget.onStatusChanged,
+                        List<String>.from(finalImagePaths),
+                        width: width,
+                        height: height
+                      );
+                      
+                    } else {
+                      setState(() {
+                        widget.snagController.status = status;
+                      });
+                      widget.onStatusChanged();
+                    }
                   },
                 );
               }).toList(),
@@ -99,8 +121,8 @@ class _SnagCardWidgetState extends State<SnagCardWidget> {
           context: context,
           builder: (context) {
             return AlertDialog(
-              title: const Text('Delete Snag'),
-              content: const Text('Are you sure you want to delete this snag?'),
+              title: Text('Delete ${AppStrings.snag()}'),
+              content: Text('Are you sure you want to delete this ${AppStrings.snag().toLowerCase()}?'),
               actions: [
                 TextButton(
                   onPressed: () {
@@ -290,7 +312,7 @@ class _SnagCardWidgetState extends State<SnagCardWidget> {
                     const PopupMenuDivider(height: 1.0),
                     PopupMenuItem<String>(
                       value: 'delete',
-                      child: Text(AppStrings.deleteSnag(), style: TextStyle(color: AppColors.red)),
+                      child: Text(AppStrings.deleteSnag(), style: const TextStyle(color: AppColors.red)),
                     ),
                   ];
                 },

@@ -195,7 +195,7 @@ Widget buildCustomSegmentedControl({
                     onTap: () => selectedNotifier.value = options[index],
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 150),
-                      padding: const EdgeInsets.symmetric(vertical: 6), // was 10
+                      padding: const EdgeInsets.symmetric(vertical: 6),
                       decoration: BoxDecoration(
                         color: isSelected ? Colors.blue : Colors.transparent,
                         borderRadius: BorderRadius.horizontal(

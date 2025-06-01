@@ -28,16 +28,6 @@ Widget buildImageShowcase(BuildContext context, onChange, onSave, List<String> i
             GestureDetector(
               // same on tap behavior as edit button
               onTap: () async {
-                // final annotatedImagePath = await Navigator.of(context).push(
-                //     MaterialPageRoute(
-                //       builder: (context) => ImageAnnotationScreen(imagePath: path),
-                //     ),
-                //   );
-
-                //   if (annotatedImagePath != null) {
-                //     onSave(path, annotatedImagePath);
-                //   }
-
                 onChange(p: path);
               },
               child: ClipRRect(
@@ -71,31 +61,6 @@ Widget buildImageShowcase(BuildContext context, onChange, onSave, List<String> i
                 ),
               ),
             ),
-            // // Edit button
-            // Positioned(
-            //   bottom: 4,
-            //   left: 4,
-            //   child: GestureDetector(
-            //     onTap: () async {
-            //       final annotatedImagePath = await Navigator.of(context).push(
-            //         MaterialPageRoute(
-            //           builder: (context) => ImageAnnotationScreen(imagePath: path),
-            //         ),
-            //       );
-
-            //       if (annotatedImagePath != null) {
-            //         onSave(path, annotatedImagePath);
-            //       }
-            //     },
-            //     child: Container(
-            //       decoration: const BoxDecoration(
-            //         color: Colors.black54,
-            //         shape: BoxShape.circle,
-            //       ),
-            //       child: const Icon(Icons.edit, color: Colors.white, size: 20),
-            //     ),
-            //   ),
-            // ),
           ],
         );
       }).toList(),
@@ -393,6 +358,52 @@ Widget showImageWithEditAbility(
             ),
             padding: const EdgeInsets.all(6),
             child: const Icon(Icons.edit, color: Colors.white, size: 22),
+          ),
+        ),
+      ),
+    ],
+  );
+}
+
+
+Widget showImageWithNoEditAbility(
+  BuildContext context,
+  String imageFilePath
+) {
+  if (imageFilePath.isEmpty || File(imageFilePath).existsSync() == false) {
+    return const SizedBox.shrink();
+  }
+  
+  final double screenHeight = MediaQuery.of(context).size.height;
+  final double height = screenHeight * 0.3;
+
+  return Stack(
+    children: [
+      GestureDetector(
+        onTap: () {
+          showDialog(
+            context: context,
+            builder: (_) => Dialog(
+              backgroundColor: Colors.transparent,
+              child: GestureDetector(
+                onTap: () => Navigator.of(context).pop(),
+                child: InteractiveViewer(
+                  child: Image.file(File(imageFilePath)),
+                ),
+              ),
+            ),
+          );
+        },
+        child: ClipRRect(
+          borderRadius: const BorderRadius.all(Radius.circular(12)),
+          child: Container(
+            height: height,
+            width: double.infinity,
+            color: Colors.grey[200],
+            child: Image.file(
+              File(imageFilePath),
+              fit: BoxFit.cover,
+            ),
           ),
         ),
       ),
