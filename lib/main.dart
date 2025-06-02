@@ -28,8 +28,14 @@ void main() async {
   Hive.registerAdapter(StatusAdapter());
   Hive.registerAdapter(SnagAdapter());
   // Hive.deleteBoxFromDisk('companies');
+
+  // load user preferences
+  AppTerminology.loadTerminologyPrefs();
+  AppDateTimeFormat.loadDateTimePrefs();
+
   await Hive.openBox<Company>('companies');
   await Hive.openBox<Project>('projects');
+
 
   runApp(const MainApp());
 }

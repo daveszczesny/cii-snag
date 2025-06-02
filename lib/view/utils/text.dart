@@ -1,5 +1,6 @@
 import 'package:cii/models/project.dart';
 import 'package:cii/utils/colors/app_colors.dart';
+import 'package:cii/utils/common.dart';
 import 'package:flutter/material.dart';
 
 
@@ -116,7 +117,7 @@ Widget buildDatePickerInput(BuildContext context, String label, String hintText,
               lastDate: DateTime.utc(DateTime.now().year + 20, 12, 31),
             );
             if (selectedDate != null) {
-              controller.text = '${selectedDate.day.toString().padLeft(2, '0')}.${selectedDate.month.toString().padLeft(2, '0')}.${selectedDate.year}';
+              controller.text = formatDate(selectedDate);
             }
           }
         ),

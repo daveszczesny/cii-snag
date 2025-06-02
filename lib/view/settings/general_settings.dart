@@ -1,3 +1,4 @@
+import 'package:cii/view/utils/text.dart';
 import 'package:flutter/material.dart';
 
 
@@ -13,12 +14,25 @@ class GeneralSettings extends StatefulWidget {
 }
 
 class _GeneralSettingsState extends State<GeneralSettings> {
+  // text controllers
+  final TextEditingController snagTermController = TextEditingController();
+  final TextEditingController snagPluralTermController = TextEditingController();
+
+  // constants
+  static const double gap = 20.0;
+
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(
-        child: Text('General Settings'),
-      ),
+    return Scaffold(
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          buildTextInput("Snag Term", "Snag", snagTermController),
+          const SizedBox(height: gap),
+          buildTextInput("Snags Term", "Snags", snagPluralTermController),
+          const SizedBox(height: gap),
+        ]
+      )
     );
   }
 }

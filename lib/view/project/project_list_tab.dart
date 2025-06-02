@@ -79,15 +79,20 @@ class _ProjectListTabWidgetState extends State<ProjectListTabWidget> with Single
             labelPadding: const EdgeInsets.symmetric(horizontal: 16.0),
             tabs: tabs,
           ),
-          Expanded(
-            child: TabBarView(
-              controller: tabController,
-              children: [
-                buildProjectList('Recent'),
-                buildProjectList('All'),
-                buildProjectList('Completed')
-              ]
-            )
+          ValueListenableBuilder(
+            valueListenable: AppTerminology.version,
+            builder: (context, _, __) {
+              return Expanded(
+                child: TabBarView(
+                  controller: tabController,
+                  children: [
+                    buildProjectList('Recent'),
+                    buildProjectList('All'),
+                    buildProjectList('Completed')
+                  ]
+                )
+              );
+            }
           )
         ]
       )

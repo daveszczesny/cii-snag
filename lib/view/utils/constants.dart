@@ -1,3 +1,8 @@
+import 'dart:ffi';
+
+import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 class AppAssets {
   // Icons
   static const String projectIcon = 'lib/assets/icons/png/project_icon.png';
@@ -126,11 +131,50 @@ class AppSizing {
 
 
 class AppTerminology {
+
+  static ValueNotifier<int> version = ValueNotifier<int>(0);
+
+  static String prefsSnag = 'snag_singular';
+  static String prefsSnags = 'snag_plural';
+
   static String singularSnag = 'Snag';
   static String plurlaSnag = 'Snags';
 
   static void setSnagTerm({required String singular, required String plural}) {
     singularSnag = singular;
     plurlaSnag = plural;
+  }
+
+  static Future<void> loadTerminologyPrefs() async {
+    final prefs = await SharedPreferences.getInstance();
+    AppTerminology.singularSnag = prefs.getString(prefsSnag) ?? 'Snag';
+    AppTerminology.plurlaSnag = prefs.getString(prefsSnags) ?? 'Snags';
+  }
+
+  static Future<void> saveTerminologyPrefs(String k, String v) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(k, v);
+    version.value++;
+
+    loadTerminologyPrefs();
+  }
+}
+
+class AppDateTimeFormat {
+  static ValueNotifier<int> version = ValueNotifier<int>(0);
+
+  static String dateTimeFormatPattern = 'dd/MM/yyyy';
+
+  static Future<void> loadDateTimePrefs() async {
+    final prefs = await SharedPreferences.getInstance();
+    AppDateTimeFormat.dateTimeFormatPattern = prefs.getString('datetime_format') ?? 'dd/MM/yyyy';
+  }
+
+  static Future<void> saveDateTimePrefs(String v) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('datetime_format', v);
+    version.value++;
+
+    loadDateTimePrefs();
   }
 }

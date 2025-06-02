@@ -157,10 +157,6 @@ class _SnagDetailState extends State<SnagDetail> {
     );
   }
 
-  String formatDate(DateTime date) {
-    return DateFormat('yyyy-MM-dd').format(date);
-  }
-
   Widget snagDetailEditable(BuildContext context) {
     final name = widget.snag.name; 
     final description = widget.snag.description != '' ? widget.snag.description : 'No Description';

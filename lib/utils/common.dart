@@ -23,10 +23,17 @@ String capitilize(String s){
 
 DateTime? parseDate(String date) {
   if (date.isEmpty) return null;
-  
+
   DateTime? parsedDate;
+  final pattern = AppDateTimeFormat.dateTimeFormatPattern;
 
   try {
+    // Try the user-selected format first
+    try {
+      parsedDate = DateFormat(pattern).parseStrict(date);
+      return parsedDate;
+    } catch (_) {}
+
     // Try dd.MM.yyyy
     if (RegExp(r'^\d{2}\.\d{2}\.\d{4}$').hasMatch(date)) {
       parsedDate = DateFormat('dd.MM.yyyy').parseStrict(date);
@@ -34,6 +41,18 @@ DateTime? parseDate(String date) {
     // Try dd-MM-yyyy
     else if (RegExp(r'^\d{2}-\d{2}-\d{4}$').hasMatch(date)) {
       parsedDate = DateFormat('dd-MM-yyyy').parseStrict(date);
+    }
+    // Try dd/MM/yyyy
+    else if (RegExp(r'^\d{2}/\d{2}/\d{4}$').hasMatch(date)) {
+      parsedDate = DateFormat('dd/MM/yyyy').parseStrict(date);
+    }
+    // Try MM/dd/yyyy
+    else if (RegExp(r'^\d{2}/\d{2}/\d{4}$').hasMatch(date)) {
+      parsedDate = DateFormat('MM/dd/yyyy').parseStrict(date);
+    }
+    // Try yyyy/MM/dd
+    else if (RegExp(r'^\d{4}/\d{2}/\d{2}$').hasMatch(date)) {
+      parsedDate = DateFormat('yyyy/MM/dd').parseStrict(date);
     }
     // Fallback to ISO or throw
     else {
@@ -44,6 +63,12 @@ DateTime? parseDate(String date) {
   } catch (e) {
     return null;
   }
+}
+
+// format datetime to String in user preferrred format
+String formatDate(DateTime date) {
+  final pattern = AppDateTimeFormat.dateTimeFormatPattern;
+  return DateFormat(pattern).format(date);
 }
 
 Future<void> buildFinalRemarksWidget(

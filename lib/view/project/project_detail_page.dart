@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:cii/controllers/single_project_controller.dart';
 import 'package:cii/models/status.dart';
+import 'package:cii/utils/common.dart';
 import 'package:cii/view/project/project_analytics.dart';
 import 'package:cii/view/utils/constants.dart';
 import 'package:cii/view/utils/image.dart';
@@ -80,7 +81,6 @@ class ProjectDetailPageState extends State<ProjectDetailPage> {
       changes['contractor'] = contractorController.text;
     }
     if (widget.projectController.getDueDateString != dueDateController.text && dueDateController.text.isNotEmpty) {
-      print('Due date changed: ${dueDateController.text}');
       changes['dueDate'] = dueDateController.text;
     }
     return changes;
@@ -109,11 +109,6 @@ class ProjectDetailPageState extends State<ProjectDetailPage> {
         )
       ],
     );
-  }
-
-  // format dateCreated
-  String formatDate(DateTime date) {
-    return DateFormat('yyyy-MM-dd').format(date);
   }
 
   Widget projectDetailEditable(BuildContext context) {
