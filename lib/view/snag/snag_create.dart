@@ -6,6 +6,7 @@ import 'package:cii/models/project.dart';
 import 'package:cii/models/snag.dart';
 import 'package:cii/models/status.dart';
 import 'package:cii/models/tag.dart';
+import 'package:cii/utils/common.dart';
 import 'package:cii/view/project/project_detail.dart';
 import 'package:cii/view/utils/constants.dart';
 import 'package:cii/view/utils/image.dart';
@@ -29,6 +30,7 @@ class _SnagCreateState extends State<SnagCreate> {
   final TextEditingController descriptionController = TextEditingController();
   final TextEditingController assigneeController = TextEditingController();
   final TextEditingController locationController = TextEditingController();
+  final TextEditingController dueDateController = TextEditingController();
   final TextEditingController priorityController = TextEditingController();
   final TextEditingController projectInputController = TextEditingController();
   cii.Category? snagCategory;
@@ -96,6 +98,9 @@ class _SnagCreateState extends State<SnagCreate> {
     final String assignee = assigneeController.text;
     final String location = locationController.text;
     final Priority priority = Priority.getPriorityByString(selectedPriorityOption.value);
+    final String dueDate = dueDateController.text;
+
+    final dueDateTime = parseDate(dueDate);
 
     if (name.isEmpty) {
       // if the name is empty, create a default name 'Snag #$no' and also show a snackbar
@@ -124,6 +129,7 @@ class _SnagCreateState extends State<SnagCreate> {
           imagePaths: imageFilePaths,
           annotatedImagePaths: annotatedImages,
           status: Status.getStatus(selectedStatusOption.value),
+          dueDate: dueDateTime,
         )
       );
 
@@ -172,6 +178,7 @@ class _SnagCreateState extends State<SnagCreate> {
 
   void clearInputs() {
     nameController.clear();
+    dueDateController.clear();
     assigneeController.clear();
     locationController.clear();
     priorityController.clear();
@@ -247,6 +254,8 @@ class _SnagCreateState extends State<SnagCreate> {
               buildTextInput(AppStrings.assignee, AppStrings.assigneeExample, assigneeController),
               const SizedBox(height: 28.0),
               buildTextInput(AppStrings.projectLocation, AppStrings.snagLocationExample, locationController),
+              const SizedBox(height: 28.0),
+              buildDatePickerInput(context, 'Due Date', formatDate(DateTime.now()), dueDateController),
               const SizedBox(height: 28.0),
               buildCustomSegmentedControl(label: 'Priority', options: priorityOptions, selectedNotifier: selectedPriorityOption),
               const SizedBox(height: 28.0),

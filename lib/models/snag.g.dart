@@ -22,6 +22,7 @@ class SnagAdapter extends TypeAdapter<Snag> {
       projectId: fields[14] as String?,
       name: fields[2] as String,
       dateCreated: fields[3] as DateTime?,
+      dueDate: fields[21] as DateTime?,
       status: fields[4] as Status?,
       priority: fields[5] as Priority?,
       description: fields[6] as String?,
@@ -44,7 +45,7 @@ class SnagAdapter extends TypeAdapter<Snag> {
   @override
   void write(BinaryWriter writer, Snag obj) {
     writer
-      ..writeByte(21)
+      ..writeByte(22)
       ..writeByte(0)
       ..write(obj.uuid)
       ..writeByte(1)
@@ -86,7 +87,9 @@ class SnagAdapter extends TypeAdapter<Snag> {
       ..writeByte(16)
       ..write(obj.categories)
       ..writeByte(20)
-      ..write(obj.reviewedBy);
+      ..write(obj.reviewedBy)
+      ..writeByte(21)
+      ..write(obj.dueDate);
   }
 
   @override

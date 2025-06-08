@@ -113,7 +113,11 @@ class _SnagCardWidgetState extends State<SnagCardWidget> {
     switch (value) {
       case 'view':
         Navigator.of(context).push(
-          MaterialPageRoute(builder: (context) => SnagDetail(projectController: widget.projectController, snag: widget.snagController))
+          MaterialPageRoute(builder: (context) => SnagDetail(
+            projectController: widget.projectController,
+            snag: widget.snagController,
+            onStatusChanged: widget.onStatusChanged
+          ))
         );
         break;
       case 'delete':

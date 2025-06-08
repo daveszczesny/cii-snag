@@ -118,7 +118,8 @@ Future<void> buildFinalRemarksWidget(
                             context,
                             ({String p = ''}) {setState(() {});},
                             () {},
-                            finalImagePaths
+                            finalImagePaths,
+                            horizontalPadding: 48.0 + 32.0
                           ),
                           if (finalImagePaths.length < 5) ... [
                             buildMultipleImageInput_V2(context, finalImagePaths, () {

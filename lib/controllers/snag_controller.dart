@@ -4,6 +4,8 @@ import 'package:cii/models/status.dart';
 import 'package:cii/models/priority.dart' as snag_priority;
 import 'package:cii/models/tag.dart';
 import 'package:cii/models/category.dart' as cii;
+import 'package:cii/view/utils/constants.dart';
+import 'package:intl/intl.dart';
 
 class SnagController {
 
@@ -32,6 +34,14 @@ class SnagController {
 
   snag_priority.Priority get priority {
     return snag.priority;
+  }
+
+  DateTime? get getDueDate {
+    return snag.dueDate;
+  }
+
+  String? get getDueDateString {
+    return snag.dueDate != null ? DateFormat(AppDateTimeFormat.dateTimeFormatPattern).format(snag.dueDate!) : null;
   }
 
   String get assignee {

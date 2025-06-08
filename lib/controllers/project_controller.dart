@@ -65,7 +65,7 @@ class ProjectController {
       case 'closed':
         // check if any project is completed
         List<Project> completedProjects = projectBox.values
-            .where((project) => project.status == Status.completed).toList();
+            .where((project) => project.status.name == Status.completed.name).toList();
 
         if (completedProjects.isEmpty) { return []; }
         completedProjects.sort((a, b) => b.dateCompleted!.compareTo(a.dateCompleted!));

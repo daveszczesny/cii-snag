@@ -7,16 +7,18 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
 
-Widget buildImageShowcase(BuildContext context, onChange, onSave, List<String> imageFilePaths) {
+Widget buildImageShowcase(BuildContext context, onChange, onSave, List<String> imageFilePaths, {double horizontalPadding = 48.0}) {
 
   final double screenWidth = MediaQuery.of(context).size.width;
-  final double size = (screenWidth - 48) / 6; // subdivide the screen width by 6 incl. padding
+  const double spacing = 8.0;
+  const int imagesPerRow = 5;
+  final double size = (screenWidth - horizontalPadding - (spacing * (imagesPerRow - 1))) / imagesPerRow;
 
   return Padding(
     padding: const EdgeInsets.symmetric(vertical: 8),
     child: Wrap(
-      spacing: 8,
-      runSpacing: 8,
+      spacing: spacing,
+      runSpacing: spacing,
       children: imageFilePaths.map((path) {
 
         if (path.isEmpty || File(path).existsSync() == false) {

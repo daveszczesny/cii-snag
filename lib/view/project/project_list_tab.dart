@@ -89,7 +89,7 @@ class _ProjectListTabWidgetState extends State<ProjectListTabWidget> with Single
                   children: [
                     buildProjectList('Recent'),
                     buildProjectList('All'),
-                    buildProjectList(Status.completed.name)
+                    buildProjectList('Closed'),
                   ]
                 )
               );

@@ -51,7 +51,38 @@ class ProjectDetailPageState extends State<ProjectDetailPage> {
     );
     selectedStatusOption = ValueNotifier<String>(initialStatus);
 
-    selectedStatusOption.addListener(() {
+    selectedStatusOption.addListener(() async {
+
+      // Check if all snags in project are marked complete
+      if (selectedStatusOption.value == Status.completed.name) {
+        final int totalCompleteSnags = widget.projectController.getTotalSnagsByStatus(Status.completed);
+        final int totalSnags = widget.projectController.getTotalSnags();
+        if (totalSnags > totalCompleteSnags) { // some snags are not yet closed
+          // show a dialog asking the user if they 
+          final confirmed = await showDialog<bool>(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('Close Project'),
+              content: Text('Some ${AppStrings.snags()} are not yet closed. Are you sure you want to close this project?'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  child: const Text('Yes, Close')
+                )
+              ],
+            )
+          );
+          if (confirmed != true) {
+            selectedStatusOption.value = widget.projectController.getStatus!;
+            return;
+          }
+        }
+      }
+
       widget.projectController.setStatus(selectedStatusOption.value);
       setState(() {});
     });

@@ -82,12 +82,16 @@ class Snag extends HiveObject {
   @HiveField(20)
   String? reviewedBy;
 
+  @HiveField(21)
+  DateTime? dueDate;
+
   Snag({
     String? uuid,
     String? id,
     this.projectId,
     required this.name,
     DateTime? dateCreated,
+    DateTime? dueDate,
     Status? status,
     Priority? priority,
     this.description,

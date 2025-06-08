@@ -9,7 +9,6 @@ import 'package:cii/view/utils/image.dart';
 import 'package:cii/view/utils/selector.dart';
 import 'package:cii/view/utils/text.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 class SnagDetail extends StatefulWidget {
   final SingleProjectController projectController;
@@ -28,6 +27,7 @@ class _SnagDetailState extends State<SnagDetail> {
   final TextEditingController nameController = TextEditingController();
   final TextEditingController descriptionController= TextEditingController();
   final TextEditingController locationController = TextEditingController();
+  final TextEditingController dueDateController = TextEditingController();
   final TextEditingController assigneeController = TextEditingController();
 
   late ValueNotifier<String> selectedStatusOption;
@@ -64,7 +64,8 @@ class _SnagDetailState extends State<SnagDetail> {
           widget.snag,
           widget.projectController,
           () {
-            setState(() {});
+            widget.snag.status = newStatus;
+            widget.onStatusChanged!();
           },
           List<String>.from(widget.snag.finalImagePaths),
           width: MediaQuery.of(context).size.width * 0.95,
@@ -74,7 +75,7 @@ class _SnagDetailState extends State<SnagDetail> {
         setState(() {
           widget.snag.status = newStatus;
           widget.projectController.saveProject();
-          widget.onStatusChanged?.call();
+          widget.onStatusChanged!();
         });
       }
     });
@@ -164,6 +165,7 @@ class _SnagDetailState extends State<SnagDetail> {
     final dateCreated = formatDate(widget.snag.dateCreated);
     final assignee = widget.snag.assignee != '' ? widget.snag.assignee : 'Unassigned';
     final location = widget.snag.location != '' ? widget.snag.location : 'No Location';
+    final dueDate = widget.snag.getDueDate != null ? widget.snag.getDueDateString! : 'No Due Date';
     const double gap = 16;
 
     return Column(
@@ -180,6 +182,8 @@ class _SnagDetailState extends State<SnagDetail> {
         buildTextInput('Assignee', assignee, assigneeController),
         const SizedBox(height: gap),
         buildTextInput('Location', location, locationController),
+        const SizedBox(height: gap),
+        buildDatePickerInput(context, 'Due Date', dueDate, dueDateController),
         const SizedBox(height: gap),
         if (widget.snag.finalRemarks.isNotEmpty) ... [
           const SizedBox(height: gap),
@@ -198,6 +202,7 @@ class _SnagDetailState extends State<SnagDetail> {
     final dateCreated = formatDate(widget.snag.dateCreated);
     final assignee = widget.snag.assignee != '' ? widget.snag.assignee : 'Unassigned';
     final location = widget.snag.location != '' ? widget.snag.location : 'No Location';
+    final dueDate = widget.snag.getDueDate != null ? widget.snag.getDueDateString! : 'No Due Date';
 
     const double gap = 16;
     return Column(
@@ -214,6 +219,8 @@ class _SnagDetailState extends State<SnagDetail> {
         buildTextDetail('Assignee', assignee),
         const SizedBox(height: gap),
         buildTextDetail('Location', location),
+        const SizedBox(height: gap),
+        buildTextDetail('Due Date', dueDate),
         if (widget.snag.finalRemarks.isNotEmpty) ... [
           const SizedBox(height: gap),
           buildTextDetail('Reviewed By', widget.snag.reviewedBy),
@@ -242,7 +249,8 @@ class _SnagDetailState extends State<SnagDetail> {
                 (nameController.text != '' && nameController.text != widget.snag.name) ||
                 (descriptionController.text != '' && descriptionController.text != widget.snag.description) ||
                 (assigneeController.text != '' && assigneeController.text != widget.snag.assignee) ||
-                (locationController.text != '' && locationController.text != widget.snag.location)
+                (locationController.text != '' && locationController.text != widget.snag.location) ||
+                (dueDateController.text != '' && dueDateController.text != widget.snag.getDueDateString)
               ) {
                 // show a dialog to confirm
                 showDialog(
