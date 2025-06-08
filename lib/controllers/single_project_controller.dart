@@ -5,6 +5,7 @@ import 'package:cii/models/category.dart' as cii;
 import 'package:cii/models/status.dart';
 import 'package:cii/models/tag.dart';
 import 'package:cii/utils/common.dart';
+import 'package:cii/view/utils/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -99,7 +100,7 @@ class SingleProjectController {
       case 'recent':
         return project.snags.toList()
           ..sort((a, b) => b.dateCreated.compareTo(a.dateCreated));
-      case 'completed':
+      case 'closed':
         return project.snags
             .where((snag) => snag.status == Status.completed)
             .toList()
@@ -170,7 +171,7 @@ class SingleProjectController {
   }
 
   String? get getDueDateString {
-    return project.dueDate != null ? DateFormat('dd.MM.yyyy').format(project.dueDate!) : null;
+    return project.dueDate != null ? DateFormat(AppDateTimeFormat.dateTimeFormatPattern).format(project.dueDate!) : null;
   }
 
   void setName(String name) {

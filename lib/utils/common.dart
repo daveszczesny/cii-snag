@@ -100,7 +100,7 @@ Future<void> buildFinalRemarksWidget(
                   child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text('Completion Notes', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
+                    const Text('Closing Notes', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
                     const SizedBox(height: 16),
                     if (finalImagePaths.isEmpty) ... [
                       buildMultipleImageInput_V2(context, finalImagePaths, () {

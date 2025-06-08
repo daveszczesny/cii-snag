@@ -56,14 +56,14 @@ class Status extends HiveObject {
 
   static Status? getStatus(String name) {
     switch (name.toLowerCase()) {
-      case 'new':
+      case 'open':
         Status todo = Status.todo;
         return todo;
       case 'in progress':
       case 'inprogress':
         Status inProgress = Status.inProgress;
         return inProgress;
-      case 'completed':
+      case 'closed':
         Status completed = Status.completed;
         return completed;
       case 'blocked':

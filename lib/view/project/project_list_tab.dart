@@ -1,6 +1,7 @@
 import 'package:cii/controllers/project_controller.dart';
 import 'package:cii/controllers/single_project_controller.dart';
 import 'package:cii/models/project.dart';
+import 'package:cii/models/status.dart';
 import 'package:cii/view/project/project_card_widget.dart';
 import 'package:cii/view/utils/constants.dart';
 import 'package:flutter/material.dart';
@@ -47,7 +48,7 @@ class _ProjectListTabWidgetState extends State<ProjectListTabWidget> with Single
             return const Center(child: Text('No projects found.'));
           }
           return ListView.builder(
-            itemCount: box.length,
+            itemCount: projects.length,
             itemBuilder: (context, index) {
               final projectObject = projects[index];
               final projectController = SingleProjectController(projectObject);
@@ -66,7 +67,7 @@ class _ProjectListTabWidgetState extends State<ProjectListTabWidget> with Single
     const List<Widget> tabs = [
       Tab(text: 'Recent'),
       Tab(text: 'All'),
-      Tab(text: 'Completed'),
+      Tab(text: 'Closed'),
     ];
 
     return Scaffold(
@@ -88,7 +89,7 @@ class _ProjectListTabWidgetState extends State<ProjectListTabWidget> with Single
                   children: [
                     buildProjectList('Recent'),
                     buildProjectList('All'),
-                    buildProjectList('Completed')
+                    buildProjectList(Status.completed.name)
                   ]
                 )
               );

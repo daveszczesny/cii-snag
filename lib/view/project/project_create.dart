@@ -171,7 +171,7 @@ class _ProjectCreateState extends State<ProjectCreate> {
               const SizedBox(height: 28.0),
               buildTextInput(AppStrings.projectContractor, AppStrings.projectContractorExample, _contractorController),
               const SizedBox(height: 28.0),
-              buildDatePickerInput(context, 'Due Date', '12.05.2025', _dueDateController),
+              buildDatePickerInput(context, 'Due Date', formatDate(DateTime.now()), _dueDateController),
               const SizedBox(height: 28.0),
               ObjectSelector(
                 label: AppStrings.category,

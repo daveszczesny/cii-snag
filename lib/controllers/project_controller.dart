@@ -62,7 +62,7 @@ class ProjectController {
 
   List<Project>? getProjectsByStatus(String status) {
     switch (status.toLowerCase()) {
-      case 'completed':
+      case 'closed':
         // check if any project is completed
         List<Project> completedProjects = projectBox.values
             .where((project) => project.status == Status.completed).toList();
@@ -93,7 +93,7 @@ class ProjectController {
         filteredProjects = projectBox.values.toList()
           ..sort((a, b) => b.dateModified!.compareTo(a.dateModified!));
         break;
-      case 'completed':
+      case 'closed':
         filteredProjects = projectBox.values
             .where((project) => project.status == Status.completed)
             .toList()
