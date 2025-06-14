@@ -27,8 +27,19 @@ class _NamingSettingsState extends State<NamingSettings> {
 
   // Helper functions
 
-  /* OnClick Function to save User Preferences */
-  void onSaveButtonPressed() {
+  /* Function to save User Preferences */
+  void saveChanges() {
+
+    if (AppTerminology.singularSnag != snagSingleTermController.text ||
+        AppTerminology.plurlaSnag != snagPluralTermController.text) {
+          // Show a snack bar to indicate changes have been made
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Terminology changes saved!'),
+          duration: const Duration(seconds: 2),
+        )
+      );
+    }
     AppTerminology.singularSnag = snagSingleTermController.text;
     AppTerminology.plurlaSnag = snagPluralTermController.text;
 
@@ -44,6 +55,14 @@ class _NamingSettingsState extends State<NamingSettings> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Terminology Settings'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            // Save changes and navigate back
+            saveChanges();
+            Navigator.pop(context);
+          }
+        )
       ),
       body: Padding(
         padding: const EdgeInsets.all(32.0),
@@ -54,7 +73,6 @@ class _NamingSettingsState extends State<NamingSettings> {
             const SizedBox(height: gap),
             buildTextInput("Snags", snagPluralTermController.text, snagPluralTermController),
             const SizedBox(height: gap),
-            buildTextButton("Save Preferences", onSaveButtonPressed)
           ]
         )
       )
