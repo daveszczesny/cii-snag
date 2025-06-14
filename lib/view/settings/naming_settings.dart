@@ -32,11 +32,11 @@ class _NamingSettingsState extends State<NamingSettings> {
 
     if (AppTerminology.singularSnag != snagSingleTermController.text ||
         AppTerminology.plurlaSnag != snagPluralTermController.text) {
-          // Show a snack bar to indicate changes have been made
+          // Show a snack bar to ind  icate changes have been made
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Terminology changes saved!'),
-          duration: const Duration(seconds: 2),
+        const SnackBar(
+          content: Text('Terminology changes saved!'),
+          duration: Duration(seconds: 2),
         )
       );
     }

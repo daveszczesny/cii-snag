@@ -27,7 +27,7 @@ void main() async {
   Hive.registerAdapter(ProjectAdapter());
   Hive.registerAdapter(StatusAdapter());
   Hive.registerAdapter(SnagAdapter());
-  // Hive.deleteBoxFromDisk('companies');
+  Hive.deleteBoxFromDisk('companies');
 
   // load user preferences
   AppTerminology.loadTerminologyPrefs();

@@ -276,7 +276,9 @@ Widget buildImageInput_V2(BuildContext context, void Function(String) onChange) 
 }
 
 // ignore: non_constant_identifier_names
-Widget buildMultipleImageInput_V2(BuildContext context, List<String> imagePaths, VoidCallback onChange, {bool large = true}) {
+Widget buildMultipleImageInput_V2(BuildContext context, List<String> imagePaths, VoidCallback onChange,
+  {bool large = true,
+   horizontalPadding = 48.0}) {
   double width = 120;
   double height = 120;
   if (large) {
@@ -284,8 +286,11 @@ Widget buildMultipleImageInput_V2(BuildContext context, List<String> imagePaths,
     height = 120;
   } else {
     final double screenWidth = MediaQuery.of(context).size.width;
-    width = (screenWidth - 48) / 6; 
-    height = width;
+    const double spacing = 8.0;
+    const int imagesPerRow = 5;
+    final double size = (screenWidth - horizontalPadding - (spacing * (imagesPerRow - 1))) / imagesPerRow;
+    width = size * 0.8;
+    height = size *0.8;
   }
 
   return Center(

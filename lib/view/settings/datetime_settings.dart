@@ -1,6 +1,7 @@
 import 'package:cii/view/utils/constants.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:cii/view/settings/utils/common.dart';
 
 class DateTimeSettings extends StatefulWidget {
   const DateTimeSettings({super.key});
@@ -13,18 +14,32 @@ class _DateTimeSettingsState extends State<DateTimeSettings> {
 
 
   // supported formats
-  final List<Map<String, String>> formats = [
-    {'label': 'dd/MM/YYYY', 'pattern': 'dd/MM/yyyy'},
-    {'label': 'YYYY/MM/dd', 'pattern': 'yyyy/MM/dd'},
-    {'label': 'MM/dd/YYYY', 'pattern': 'MM/dd/yyyy'}
-  ];
 
   String selectedPattern = AppDateTimeFormat.dateTimeFormatPattern;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Date Format Settings')),
+      appBar: AppBar(
+        title: const Text('Date Format Settings'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            if(selectedPattern != AppDateTimeFormat.dateTimeFormatPattern) {
+              // show snack bar
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Date format changes saved!'),
+                  duration: Duration(seconds: 2),
+                ),
+              );
+              AppDateTimeFormat.saveDateTimePrefs(selectedPattern);
+
+            }
+            Navigator.pop(context);
+          }
+        ),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Column(
@@ -78,7 +93,6 @@ class _DateTimeSettingsState extends State<DateTimeSettings> {
                 if (selected != null && selected != selectedPattern) {
                   setState(() {
                     selectedPattern = selected;
-                    AppDateTimeFormat.saveDateTimePrefs(selectedPattern);
                   });
                 }
               },

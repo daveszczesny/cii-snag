@@ -124,7 +124,7 @@ Future<void> buildFinalRemarksWidget(
                           if (finalImagePaths.length < 5) ... [
                             buildMultipleImageInput_V2(context, finalImagePaths, () {
                               setState(() {});
-                            }, large: false)
+                            }, large: false, horizontalPadding: 48.0 + 32.0)
                           ]
                         ],
                       )

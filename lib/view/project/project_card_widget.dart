@@ -28,7 +28,7 @@ class _ProjectCardWidgetState extends State<ProjectCardWidget> {
     switch (value) {
       case 'view':
         Navigator.of(context).push(
-          MaterialPageRoute(builder: (context) => ProjectDetail(projectController: widget.projectController))
+          MaterialPageRoute(builder: (context) => ProjectDetail(projectController: widget.projectController, index: 1))
         );
         break;
       case 'add':

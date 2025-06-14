@@ -7,10 +7,7 @@ import 'package:cii/utils/colors/app_colors.dart';
 import 'package:cii/utils/common.dart';
 import 'package:cii/view/snag/snag_detail.dart';
 import 'package:cii/view/utils/constants.dart';
-import 'package:cii/view/utils/image.dart';
-import 'package:cii/view/utils/text.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 
 class SnagCardWidget extends StatefulWidget {
   final SingleProjectController projectController;

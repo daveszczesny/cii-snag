@@ -29,6 +29,8 @@ class _SnagDetailState extends State<SnagDetail> {
   final TextEditingController locationController = TextEditingController();
   final TextEditingController dueDateController = TextEditingController();
   final TextEditingController assigneeController = TextEditingController();
+  final TextEditingController reviewedByController = TextEditingController();
+  final TextEditingController finalremarksController = TextEditingController();
 
   late ValueNotifier<String> selectedStatusOption;
   final List<String> statusOptions = Status.values.map((e) => e.name).toList(); // get the name of each status
@@ -65,7 +67,9 @@ class _SnagDetailState extends State<SnagDetail> {
           widget.projectController,
           () {
             widget.snag.status = newStatus;
+            widget.projectController.saveProject();
             widget.onStatusChanged!();
+            setState(() {});
           },
           List<String>.from(widget.snag.finalImagePaths),
           width: MediaQuery.of(context).size.width * 0.95,
@@ -81,6 +85,7 @@ class _SnagDetailState extends State<SnagDetail> {
     });
   }
 
+  // image related methods
   void onChange({String p = ''}) {
     final annotatedImages = widget.snag.annotatedImagePaths;
     if (selectedImage == '') {
@@ -126,7 +131,7 @@ class _SnagDetailState extends State<SnagDetail> {
     }
     return path;
   }
-
+// -----------------------------------------------
 
   void _showCategoryModal(BuildContext context) {
     showModalBottomSheet(
@@ -166,6 +171,9 @@ class _SnagDetailState extends State<SnagDetail> {
     final assignee = widget.snag.assignee != '' ? widget.snag.assignee : 'Unassigned';
     final location = widget.snag.location != '' ? widget.snag.location : 'No Location';
     final dueDate = widget.snag.getDueDate != null ? widget.snag.getDueDateString! : 'No Due Date';
+    final reviewedBy = widget.snag.reviewedBy != '' ? widget.snag.reviewedBy : 'No Reviewer';
+    final finalRemarks = widget.snag.finalRemarks != '' ? widget.snag.finalRemarks : 'No Final Remarks';
+
     const double gap = 16;
 
     return Column(
@@ -187,9 +195,9 @@ class _SnagDetailState extends State<SnagDetail> {
         const SizedBox(height: gap),
         if (widget.snag.finalRemarks.isNotEmpty) ... [
           const SizedBox(height: gap),
-          buildTextDetail("Reviewed By", widget.snag.reviewedBy),
+          buildTextInput("Reviewed By", reviewedBy, reviewedByController),
           const SizedBox(height: gap),
-          buildTextDetail('Final remarks', widget.snag.finalRemarks),
+          buildTextInput("Final Remarks", finalRemarks, finalremarksController),
         ]
       ],
     );
@@ -203,6 +211,8 @@ class _SnagDetailState extends State<SnagDetail> {
     final assignee = widget.snag.assignee != '' ? widget.snag.assignee : 'Unassigned';
     final location = widget.snag.location != '' ? widget.snag.location : 'No Location';
     final dueDate = widget.snag.getDueDate != null ? widget.snag.getDueDateString! : 'No Due Date';
+    final reviewedBy = widget.snag.reviewedBy != '' ? widget.snag.reviewedBy : 'No Reviewer';
+    final finalRemarks = widget.snag.finalRemarks != '' ? widget.snag.finalRemarks : 'No Final Remarks';
 
     const double gap = 16;
     return Column(
@@ -221,11 +231,11 @@ class _SnagDetailState extends State<SnagDetail> {
         buildTextDetail('Location', location),
         const SizedBox(height: gap),
         buildTextDetail('Due Date', dueDate),
-        if (widget.snag.finalRemarks.isNotEmpty) ... [
+        if (widget.snag.status.name == Status.completed.name) ... [
           const SizedBox(height: gap),
-          buildTextDetail('Reviewed By', widget.snag.reviewedBy),
+          buildTextDetail('Reviewed By', reviewedBy),
           const SizedBox(height: gap),
-          buildTextDetail('Final remarks', widget.snag.finalRemarks),
+          buildTextDetail('Final remarks', finalRemarks),
         ]
       ],
     );
@@ -305,6 +315,14 @@ class _SnagDetailState extends State<SnagDetail> {
                     widget.snag.setAssignee(newAssignee);
                     final newLocation = locationController.text;
                     widget.snag.setLocation(newLocation);
+
+                    if (widget.snag.status.name == Status.completed.name) {
+                      final newReviewedBy = reviewedByController.text;
+                      final newFinalRemarks = finalremarksController.text;
+                      widget.snag.setReviewedBy(newReviewedBy);
+                      widget.snag.setFinalRemarks(newFinalRemarks);
+                    }
+
                     widget.projectController.saveProject();
                     widget.onStatusChanged!();
                   } else {
@@ -370,9 +388,9 @@ class _SnagDetailState extends State<SnagDetail> {
                     )
                   ),
 
-                  if (widget.snag.finalImagePaths.isNotEmpty) ... [
+                  if (widget.snag.finalImagePaths.isNotEmpty && File(widget.snag.finalImagePaths[0]).existsSync()) ... [
                     const SizedBox(height: 16.0),
-                    const Text('Final Images', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                    const Text('Final Images', style: TextStyle(color: Color(0xFF333333), fontSize: 14, fontWeight: FontWeight.w300, fontFamily: 'Roboto')),
                     const SizedBox(height: 8.0),
                     buildImageShowcase(
                       context,

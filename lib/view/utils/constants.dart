@@ -66,10 +66,10 @@ class AppStrings {
   static const String projectRefExample = 'E.g. PID012';
 
   static const String projectClient = 'Client';
-  static const String projectClientExample = 'E.g. London Underground';
+  static const String projectClientExample = 'E.g. John Smith';
 
   static const String projectContractor = 'Contractor';
-  static const String projectContractorExample = 'E.g. Emico';
+  static const String projectContractorExample = 'E.g. XYZ Construction';
   static const String projectCreate = 'Create Project';
 
   // Project Details

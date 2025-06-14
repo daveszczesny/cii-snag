@@ -128,7 +128,6 @@ class _ScreenState extends State<Screen> {
 
   @override
   Widget build(BuildContext context) {
-
     if (companyController.getCompany() == null) {
       return Scaffold(
         body: Center(

@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:cii/controllers/company_controller.dart';
 import 'package:cii/models/company.dart';
 import 'package:cii/view/utils/image.dart';
@@ -31,6 +32,12 @@ class _CompanyCreateState extends State<CompanyCreate> {
     companyController = CompanyController(Hive.box<Company>('companies'));
   }
 
+  void onChange(String path) {
+    setState(() {
+      logoPath = path;
+    });
+  }
+
   void createCompany() {
     final String name = nameController.text;
     final String address = addressControler.text;
@@ -51,10 +58,27 @@ class _CompanyCreateState extends State<CompanyCreate> {
     );
   }
 
-  void onChange(String path) {
-    setState((){
-      logoPath = path;
-    });
+  Widget onDeleteLogo(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Delete Logo'),
+      content: const Text('Are you sure you want to delete this logo?'),
+      actions: [
+        TextButton(
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+          child: const Text('Cancel')
+        ),
+        TextButton(
+          onPressed: () {
+            Navigator.of(context).pop();
+            logoPath = '';
+            setState(() {});
+          },
+          child: const Text('Delete')
+          )
+      ]
+    );
   }
 
   void onClick() {
@@ -90,19 +114,26 @@ class _CompanyCreateState extends State<CompanyCreate> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              buildTextInput('Company Name', 'Ex. Emico', nameController, optional: false),
+              
+              if (logoPath != '' && File(logoPath).existsSync()) ... [
+                buildThumbnailImageShowcase(context, logoPath, onDelete: onDeleteLogo),
+                const SizedBox(height: 24)
+              ] else ... [
+                buildImageInput_V2(context, (v) => setState(() { logoPath = v; })),
+                const SizedBox(height: 24)
+              ],
+
+              buildTextInput('Company Name', 'Ex. Construction It Is', nameController, optional: false),
               const SizedBox(height: 28),
               buildLongTextInput('Company Address', 'Ex. Unit 123, London', addressControler),
               const SizedBox(height: 28),
-              buildTextInput('Company Phone', 'Ex. +1 300 555 232', phoneController),
+              buildTextInput('Company Phone', 'Ex. +44 207 654 2198', phoneController),
               const SizedBox(height: 28),
               buildTextInput('Company Email', 'Ex. mycompany@company.com', emailController),
               const SizedBox(height: 28),
               buildTextInput('Company Website', 'Ex. www.company.com', websiteController),
               const SizedBox(height: 28),
-              buildLongTextInput('Slogan', 'Ex. Just do it', sloganController),
-              const SizedBox(height: 28),
-              buildImageInputForSingleImage('Upload Company Logo', context, onChange),
+              buildLongTextInput('Slogan', 'Ex. Company Slogan', sloganController),
               const SizedBox(height: 28),
               buildTextButton('Create Company', onClick)
             ],
