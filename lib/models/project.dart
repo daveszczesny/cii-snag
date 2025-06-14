@@ -1,5 +1,6 @@
 import 'package:cii/models/category.dart';
 import 'package:cii/models/comment.dart';
+import 'package:cii/models/pdfexportrecords.dart';
 import 'package:cii/models/snag.dart';
 import 'package:cii/models/status.dart';
 import 'package:cii/models/tag.dart';
@@ -88,6 +89,9 @@ class Project extends HiveObject {
 
   @HiveField(19)
   DateTime? dueDate;
+
+  @HiveField(20)
+  List<PdfExportRecords>? pdfExportRecords;
 
 
   Project({

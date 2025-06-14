@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:cii/controllers/snag_controller.dart';
+import 'package:cii/models/pdfexportrecords.dart';
 import 'package:cii/models/project.dart';
 import 'package:cii/models/snag.dart';
 import 'package:cii/models/category.dart' as cii;
@@ -6,6 +9,7 @@ import 'package:cii/models/status.dart';
 import 'package:cii/models/tag.dart';
 import 'package:cii/utils/common.dart';
 import 'package:cii/view/utils/constants.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -251,6 +255,40 @@ class SingleProjectController {
     // this represents the total number of snags created in the project
     // regardless if the snag was deleted or not
     return project.snagsCreatedCount;
+  }
+
+  void addPdfExportRecord(PdfExportRecords record) {
+    project.pdfExportRecords ??= <PdfExportRecords>[];
+    project.pdfExportRecords?.add(record);
+    saveProject();
+  }
+
+  List<PdfExportRecords> getPdfExportRecords() {
+    return project.pdfExportRecords ?? <PdfExportRecords>[];
+  }
+
+  ValueListenable<List<PdfExportRecords>> getPdfExportRecordsListenable() {
+    return ValueNotifier<List<PdfExportRecords>>(project.pdfExportRecords ?? <PdfExportRecords>[]);
+  }
+
+  void deletePdfExportRecord(PdfExportRecords record) async {
+    if (project.pdfExportRecords == null) {
+      return; // No records to delete
+    }
+    // remove from the list
+    project.pdfExportRecords!.removeWhere((r) => r.uuid == record.uuid);
+    saveProject();
+
+    // delete file
+    try {
+      final dir = Directory(await getPdfDirectory());
+      final file = File('${dir.path}/${record.fileName}');
+      if (await file.exists()) {
+        await file.delete();
+      }
+    } catch (e) {
+      debugPrint('Error deleting file: $e');
+    }
   }
 
   void updateDetail(String key, String value) {

@@ -27,6 +27,8 @@ dependencies:
   fl_chart: ^0.66.2
   pie_chart: ^5.4.0
   shared_preferences: ^2.2.2
+  crypto: ^3.0.3
+  open_file: ^3.3.2
 
 dev_dependencies:
   flutter_test:

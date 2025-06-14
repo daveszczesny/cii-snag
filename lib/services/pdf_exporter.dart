@@ -1,9 +1,13 @@
 
 import 'dart:io';
 import 'package:cii/controllers/single_project_controller.dart';
+import 'package:cii/models/pdfexportrecords.dart';
 import 'package:cii/models/status.dart';
+import 'package:cii/utils/common.dart';
 import 'package:cii/view/utils/constants.dart';
+import 'package:crypto/crypto.dart';
 import 'package:intl/intl.dart';
+import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -218,18 +222,43 @@ Future<void> savePdfFile(SingleProjectController controller) async {
   ),
 );
 
-  final directory = await getApplicationDocumentsDirectory();
-  final file = File('${directory.path}/$projectName.pdf');
-  await file.writeAsBytes(await pdf.save());
+  final bytes = await pdf.save();
+  final pdfDirPath = await getPdfDirectory();
+  final timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
+  final fileName = '$projectName-$timestamp.pdf';
+  final file = File('$pdfDirPath/$fileName');
+  await file.writeAsBytes(bytes);
 
+
+  // create a record of the export
+  final pdfRecord = PdfExportRecords(
+    exportDate: DateTime.now(),
+    fileName: '$projectName.pdf',
+    fileHash: _calculateHash(bytes),
+    fileSize: bytes.length,
+  );
+
+  controller.addPdfExportRecord(pdfRecord);
   await Share.shareXFiles([XFile(file.path)]);
-
-  // TODO: track the pdf file in the database
-  await file.delete();
-
 }
 
+Future<void> openPdfFromRecord(PdfExportRecords record) async {
+  final pdfDirPath = await getPdfDirectory();
+  final filePath = '$pdfDirPath/${record.fileName}';
+  final file = File(filePath);
+  if (await file.exists()) {
+    final result = await OpenFile.open(filePath);
+    if (result.type != ResultType.done) {
+      throw Exception('Could not open PDF: ${result.message}');
+    }
+  } else {
+    throw FileSystemException('File not found', filePath);
+  }
+}
 
+String _calculateHash(List<int> bytes) {
+  return sha256.convert(bytes).toString();
+}
 
 pw.Widget getFooter(pw.Context context, pw.ImageProvider logoImage) {
   return pw.Container(

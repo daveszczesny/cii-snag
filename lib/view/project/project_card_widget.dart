@@ -2,8 +2,8 @@ import 'dart:io';
 
 import 'package:cii/controllers/single_project_controller.dart';
 import 'package:cii/models/status.dart';
-import 'package:cii/services/pdf_exporter.dart';
 import 'package:cii/utils/colors/app_colors.dart';
+import 'package:cii/view/project/export/project_export.dart';
 import 'package:cii/view/project/project_detail.dart';
 import 'package:cii/view/utils/constants.dart';
 import 'package:flutter/material.dart';
@@ -38,7 +38,10 @@ class _ProjectCardWidgetState extends State<ProjectCardWidget> {
         break;
       case 'export':
         // implement share functionality
-          savePdfFile(widget.projectController);
+          // savePdfFile(widget.projectController);
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (context) => ProjectExport(projectController: widget.projectController))
+          );
         break;
       case 'delete':
         // implement delete functionality

@@ -168,3 +168,18 @@ Future<void> buildFinalRemarksWidget(
     },
   );
 }
+
+String formatFileSize(int bytes) {
+  if (bytes < 1024) return '$bytes B';
+  if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
+  return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+}
+
+Future<String> getPdfDirectory() async {
+  final appDir = await getApplicationDocumentsDirectory();
+  final pdfDir = Directory('${appDir.path}/pdf_exports');
+  if (!await pdfDir.exists()) {
+    await pdfDir.create();
+  }
+  return pdfDir.path;
+}
