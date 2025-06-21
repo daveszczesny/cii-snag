@@ -110,6 +110,7 @@ class Snag extends HiveObject {
     uuid = uuid ?? const Uuid().v4(),
     id = id ?? 'PID',
     dateCreated = dateCreated ?? DateTime.now(),
+    dueDate = dueDate ?? null,
     status = status ?? Status.todo,
     priority = priority ?? Priority.low;
 }

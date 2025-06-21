@@ -1,5 +1,9 @@
+import 'package:cii/utils/colors/app_colors.dart';
+import 'package:cii/view/settings/company_settings.dart';
 import 'package:cii/view/settings/datetime_settings.dart';
 import 'package:cii/view/settings/naming_settings.dart';
+import 'package:cii/view/settings/privacy_policy.dart';
+import 'package:cii/view/settings/terms_conditions.dart';
 import 'package:flutter/material.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -10,27 +14,40 @@ class SettingsPage extends StatefulWidget {
   State<SettingsPage> createState() => _SettingsPageState();
 }
 
-Widget settingsTab(BuildContext context, String label, StatefulWidget w) {
-  return SizedBox(
-      width: MediaQuery.of(context).size.width,
-      height: 50,
-      child: TextButton(
-        style: TextButton.styleFrom(
-          alignment: Alignment.centerLeft,
-          backgroundColor: Colors.grey[200],
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))
+Widget settingsTab(BuildContext context, IconData icon, String label, StatefulWidget w) {
+  return InkWell(
+    borderRadius: BorderRadius.circular(16),
+    onTap: () {
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (context) => w),
+      );
+    },
+    child: Container(
+      decoration: BoxDecoration(
+        // Remove color: Colors.grey[200],
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppColors.primaryGreen, // Outline color
+          width: 2,               // Outline thickness
         ),
-        onPressed: (){
-          Navigator.of(context).push(
-            MaterialPageRoute(builder: (context) => w)
-          );
-        },
-        child: Text(
-          label,
-          style: const TextStyle(color: Colors.black, fontSize: 16), textAlign: TextAlign.left,
-        )
       ),
-    );
+      margin: const EdgeInsets.all(8),
+      width: 120,
+      height: 120,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, size: 40, color: AppColors.primaryGreen),
+          const SizedBox(height: 12),
+          Text(
+            label,
+            style: const TextStyle(fontSize: 14, color: Colors.black),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    ),
+  );
 }
 
 class _SettingsPageState extends State<SettingsPage> {
@@ -40,13 +57,21 @@ class _SettingsPageState extends State<SettingsPage> {
       appBar: AppBar(
         title: const Text('Settings'),
       ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          settingsTab(context, "Terminology", const NamingSettings()),
-          const SizedBox(height: 12.0),
-          settingsTab(context, "Date Time Format", const DateTimeSettings()),
-        ]
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: GridView.count(
+          crossAxisCount: 2,
+          mainAxisSpacing: 16,
+          crossAxisSpacing: 16,
+          shrinkWrap: true,
+          children: [
+            settingsTab(context, Icons.text_fields, "Terminology", const NamingSettings()),
+            settingsTab(context, Icons.calendar_today, "Date Time Format", const DateTimeSettings()),
+            settingsTab(context, Icons.apartment, "Company", const CompanySettings()),
+            settingsTab(context, Icons.description, "Terms & Conditions", const TermsConditions()),
+            settingsTab(context, Icons.privacy_tip, "Terms & Conditions", const PrivacyPolicy()),
+          ],
+        ),
       ),
     );
   }

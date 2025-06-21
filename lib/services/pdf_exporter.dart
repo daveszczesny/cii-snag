@@ -12,6 +12,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:share_plus/share_plus.dart';
 import 'package:flutter/services.dart';
+import 'package:image/image.dart' as img;
 
 Future<void> savePdfFile(
   SingleProjectController controller,
@@ -24,7 +25,10 @@ Future<void> savePdfFile(
 
 
   final logoBytes = await rootBundle.load('lib/assets/logo/CII_logo.png');
-  final logoImage = pw.MemoryImage(logoBytes.buffer.asUint8List());
+  final compressedLogoImage = await processImageForQuality(logoBytes.buffer.asUint8List(), imageQuality);
+  final logoImage = pw.MemoryImage(compressedLogoImage);
+
+  var snagList = [];
 
   pdf.addPage(
     pw.MultiPage(
@@ -97,7 +101,7 @@ Future<void> savePdfFile(
     pageFormat: PdfPageFormat.a4,
     margin: const pw.EdgeInsets.symmetric(horizontal: 24, vertical: 32),
     build: (pw.Context context) {
-      final snagList = controller.getAllSnags()
+      snagList = controller.getAllSnags()
         // Filter by selected categories if provided
         .where((snag) {
           final snagCategory = (snag.categories != null && snag.categories.isNotEmpty)
@@ -221,7 +225,7 @@ Future<void> savePdfFile(
 
       return [
         pw.Text(
-          'Snag List',
+          '${AppStrings.snag()} List',
           style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
         ),
         pw.SizedBox(height: 12),
@@ -240,6 +244,63 @@ Future<void> savePdfFile(
     footer: (context) => getFooter(context, logoImage)
   ),
 );
+
+for (final snag in snagList) {
+
+  final processedImages = snag.imagePaths != null && snag.imagePaths!.isNotEmpty
+    ? (await Future.wait(
+        snag.imagePaths!.map<Future<pw.MemoryImage?>>((path) async {
+          try {
+            final file = File(path);
+            if (!await file.exists()) return null;
+            final imgBytes = await file.readAsBytes();
+            final processed = await processImageForQuality(imgBytes, imageQuality);
+            return pw.MemoryImage(processed);
+          } catch (e) {
+            return null;
+          }
+        }).toList(),
+      ))
+        .whereType<pw.MemoryImage>()
+        .toList()
+    : <pw.MemoryImage>[];
+
+  pdf.addPage(
+    pw.MultiPage(
+      pageFormat: PdfPageFormat.a4,
+      margin: const pw.EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+      footer: (context) => getFooter(context, logoImage),
+      build: (pw.Context context) {
+        return [
+          pw.Text(
+            snag.name ?? '-',
+            style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold),
+          ),
+          pw.SizedBox(height: 12),
+          pw.Text('Category: ${(snag.categories != null && snag.categories.isNotEmpty) ? snag.categories[0].name : 'Uncategorized'}'),
+          pw.Text('Status: ${(snag.status?.name ?? '-')}'),
+          pw.SizedBox(height: 12),
+          pw.Text('Description:'),
+          pw.Text(snag.description ?? '-', style: const pw.TextStyle(fontSize: 14)),
+          if (processedImages.isNotEmpty) ...[
+            pw.SizedBox(height: 12),
+            pw.Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: processedImages.map((img) {
+                return pw.Container(
+                  width: 100,
+                  height: 100,
+                  child: pw.Image(img, fit: pw.BoxFit.cover),
+                );
+              }).toList(),
+            ),
+          ]
+        ];
+      },
+    ),
+  );
+}
 
   final bytes = await pdf.save();
   final pdfDirPath = await getPdfDirectory();
@@ -308,4 +369,26 @@ pw.Widget getFooter(pw.Context context, pw.ImageProvider logoImage) {
       ],
     ),
   );
+}
+
+Future<Uint8List> processImageForQuality(Uint8List originalBytes, String imageQuality) async {
+  final image = img.decodeImage(originalBytes);
+  if (image == null) return originalBytes;
+
+  int jpegQuality;
+  
+  switch (imageQuality) {
+    case 'Low':
+      jpegQuality = 30;
+      break;
+    case 'Medium':
+      jpegQuality = 60;
+      break;
+    case 'High':
+    default:
+      jpegQuality = 100; // Default quality
+      break;
+  }
+
+  return Uint8List.fromList(img.encodeJpg(image, quality: jpegQuality));
 }

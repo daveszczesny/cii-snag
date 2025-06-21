@@ -116,6 +116,7 @@ class SnagController {
     snag.tags ??= [];
     snag.tags!.add(tag);
   }
+  void setDueDate(String v) { snag.dueDate = DateFormat(AppDateTimeFormat.dateTimeFormatPattern).parse(v); }
   void setReviewedBy(String value) { snag.reviewedBy = value; }
 
   void setFinalImagePaths(List<String> paths) {

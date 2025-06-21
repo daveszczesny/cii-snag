@@ -303,7 +303,7 @@ class _SnagDetailState extends State<SnagDetail> {
               onTap: () {
                 setState(() {
                   if (isEditable) {
-                    // set snag details
+                       // set snag details
                     final newName = nameController.text;
                     // name isn't nullable
                     if (newName != '') {
@@ -315,6 +315,10 @@ class _SnagDetailState extends State<SnagDetail> {
                     widget.snag.setAssignee(newAssignee);
                     final newLocation = locationController.text;
                     widget.snag.setLocation(newLocation);
+                    final newDueDate = dueDateController.text;
+                    if (newDueDate.isNotEmpty) {
+                      widget.snag.setDueDate(newDueDate);
+                    }
 
                     if (widget.snag.status.name == Status.completed.name) {
                       final newReviewedBy = reviewedByController.text;
@@ -322,7 +326,7 @@ class _SnagDetailState extends State<SnagDetail> {
                       widget.snag.setReviewedBy(newReviewedBy);
                       widget.snag.setFinalRemarks(newFinalRemarks);
                     }
-
+                    isEditable = !isEditable;
                     widget.projectController.saveProject();
                     widget.onStatusChanged!();
                   } else {
@@ -330,9 +334,10 @@ class _SnagDetailState extends State<SnagDetail> {
                     descriptionController.text = widget.snag.description;
                     assigneeController.text = widget.snag.assignee;
                     locationController.text = widget.snag.location;
+                    dueDateController.text = widget.snag.getDueDateString ?? '';
+                    isEditable = !isEditable;
                   }
                 });
-                isEditable = !isEditable;
               },
               child: isEditable ?
                 const Icon(Icons.check)
@@ -500,6 +505,8 @@ class _SnagDetailState extends State<SnagDetail> {
                   ] else ... [
                     // if there are no tags selected...
                   ],
+
+                  const SizedBox(height: 24.0),
                 ],
               ),
             )

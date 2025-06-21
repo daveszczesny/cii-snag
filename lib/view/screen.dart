@@ -1,4 +1,5 @@
 import 'package:cii/controllers/company_controller.dart';
+import 'package:cii/controllers/project_controller.dart';
 import 'package:cii/models/company.dart';
 import 'package:cii/view/company/company_create.dart';
 import 'package:cii/view/notifications/notification.dart';
@@ -30,6 +31,7 @@ class Screen extends StatefulWidget {
 class _ScreenState extends State<Screen> {
 
   late CompanyController companyController;
+  late ProjectController projectController;
 
   int _index = 0;
 
@@ -37,13 +39,14 @@ class _ScreenState extends State<Screen> {
   void initState() {
     super.initState();
     companyController = CompanyController(Hive.box<Company>('companies'));
+    projectController = ProjectController(Hive.box('projects'));
   }
 
-  static const List<Widget> _widgetOptions = <Widget>[
-    ProjectListView(), // 0
-    Search(), // 1
-    Notifications(), // 2
-    ProjectListView(), // 3
+  List<Widget> get _widgetOptions => <Widget>[
+    const ProjectListView(), // 0
+    Search(projectController: projectController), // 1
+    const Notifications(), // 2
+    const ProjectListView(), // 3
   ];
 
   void onItemTapped(int index) {

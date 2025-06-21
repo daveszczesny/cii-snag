@@ -228,8 +228,8 @@ class _ProjectExportCustomizerState extends State<ProjectExportCustomizer> {
                   );
 
                   Navigator.of(context).pop();
-              })
-
+              }),
+              const SizedBox(height: 24.0),
             ]
           ),
         ),

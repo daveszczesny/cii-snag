@@ -35,7 +35,7 @@ class _NamingSettingsState extends State<NamingSettings> {
           // Show a snack bar to ind  icate changes have been made
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Terminology changes saved!'),
+          content: Text('Terminology preferences updated'),
           duration: Duration(seconds: 2),
         )
       );
@@ -69,9 +69,9 @@ class _NamingSettingsState extends State<NamingSettings> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            buildTextInput("Snag", snagSingleTermController.text, snagSingleTermController),
+            buildTextInput(AppStrings.snag(), snagSingleTermController.text, snagSingleTermController),
             const SizedBox(height: gap),
-            buildTextInput("Snags", snagPluralTermController.text, snagPluralTermController),
+            buildTextInput(AppStrings.snags(), snagPluralTermController.text, snagPluralTermController),
             const SizedBox(height: gap),
           ]
         )

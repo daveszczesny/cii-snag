@@ -123,7 +123,7 @@ class _CompanyCreateState extends State<CompanyCreate> {
                 const SizedBox(height: 24)
               ],
 
-              buildTextInput('Company Name', 'Ex. Construction It Is', nameController, optional: false),
+              buildTextInput('Company Name', 'Ex. XYZ Company', nameController, optional: false),
               const SizedBox(height: 28),
               buildLongTextInput('Company Address', 'Ex. Unit 123, London', addressControler),
               const SizedBox(height: 28),
