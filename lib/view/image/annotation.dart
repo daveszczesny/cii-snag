@@ -44,14 +44,14 @@ class _ImageAnnotationScreenState extends State<ImageAnnotationScreen> {
   }
 
    void saveImage() async {
-  // Show loading dialog
-  showDialog(
-    context: context,
-    barrierDismissible: false,
-    builder: (context) => const Center(
-      child: CircularProgressIndicator(),
-    ),
-  );
+      // Show loading dialog
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
 
   final image = await imagePainterController.exportImage();
   final imageName = '${DateTime.now().millisecondsSinceEpoch}.png';

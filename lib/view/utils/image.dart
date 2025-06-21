@@ -7,7 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
 
-Widget buildImageShowcase(BuildContext context, onChange, onSave, List<String> imageFilePaths, {double horizontalPadding = 48.0}) {
+Widget buildImageShowcase(BuildContext context, onChange, onSave, List<String> imageFilePaths,
+  {double horizontalPadding = 48.0, Function(String)? onLongPress}) {
 
   final double screenWidth = MediaQuery.of(context).size.width;
   const double spacing = 8.0;
@@ -31,6 +32,27 @@ Widget buildImageShowcase(BuildContext context, onChange, onSave, List<String> i
               // same on tap behavior as edit button
               onTap: () async {
                 onChange(p: path);
+              },
+              onLongPress: () {
+                if (onLongPress == null) return;
+                showModalBottomSheet(context: context,
+                  builder: (context) => Container(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        ListTile(
+                          leading: const Icon(Icons.star),
+                          title: const Text('Set as Main Image'),
+                          onTap: () {
+                            Navigator.pop(context);
+                            onLongPress(path);
+                          }
+                        )
+                      ],
+                    )
+                  )
+                );
               },
               child: ClipRRect(
                 borderRadius: const BorderRadius.all(Radius.circular(12)),

@@ -34,7 +34,7 @@ class ProjectController {
         client: client,
         contractor: contractor,
         location: location,
-        projectRef: projectRef,
+        projectRef: projectRef?.toUpperCase(), // ensure project ref is uppercase
         createdCategories: categories != null ? List<cii.Category>.from(categories) : [],
         createdTags: tags,
         mainImagePath: imagePath,

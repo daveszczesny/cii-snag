@@ -95,6 +95,7 @@ class _SnagCreateState extends State<SnagCreate> {
 
   void createSnag() {
     String name = nameController.text;
+    final String description = descriptionController.text;
     final String assignee = assigneeController.text;
     final String location = locationController.text;
     final Priority priority = Priority.getPriorityByString(selectedPriorityOption.value);
@@ -115,6 +116,22 @@ class _SnagCreateState extends State<SnagCreate> {
     }
 
     if (projectController != null) {
+
+      // reorder imageFilePaths so that the first image is the selected image
+      if (selectedImage != '') {
+        String originalPath = selectedImage;
+        for (var entry in annotatedImages.entries) {
+          if (entry.value == selectedImage) {
+            originalPath = entry.key;
+            break;
+          }
+        }
+        if (imageFilePaths.contains(originalPath)) {
+          imageFilePaths.remove(originalPath);
+          imageFilePaths.insert(0, originalPath);
+        }
+      }
+
       final snagId = createSnagId();
       projectController?.addSnag(
         Snag(
@@ -122,6 +139,7 @@ class _SnagCreateState extends State<SnagCreate> {
           id: snagId,
           name: name,
           location: location,
+          description: description,
           assignee: assignee,
           categories: snagCategory != null ? [snagCategory!] : [],
           tags: snagTags,

@@ -221,6 +221,7 @@ class _ProjectExportCustomizerState extends State<ProjectExportCustomizer> {
               const SizedBox(height: 24.0),
               buildTextButton("Export to PDF", () async {
                 await savePdfFile(
+                  context,
                   widget.projectController,
                   selectedQualityNotifier.value,
                   selectedCategories.toList(),

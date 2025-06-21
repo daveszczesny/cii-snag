@@ -69,10 +69,12 @@ class _ProjectExportState extends State<ProjectExport> with SingleTickerProvider
                 valueListenable: widget.projectController.getPdfExportRecordsListenable(),
                 builder: (context, pdfExports, _) {
                   if (pdfExports.isEmpty) { return const Center(child: Text('No previous exports found,')); }
+                  // Sort by export date, newest first
+                  final sortedExports = List.from(pdfExports)..sort((a, b) => b.exportDate.compareTo(a.exportDate));
                   return ListView.builder(
-                    itemCount: pdfExports.length,
+                    itemCount: sortedExports.length,
                     itemBuilder: (context, index) {
-                      final record = pdfExports[index];
+                      final record = sortedExports[index];
                       return Dismissible(
                         key: Key(record.uuid),
                         background: Container(

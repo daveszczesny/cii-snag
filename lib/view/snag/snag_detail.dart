@@ -85,6 +85,27 @@ class _SnagDetailState extends State<SnagDetail> {
     });
   }
 
+  void setAsMainImage(String selectedImagePath) {
+    String originalPath = selectedImagePath;
+    for (var entry in widget.snag.annotatedImagePaths.entries) {
+      if (entry.value == selectedImagePath) {
+        originalPath = entry.key;
+        break;
+      }
+    }
+
+    if (widget.snag.imagePaths.contains(originalPath)) {
+      widget.snag.imagePaths.remove(originalPath);
+      widget.snag.imagePaths.insert(0, originalPath);
+      widget.projectController.saveProject();
+      setState(() {
+        imageFilePaths = widget.snag.imagePaths;
+        selectedImage = '';
+        widget.onStatusChanged!();
+      });
+    }
+  }
+
   // image related methods
   void onChange({String p = ''}) {
     final annotatedImages = widget.snag.annotatedImagePaths;
@@ -368,7 +389,7 @@ class _SnagDetailState extends State<SnagDetail> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
-                        buildImageShowcase(context, onChange, saveAnnotatedImage, imageFilePaths),
+                        buildImageShowcase(context, onChange, saveAnnotatedImage, imageFilePaths, onLongPress: setAsMainImage),
                         if (imageFilePaths.length < 5) ... [
                           buildMultipleImageInput_V2(context, imageFilePaths, onChange, large: false),
                         ],
