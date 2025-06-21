@@ -9,7 +9,6 @@ import 'package:cii/view/utils/image.dart';
 import 'package:cii/view/utils/selector.dart';
 import 'package:cii/view/utils/text.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 class ProjectDetailPage extends StatefulWidget {
   final SingleProjectController projectController;

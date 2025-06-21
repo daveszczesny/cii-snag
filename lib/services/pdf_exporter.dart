@@ -8,13 +8,17 @@ import 'package:cii/view/utils/constants.dart';
 import 'package:crypto/crypto.dart';
 import 'package:intl/intl.dart';
 import 'package:open_file/open_file.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:share_plus/share_plus.dart';
 import 'package:flutter/services.dart';
 
-Future<void> savePdfFile(SingleProjectController controller) async {
+Future<void> savePdfFile(
+  SingleProjectController controller,
+  String imageQuality, // "High", "Medium", "Low"
+  List<String>? selectedCategories, // Categories to include in the export
+  List<String>? selectedStatuses // Statuses to include in the export
+) async {
   final pdf = pw.Document();
   final projectName = controller.getName!;
 
@@ -93,7 +97,22 @@ Future<void> savePdfFile(SingleProjectController controller) async {
     pageFormat: PdfPageFormat.a4,
     margin: const pw.EdgeInsets.symmetric(horizontal: 24, vertical: 32),
     build: (pw.Context context) {
-      final snagList = controller.getAllSnags();
+      final snagList = controller.getAllSnags()
+        // Filter by selected categories if provided
+        .where((snag) {
+          final snagCategory = (snag.categories != null && snag.categories.isNotEmpty)
+              ? snag.categories[0].name
+              : "Uncategorized";
+          final snagStatus = snag.status?.name;
+          final categoryMatch = selectedCategories == null || selectedCategories.isEmpty
+              ? true
+              : (snagCategory != null && selectedCategories.contains(snagCategory));
+          final statusMatch = selectedStatuses == null || selectedStatuses.isEmpty
+              ? true
+              : (snagStatus != null && selectedStatuses.contains(snagStatus));
+          return categoryMatch && statusMatch;
+        }).toList();
+
       // Sort snags by category name
       snagList.sort((a, b) {
         final aCat = (a.categories != null && a.categories.isNotEmpty) ? a.categories[0].name ?? '-' : '-';
@@ -233,7 +252,7 @@ Future<void> savePdfFile(SingleProjectController controller) async {
   // create a record of the export
   final pdfRecord = PdfExportRecords(
     exportDate: DateTime.now(),
-    fileName: '$projectName.pdf',
+    fileName: fileName,
     fileHash: _calculateHash(bytes),
     fileSize: bytes.length,
   );

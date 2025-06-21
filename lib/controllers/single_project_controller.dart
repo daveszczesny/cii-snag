@@ -15,8 +15,11 @@ import 'package:intl/intl.dart';
 
 class SingleProjectController {
   final Project project;
+  final ValueNotifier<List<PdfExportRecords>> pdfExportRecordsNotifier = ValueNotifier<List<PdfExportRecords>>([]);
 
-  SingleProjectController(this.project);
+  SingleProjectController(this.project) {
+    pdfExportRecordsNotifier.value = project.pdfExportRecords ?? <PdfExportRecords>[];
+  }
 
   void updateProject(Project updatedProject) {
     project.name = updatedProject.name;
@@ -260,6 +263,7 @@ class SingleProjectController {
   void addPdfExportRecord(PdfExportRecords record) {
     project.pdfExportRecords ??= <PdfExportRecords>[];
     project.pdfExportRecords?.add(record);
+    pdfExportRecordsNotifier.value = List.from(project.pdfExportRecords!);
     saveProject();
   }
 
@@ -268,7 +272,7 @@ class SingleProjectController {
   }
 
   ValueListenable<List<PdfExportRecords>> getPdfExportRecordsListenable() {
-    return ValueNotifier<List<PdfExportRecords>>(project.pdfExportRecords ?? <PdfExportRecords>[]);
+    return pdfExportRecordsNotifier;
   }
 
   void deletePdfExportRecord(PdfExportRecords record) async {
@@ -277,6 +281,7 @@ class SingleProjectController {
     }
     // remove from the list
     project.pdfExportRecords!.removeWhere((r) => r.uuid == record.uuid);
+    pdfExportRecordsNotifier.value = List.from(project.pdfExportRecords!);
     saveProject();
 
     // delete file
