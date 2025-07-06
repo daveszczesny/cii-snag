@@ -234,6 +234,34 @@ class _SnagDetailState extends State<SnagDetail> {
     final dueDate = widget.snag.getDueDate != null ? widget.snag.getDueDateString! : 'No Due Date';
     final reviewedBy = widget.snag.reviewedBy != '' ? widget.snag.reviewedBy : 'No Reviewer';
     final finalRemarks = widget.snag.finalRemarks != '' ? widget.snag.finalRemarks : 'No Final Remarks';
+    var dueDateSubtext = '';
+    var dueDateIcon;
+
+
+    if (widget.snag.getDueDate != null) {
+      final dueDateTime = widget.snag.getDueDate!;
+      final now = DateTime.now();
+      final diff = dueDateTime.difference(now).inDays;
+      const iconSize = 16.0;
+
+      if (diff < 0) {
+        dueDateSubtext = 'Overdue by ${diff.abs()} days';
+        dueDateIcon = Icon(Icons.warning, size: iconSize, color: Colors.red.withOpacity(0.8));
+      } else if (diff == 0) {
+        dueDateSubtext = 'Due today';
+        dueDateIcon = Icon(Icons.schedule, size: iconSize, color: Colors.orange.withOpacity(0.8));
+      } else {
+        dueDateSubtext = '${diff + 1} days left';
+        if (diff <= 7) {
+          dueDateIcon = Icon(Icons.schedule, size: iconSize, color: Colors.orange.withOpacity(0.8));
+        } else if (diff <= 14) {
+          dueDateIcon = Icon(Icons.schedule, size: iconSize, color: Colors.green.withOpacity(0.8));
+        } else {
+          dueDateIcon = null; // No icon for more than 14 days
+        }
+      }
+
+    }
 
     const double gap = 16;
     return Column(
@@ -251,7 +279,7 @@ class _SnagDetailState extends State<SnagDetail> {
         const SizedBox(height: gap),
         buildTextDetail('Location', location),
         const SizedBox(height: gap),
-        buildTextDetail('Due Date', dueDate),
+        buildTextDetailWithIcon('Due Date', dueDate, dueDateIcon, subtext: dueDateSubtext),
         if (widget.snag.status.name == Status.completed.name) ... [
           const SizedBox(height: gap),
           buildTextDetail('Reviewed By', reviewedBy),
@@ -431,103 +459,58 @@ class _SnagDetailState extends State<SnagDetail> {
                   const SizedBox(height: 28.0),
 
                   // Category and Tags
-                  if (widget.snag.categories.isNotEmpty) ... [
-                    const Text(AppStrings.category),
-                    const SizedBox(height: 8.0),
-                    Wrap(
-                      spacing: 8.0,
-                      runSpacing: 8.0,
-                      children: widget.snag.categories.map((cat) {
-                        return GestureDetector(
-                          onTap: () => _showCategoryModal(context),
-                          child: Container(
-                            constraints: const BoxConstraints(
-                              minWidth: 90,
-                              maxWidth: 140,
-                            ),
-                            padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
-                            decoration: BoxDecoration(
-                              color: cat.color.withOpacity(0.5),
-                              borderRadius: BorderRadius.circular(20.0),
-                            ),
-                            alignment: Alignment.center,
-                            child: Text(
-                              cat.name,
-                              style: const TextStyle(
-                                fontSize: 12.0,
-                                fontWeight: FontWeight.w400,
-                                color: Colors.black,
-                                fontFamily: 'Roboto',
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                              maxLines: 1,
-                            )
-                          )
-                        );
-                    }).toList()),
-                    const SizedBox(height: 28.0)
-                  ] else ... [
-                    ObjectSelector(
-                      label: AppStrings.category,
-                      pluralLabel: AppStrings.categories,
-                      hint: AppStrings.categoryHint(),
-                      options: widget.projectController.getCategories ?? [],
-                      getName: (cat) => cat.name,
-                      getColor: (cat) => cat.color,
-                      onCreate: (name, color) {
-                        setState(() {
-                          widget.projectController.addCategory(name, color);
-                          widget.projectController.sortCategories();
-                        });
-                      },
-                      onSelect: (obj) {
-                        setState(() {
-                          widget.snag.setCategory(obj);
-                        });
-                      },
-                    )
-                  ],
-
-                  if (widget.snag.tags.isNotEmpty) ... [
-                    const Text(AppStrings.tags),
-                    const SizedBox(height: 8.0),
-                    Wrap(
-                      spacing: 8.0,
-                      runSpacing: 8.0,
-                      children: widget.snag.tags.map((tag) {
-                        return GestureDetector(
-                          onTap: () => {},
-                          child: Container(
-                            constraints: const BoxConstraints(
-                              minWidth: 90,
-                              maxWidth: 140,
-                            ),
-                            padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
-                            decoration: BoxDecoration(
-                              color: tag.color,
-                              borderRadius: BorderRadius.circular(20.0),
-                            ),
-                            alignment: Alignment.center,
-                            child: Text(
-                              tag.name,
-                              style: const TextStyle(
-                                fontSize: 12.0,
-                                fontWeight: FontWeight.w400,
-                                color: Colors.black,
-                                fontFamily: 'Roboto',
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                              maxLines: 1,
-                            )
-                          )
-                        );
-                    }).toList()),
-                    const SizedBox(height: 28.0)
-                  ] else ... [
-                    // if there are no tags selected...
-                  ],
+                  ObjectSelector(
+                    label: AppStrings.category,
+                    pluralLabel: AppStrings.categories,
+                    hint: AppStrings.tagHint(),
+                    options: widget.projectController.getCategories ?? [],
+                    getName: (cat) => cat.name,
+                    getColor: (cat) => cat.color,
+                    allowMultiple: false,
+                    onCreate: (name, color) {
+                      setState(() {
+                        widget.projectController.addCategory(capitilize(name), color);
+                      });
+                    },
+                    onSelect: (cat) {
+                      setState(() {
+                        widget.snag.setCategory(cat);
+                        widget.projectController.saveProject();
+                        widget.onStatusChanged!();
+                      });
+                    },
+                    hasColorSelector: true,
+                  ),
 
                   const SizedBox(height: 24.0),
+                  const Text(AppStrings.tags),
+                  ObjectSelector(
+                    label: AppStrings.tag,
+                    pluralLabel: AppStrings.tags,
+                    hint: AppStrings.tagHint(),
+                    options: widget.projectController.getTags ?? [],
+                    getName: (tag) => tag.name,
+                    getColor: (tag) => tag.color,
+                    allowMultiple: true, // Enable multi-select
+                    onCreate: (name, color) {
+                      setState(() {
+                        widget.projectController.addTag(capitilize(name), color);
+                      });
+                    },
+                    onSelect: (tag) {
+                      setState(() {
+                        // Check if tag is already in snag
+                        if (widget.snag.tags.contains(tag)) {
+                          // Remove tag from snag
+                          widget.snag.snag.tags?.remove(tag);
+                        } else {
+                          // Add tag to snag
+                          widget.snag.setTag(tag);
+                        }
+                      });
+                    },
+                    hasColorSelector: true,
+                  ),
                 ],
               ),
             )

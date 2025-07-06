@@ -15,6 +15,29 @@ Widget buildTextDetail(String label, String text) {
     );
 }
 
+Widget buildTextDetailWithIcon(String label, String text, Icon? icon, {String subtext = '',  Color subtextColor = const Color(0xFF333333)}) {
+  return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text(label, style: const TextStyle(color: Color(0xFF333333), fontSize: 14, fontWeight: FontWeight.w300, fontFamily: 'Roboto')),
+            if (icon != null) ...[
+              const SizedBox(width: 8.0),
+              icon,
+            ],
+            if (subtext.isNotEmpty) ...[
+              const SizedBox(width: 8.0),
+              Text(subtext, style: TextStyle(color: subtextColor, fontSize: 12, fontWeight: FontWeight.w300, fontFamily: 'Roboto')),
+            ]
+          ],
+        ),
+        const SizedBox(height: 6.0),
+        Text(text, style: const TextStyle(color: Colors.black, fontSize: 16, fontWeight: FontWeight.w400, fontFamily: 'Roboto'))
+      ],
+    );
+}
+
 Widget buildJustifiedTextDetail(String label, String text) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

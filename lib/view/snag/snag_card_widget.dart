@@ -197,6 +197,41 @@ class _SnagCardWidgetState extends State<SnagCardWidget> {
     );
   }
 
+  // Helper method for due date
+  Widget? _buildDueDatePill() {
+    final dueDate = widget.snagController.getDueDate;
+    if (dueDate == null) return null;
+
+    final now = DateTime.now();
+    final diff = dueDate.difference(now).inDays;
+
+    if (diff < -1) {
+      // overdue
+      return gesturePill(() {}, Colors.red.withOpacity(0.8), 'Overdue');
+    } else if (diff <= 7) {
+      // due soon
+      return gesturePill((){}, Colors.orange.withOpacity(0.8), '${diff}d left');
+    }
+    return null;
+  }
+
+  Widget? _buildDueDateIcon() {
+    final dueDate = widget.snagController.getDueDate;
+    if (dueDate == null) return null;
+    
+    final now = DateTime.now();
+    final diff = dueDate.difference(now).inDays;
+    const iconSize = 16.0;
+    if (diff < -1) {
+      return const Icon(Icons.warning, size: iconSize, color: Colors.red);
+    } else if (diff <= 7) {
+      return const Icon(Icons.schedule, size: iconSize, color: Colors.orange);
+    } else if (diff <= 14) {
+      return const Icon(Icons.schedule, size: iconSize, color: Colors.green);
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     final status = widget.snagController.status;
@@ -261,11 +296,13 @@ class _SnagCardWidgetState extends State<SnagCardWidget> {
                           children: [
                             Image.asset(widget.snagController.priority.icon, width: 16, height: 16),
                             const SizedBox(width: 8),
-                            Text(
-                              widget.snagController.name,
-                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w400, color: Colors.black, fontFamily: 'Roboto'),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+                            Expanded(
+                              child: Text(
+                                widget.snagController.name,
+                                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w400, color: Colors.black, fontFamily: 'Roboto'),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
                           ],
                         ),
@@ -286,8 +323,12 @@ class _SnagCardWidgetState extends State<SnagCardWidget> {
                             gesturePill(() => _showStatusModal(context), (status.color ?? Colors.blue).withOpacity(0.5), status.name),
                             const SizedBox(width: 8),
                             // Category pill
-                            if (widget.snagController.categories.isNotEmpty) ... [
+                            if (widget.snagController.categories.isNotEmpty) ...[
                               gesturePill(() => _showCategoryModal(context), Colors.black, widget.snagController.categories[0].name, borderOnly: true),
+                            ],
+                            if (_buildDueDateIcon() != null) ... [
+                              const SizedBox(width: 8),
+                              _buildDueDateIcon()!
                             ]
                           ],
                         ),
