@@ -1,4 +1,5 @@
 import 'package:cii/controllers/single_project_controller.dart';
+import 'package:cii/view/project/export/project_export.dart';
 import 'package:cii/view/project/project_detail_page.dart';
 import 'package:cii/view/snag/snag_create.dart';
 import 'package:cii/view/snag/snag_list.dart';
@@ -128,6 +129,11 @@ class _ProjectDetailState extends State<ProjectDetail> {
                           selectedIndex = 1;
                         });
                         break;
+                      case 'export':
+                        Navigator.of(context).push(
+                          MaterialPageRoute(builder: (context) => ProjectExport(projectController: widget.projectController))
+                        );
+                        break;
                     }
                   },
                   itemBuilder: (BuildContext context) {
@@ -135,6 +141,10 @@ class _ProjectDetailState extends State<ProjectDetail> {
                       const PopupMenuItem<String>(
                         value: 'edit',
                         child: Text('Edit Project')
+                      ),
+                      const PopupMenuItem<String>(
+                        value: 'export',
+                        child: Text('Export Project')
                       ),
                       const PopupMenuItem<String>(
                         value: 'settings',

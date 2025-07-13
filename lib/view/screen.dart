@@ -1,6 +1,7 @@
 import 'package:cii/controllers/company_controller.dart';
 import 'package:cii/controllers/project_controller.dart';
 import 'package:cii/models/company.dart';
+import 'package:cii/services/notification_service.dart';
 import 'package:cii/view/company/company_create.dart';
 import 'package:cii/view/notifications/notification.dart';
 import 'package:cii/view/project/project_create.dart';
@@ -32,14 +33,23 @@ class _ScreenState extends State<Screen> {
 
   late CompanyController companyController;
   late ProjectController projectController;
+  final NotificationService _notificationService = NotificationService();
 
   int _index = 0;
+  int _unreadCount = 0;
 
   @override
   void initState() {
     super.initState();
     companyController = CompanyController(Hive.box<Company>('companies'));
     projectController = ProjectController(Hive.box('projects'));
+    _updateUnreadCount();
+  }
+
+  void _updateUnreadCount() {
+    setState(() {
+      _unreadCount = _notificationService.unreadCount;
+    });
   }
 
   List<Widget> get _widgetOptions => <Widget>[
@@ -59,7 +69,13 @@ class _ScreenState extends State<Screen> {
           return FractionallySizedBox(heightFactor: 0.3, child: _buildBottomSheetContent());
         }
       );
-    } else { setState(() { _index = index; }); }
+    } else { 
+      setState(() { _index = index; });
+      if (index == 2) {
+        // Update unread count when visiting notifications
+        Future.delayed(const Duration(milliseconds: 500), _updateUnreadCount);
+      }
+    }
   }
 
   // Create Project or Snag (QUICK ADD) Bottom sheet
@@ -177,7 +193,14 @@ class _ScreenState extends State<Screen> {
             destinations: [
               NavigationDestination(icon: Icon(_index == 0 ? Icons.home_filled : Icons.home_outlined,),label: 'Projects'),
               NavigationDestination(icon: Icon(_index == 1 ? Icons.search : Icons.search_outlined,),label: AppStrings.search),
-              NavigationDestination(icon: Icon(_index == 2 ? Icons.notifications : Icons.notifications_outlined,),label: AppStrings.notifications),
+              NavigationDestination(
+                icon: Badge(
+                  isLabelVisible: _unreadCount > 0,
+                  label: Text(_unreadCount.toString()),
+                  child: Icon(_index == 2 ? Icons.notifications : Icons.notifications_outlined),
+                ),
+                label: AppStrings.notifications
+              ),
               NavigationDestination(icon: Icon(_index == 3 ? Icons.add : Icons.add_outlined), label: AppStrings.add)
             ],
           ),

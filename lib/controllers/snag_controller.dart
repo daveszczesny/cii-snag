@@ -5,6 +5,8 @@ import 'package:cii/models/priority.dart' as snag_priority;
 import 'package:cii/models/tag.dart';
 import 'package:cii/models/category.dart' as cii;
 import 'package:cii/view/utils/constants.dart';
+import 'package:cii/controllers/notification_controller.dart';
+import 'package:cii/services/notification_service.dart';
 import 'package:intl/intl.dart';
 
 class SnagController {
@@ -30,6 +32,7 @@ class SnagController {
 
   set status(Status status) {
     snag.status = status;
+    snag.lastModified = DateTime.now();
   }
 
   snag_priority.Priority get priority {
@@ -80,7 +83,7 @@ class SnagController {
   List<Comment> get comments {
     return snag.comments ?? [];
   }
-  
+
   DateTime? get lastModified {
     return snag.lastModified;
   }
@@ -107,17 +110,40 @@ class SnagController {
   }
 
 
-  void setName(String v) { snag.name = v; }
-  void setDescription(String v) { snag.description = v; }
-  void setLocation(String v) { snag.location = v; }
-  void setAssignee(String v) { snag.assignee= v; }
-  void setFinalRemarks(String v) { snag.finalRemarks = v; }
+  void setName(String v) { 
+    snag.name = v; 
+    snag.lastModified = DateTime.now();
+    _triggerNotificationCheck();
+  }
+  void setDescription(String v) { 
+    snag.description = v; 
+    snag.lastModified = DateTime.now();
+  }
+  void setLocation(String v) { 
+    snag.location = v; 
+    snag.lastModified = DateTime.now();
+  }
+  void setAssignee(String v) { 
+    snag.assignee= v; 
+    snag.lastModified = DateTime.now();
+  }
+  void setFinalRemarks(String v) { 
+    snag.finalRemarks = v; 
+    snag.lastModified = DateTime.now();
+  }
   void setTag(Tag tag) {
     snag.tags ??= [];
     snag.tags!.add(tag);
+    snag.lastModified = DateTime.now();
   }
-  void setDueDate(String v) { snag.dueDate = DateFormat(AppDateTimeFormat.dateTimeFormatPattern).parse(v); }
-  void setReviewedBy(String value) { snag.reviewedBy = value; }
+  void setDueDate(String v) { 
+    snag.dueDate = DateFormat(AppDateTimeFormat.dateTimeFormatPattern).parse(v); 
+    snag.lastModified = DateTime.now();
+  }
+  void setReviewedBy(String value) { 
+    snag.reviewedBy = value; 
+    snag.lastModified = DateTime.now();
+  }
 
   void setFinalImagePaths(List<String> paths) {
     snag.finalImagePaths = List<String>.from(paths);
@@ -130,6 +156,11 @@ class SnagController {
     }
     snag.categories ??= [];
     snag.categories!.add(category);
+    snag.lastModified = DateTime.now();
   }
 
+  void _triggerNotificationCheck() {
+    // Trigger notification check when snag is modified
+    NotificationController().checkAndCreateNotifications();
+  }
 }

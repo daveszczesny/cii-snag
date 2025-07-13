@@ -3,11 +3,15 @@ import 'package:cii/adapters/priority_enum_adapter.dart';
 import 'package:cii/models/category.dart';
 import 'package:cii/models/comment.dart';
 import 'package:cii/models/company.dart';
+import 'package:cii/models/notification.dart';
 import 'package:cii/models/pdfexportrecords.dart';
 import 'package:cii/models/project.dart';
 import 'package:cii/models/snag.dart';
 import 'package:cii/models/status.dart';
 import 'package:cii/models/tag.dart';
+import 'package:cii/services/notification_service.dart';
+import 'package:cii/services/background_notification_service.dart';
+import 'package:cii/controllers/notification_controller.dart';
 import 'package:cii/view/settings/settings.dart';
 import 'package:cii/theme.dart';
 import 'package:cii/view/screen.dart';
@@ -29,6 +33,8 @@ void main() async {
   Hive.registerAdapter(StatusAdapter());
   Hive.registerAdapter(SnagAdapter());
   Hive.registerAdapter(PdfExportRecordsAdapter());
+  Hive.registerAdapter(NotificationTypeAdapter());
+  Hive.registerAdapter(AppNotificationAdapter());
   // Hive.deleteBoxFromDisk('companies');
 
   // load user preferences
@@ -37,6 +43,17 @@ void main() async {
 
   await Hive.openBox<Company>('companies');
   await Hive.openBox<Project>('projects');
+  await Hive.openBox<Snag>('snags');
+  
+  // Initialize notification service
+  await NotificationService().initialize();
+  
+  // Check for notifications on app start
+  final notificationController = NotificationController();
+  await notificationController.checkAndCreateNotifications();
+  
+  // Start background notification checks
+  BackgroundNotificationService().startPeriodicChecks();
 
 
   runApp(const MainApp());
