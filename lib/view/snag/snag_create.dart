@@ -87,7 +87,7 @@ class _SnagCreateState extends State<SnagCreate> {
     // get date in yyyyMMdd format
     String date = DateTime.now().toString().substring(0, 10).replaceAll('-', '');
     final projectRef = projectController?.getProjectRef ?? 'PID';
-    final snagCount = projectController?.getTotalSnags() ?? 0;
+    final snagCount = projectController?.getSnagsCreatedCount() ?? 0;
     final formattedSnagCount = (snagCount + 1).toString().padLeft(4, '0');
     String snagId = '$projectRef$date-$formattedSnagCount';
     return snagId;

@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:cii/utils/common.dart';
-import 'package:cii/view/image/annotation.dart';
+import 'package:cii/view/image/pro_annotation.dart';
 import 'package:cii/view/utils/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -334,7 +334,7 @@ Widget showImageWithEditAbility(
   }
   
   final double screenHeight = MediaQuery.of(context).size.height;
-  final double height = screenHeight * 0.3;
+  final double maxHeight = screenHeight * 0.4; // Increased max height slightly
 
   return Stack(
     children: [
@@ -356,17 +356,21 @@ Widget showImageWithEditAbility(
         child: ClipRRect(
           borderRadius: const BorderRadius.all(Radius.circular(12)),
           child: Container(
-            height: height,
+            constraints: BoxConstraints(
+              maxHeight: maxHeight,
+              minHeight: 200, // Minimum height to ensure visibility
+            ),
             width: double.infinity,
             color: Colors.grey[200],
             child: Image.file(
               File(imageFilePath),
-              fit: BoxFit.cover,
+              fit: BoxFit.contain, // Changed from cover to contain
+              alignment: Alignment.center,
             ),
           ),
         ),
       ),
-      // Bin icon in the top right
+      // Edit icon in the top right
       Positioned(
         top: 8,
         right: 8,
@@ -381,12 +385,19 @@ Widget showImageWithEditAbility(
             if (annotatedImagePath != null) onSave(imageFilePath, annotatedImagePath);
           },
           child: Container(
-            decoration: const BoxDecoration(
-              color: Colors.black54,
+            decoration: BoxDecoration(
+              color: Colors.black.withOpacity(0.7),
               shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.3),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
-            padding: const EdgeInsets.all(6),
-            child: const Icon(Icons.edit, color: Colors.white, size: 22),
+            padding: const EdgeInsets.all(8),
+            child: const Icon(Icons.edit, color: Colors.white, size: 20),
           ),
         ),
       ),
