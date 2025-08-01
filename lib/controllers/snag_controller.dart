@@ -6,7 +6,6 @@ import 'package:cii/models/tag.dart';
 import 'package:cii/models/category.dart' as cii;
 import 'package:cii/view/utils/constants.dart';
 import 'package:cii/controllers/notification_controller.dart';
-import 'package:cii/services/notification_service.dart';
 import 'package:intl/intl.dart';
 
 class SnagController {

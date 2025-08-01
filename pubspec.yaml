@@ -33,6 +33,7 @@ dependencies:
   flutter_image_compress: ^2.4.0
   flutter_local_notifications: ^17.2.2
   timezone: ^0.9.4
+  csv: ^6.0.0
 
 dev_dependencies:
   flutter_test:

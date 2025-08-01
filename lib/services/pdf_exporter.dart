@@ -1,6 +1,7 @@
 
 import 'dart:io';
 import 'package:cii/controllers/single_project_controller.dart';
+import 'package:cii/controllers/snag_controller.dart';
 import 'package:cii/models/pdfexportrecords.dart';
 import 'package:cii/models/status.dart';
 import 'package:cii/utils/common.dart';
@@ -15,6 +16,7 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:share_plus/share_plus.dart';
 import 'package:flutter/services.dart';
 import 'package:image/image.dart' as img;
+import 'package:cii/utils/pdf/themes.dart' as theme;
 
 Future<void> savePdfFile(
   BuildContext context,
@@ -40,102 +42,331 @@ Future<void> savePdfFile(
     final compressedLogoImage = await processImageForQuality(logoBytes.buffer.asUint8List(), imageQuality);
     final logoImage = pw.MemoryImage(compressedLogoImage);
 
-    var snagList = [];
+    final snagList = controller.getAllSnags()
+      .where((snag) {
+        final snagCategory = snag.categories.isNotEmpty
+            ? snag.categories[0].name
+            : "Uncategorized";
+        final snagStatus = snag.status.name;
+        final categoryMatch = selectedCategories == null || selectedCategories.isEmpty
+            ? true
+            : (selectedCategories.contains(snagCategory));
+        final statusMatch = selectedStatuses == null || selectedStatuses.isEmpty
+            ? true
+            : (selectedStatuses.contains(snagStatus));
+        return categoryMatch && statusMatch;
+      }).toList();
 
-    pdf.addPage(
-      pw.MultiPage(
-        pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-        build: (pw.Context context) => [
-          pw.SizedBox(height: PdfPageFormat.a4.availableHeight * 0.45),
-          // Project name (middle left)
-          pw.Row(
-            mainAxisAlignment: pw.MainAxisAlignment.start,
-            children: [
-              pw.SizedBox(width: 10),
-              pw.Text(projectName,style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold)),
-            ]
-          ),
-          pw.SizedBox(height: 24),
-          pw.Container(
-            width: PdfPageFormat.a4.availableWidth,
-            height: 2,
-            color: PdfColors.grey700,
-            margin: const pw.EdgeInsets.only(top: 2, bottom: 16),
-          ),
-        ],
-        footer: (context) => getFooter(context, logoImage)
-      ),
+    final frontPage = buildFrontPage(projectName, logoImage);
+    final projectDetailPage = buildProjectDetailsPage(projectName, controller, logoImage);
+    final snagListPage = buildSnagListPage(projectName, controller, imageQuality, selectedCategories, selectedStatuses, snagList, logoImage);
+
+    pdf.addPage(frontPage);
+    pdf.addPage(projectDetailPage);
+    pdf.addPage(snagListPage);
+
+    // Process all images in parallel with caching
+    final Map<String, pw.MemoryImage> imageCache = {};
+    final allImagePaths = snagList
+      .expand((snag) => snag.imagePaths)
+      .where((path) => path.isNotEmpty)
+      .toSet();
+
+    // Process all unique images in parallel
+    await Future.wait(
+      allImagePaths.map((path) async {
+        try {
+          final file = File(path);
+          if (await file.exists()) {
+            final imgBytes = await file.readAsBytes();
+            final processed = await processImageForQuality(imgBytes, imageQuality);
+            imageCache[path] = pw.MemoryImage(processed);
+          }
+        } catch (e) {
+          // Skip failed images
+        }
+      }),
     );
 
+    for (final snag in snagList) {
+      // Use cached processed images
+      final processedImages = snag.imagePaths
+          ?.where((path) => imageCache.containsKey(path))
+          .map((path) => imageCache[path]!)
+          .toList() ?? <pw.MemoryImage>[];
 
-    // PAGE 2
+      final snagPage = buildSnagPage(projectName, snag, imageQuality, processedImages, logoImage);
+      final snagPageThemed = theme.buildSnagPage_theme1(projectName, snag, imageQuality, processedImages, logoImage);
+      pdf.addPage(snagPageThemed);
+    }
 
-    pdf.addPage(
-      pw.MultiPage(
-        pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-        build: (pw.Context context) => [
-          // Project name (top middle)
-          pw.Center(
-            child: pw.Text(
-              projectName,
-              style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold),
-            ),
-          ),
-          pw.SizedBox(height: 24),
-          // "Project Details" with underline
-          pw.Text(
-            "Project Details",
-            style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
-          ),
-          pw.Container(
-            width: PdfPageFormat.a4.availableWidth,
-            height: 2,
-            color: PdfColors.grey700,
-            margin: const pw.EdgeInsets.only(top: 2, bottom: 16),
-          ),
-          // Project attributes (example)
-          pw.Text("Location: ${controller.getLocation ?? '-'}", style: const pw.TextStyle(fontSize: 14)),
-          pw.Text("Client: ${controller.getClient ?? '-'}", style: const pw.TextStyle(fontSize: 14)),
-          pw.Text("Contractor: ${controller.getContractor ?? '-'}", style: const pw.TextStyle(fontSize: 14)),
-          pw.Text("Reference: ${controller.getProjectRef ?? '-'}", style: const pw.TextStyle(fontSize: 14)),
-          pw.Text("Status: ${controller.getStatus ?? '-'}", style: const pw.TextStyle(fontSize: 14)),
-          pw.Text("Created: ${controller.getDateCreated != null ? DateFormat('yyyy-MM-dd').format(controller.getDateCreated!) : '-'}", style: const pw.TextStyle(fontSize: 14)),
-        ],
-        footer: (context) => getFooter(context, logoImage)
-      ),
+    // =====================================
+    // =========== SAVE PDF FILE ===========
+    // =====================================
+
+    final bytes = await pdf.save();
+    final pdfDirPath = await getPdfDirectory();
+    final timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
+    final fileName = '$projectName-$timestamp.pdf';
+    final file = File('$pdfDirPath/$fileName');
+    await file.writeAsBytes(bytes);
+
+
+    // create a record of the export
+    final pdfRecord = PdfExportRecords(
+      exportDate: DateTime.now(),
+      fileName: fileName,
+      fileHash: _calculateHash(bytes),
+      fileSize: bytes.length,
     );
 
-    // PAGE 3: Snag List grouped by category
-    pdf.addPage(
-    pw.MultiPage(
+    controller.addPdfExportRecord(pdfRecord);
+    await Share.shareXFiles([XFile(file.path)]);
+
+    Navigator.of(context).pop();
+  } catch (e) {
+    Navigator.of(context).pop();
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Error generating PDF')),
+    );
+  }
+}
+
+Future<void> openPdfFromRecord(PdfExportRecords record) async {
+  final pdfDirPath = await getPdfDirectory();
+  final filePath = '$pdfDirPath/${record.fileName}';
+  final file = File(filePath);
+  if (await file.exists()) {
+    final result = await OpenFile.open(filePath);
+    if (result.type != ResultType.done) {
+      throw Exception('Could not open PDF: ${result.message}');
+    }
+  } else {
+    throw FileSystemException('File not found', filePath);
+  }
+}
+
+String _calculateHash(List<int> bytes) {
+  return sha256.convert(bytes).toString();
+}
+
+pw.Widget getHeader(String projectName) {
+  return pw.Container(
+    padding: const pw.EdgeInsets.only(bottom: 16),
+    child: pw.Center(
+      child: pw.Text(
+        projectName,
+        style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold),
+      ),
+    ),
+  );
+}
+
+pw.Widget getFooter(pw.Context context, pw.ImageProvider logoImage) {
+  return pw.Stack(
+    children: [
+      // Center: Produced by CII (perfectly centered like header)
+      pw.Container(
+        width: PdfPageFormat.a4.availableWidth,
+        height: 40,
+        child: pw.Center(
+          child: pw.Text(
+            'Produced by CII',
+            style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.normal),
+          ),
+        ),
+      ),
+
+      // Left: Logo at absolute position
+      pw.Positioned(
+        left: 0,
+        top: 5,
+        child: pw.Image(logoImage, width: 60, height: 30, fit: pw.BoxFit.contain),
+      ),
+
+      // Right: Page number at absolute position
+      pw.Positioned(
+        right: 0,
+        top: 14,
+        child: pw.Text(
+          'Page ${context.pageNumber}',
+          style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.normal),
+        ),
+      ),
+    ],
+  );
+}
+
+
+pw.MultiPage buildFrontPage(String projectName, pw.ImageProvider logoImage) {
+  return pw.MultiPage(
+    pageFormat: PdfPageFormat.a4,
+    margin: const pw.EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+    build: (pw.Context context) => [
+      pw.SizedBox(height: PdfPageFormat.a4.availableHeight * 0.45),
+      // Project name (middle left)
+      pw.Row(
+        mainAxisAlignment: pw.MainAxisAlignment.start,
+        children: [
+          pw.SizedBox(width: 10),
+          pw.Text(projectName,style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold)),
+        ]
+      ),
+      pw.SizedBox(height: 24),
+      pw.Container(
+        width: PdfPageFormat.a4.availableWidth,
+        height: 2,
+        color: PdfColors.grey700,
+        margin: const pw.EdgeInsets.only(top: 2, bottom: 16),
+      ),
+    ],
+    footer: (context) => getFooter(context, logoImage)
+  );
+}
+
+pw.MultiPage buildProjectDetailsPage(String projectName, SingleProjectController controller, pw.ImageProvider logoImage) {
+  return pw.MultiPage(
+    pageFormat: PdfPageFormat.a4,
+    margin: const pw.EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+    build: (pw.Context context) => [
+      // Project name (top middle)
+      pw.Center(
+        child: pw.Text(
+          projectName,
+          style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold),
+        ),
+      ),
+      pw.SizedBox(height: 24),
+      // "Project Details" with underline
+      pw.Text(
+        "Project Details",
+        style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
+      ),
+      pw.Container(
+        width: PdfPageFormat.a4.availableWidth,
+        height: 2,
+        color: PdfColors.grey700,
+        margin: const pw.EdgeInsets.only(top: 2, bottom: 16),
+      ),
+      // Project attributes (example)
+      pw.Row(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          pw.Expanded(
+            child: pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                pw.Row(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Container(
+                      width: 80,
+                      child: pw.Text('Location:', style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
+                    ),
+                    pw.Expanded(
+                      child: pw.Text(controller.getLocation ?? '-', style: const pw.TextStyle(fontSize: 14)),
+                    ),
+                  ],
+                ),
+                pw.SizedBox(height: 8),
+                pw.Row(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Container(
+                      width: 80,
+                      child: pw.Text('Client:', style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
+                    ),
+                    pw.Expanded(
+                      child: pw.Text(controller.getClient ?? '-', style: const pw.TextStyle(fontSize: 14)),
+                    ),
+                  ],
+                ),
+                pw.SizedBox(height: 8),
+                pw.Row(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Container(
+                      width: 80,
+                      child: pw.Text('Contractor:', style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
+                    ),
+                    pw.Expanded(
+                      child: pw.Text(controller.getContractor ?? '-', style: const pw.TextStyle(fontSize: 14)),
+                    ),
+                  ],
+                ),
+                pw.SizedBox(height: 8),
+                pw.Row(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Container(
+                      width: 80,
+                      child: pw.Text('Reference:', style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
+                    ),
+                    pw.Expanded(
+                      child: pw.Text(controller.getProjectRef ?? '-', style: const pw.TextStyle(fontSize: 14)),
+                    ),
+                  ],
+                ),
+                pw.SizedBox(height: 8),
+                pw.Row(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Container(
+                      width: 80,
+                      child: pw.Text('Status:', style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
+                    ),
+                    pw.Expanded(
+                      child: pw.Text(controller.getStatus ?? '-', style: const pw.TextStyle(fontSize: 14)),
+                    ),
+                  ],
+                ),
+                pw.SizedBox(height: 8),
+                pw.Row(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Container(
+                      width: 80,
+                      child: pw.Text('Created:', style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
+                    ),
+                    pw.Expanded(
+                      child: pw.Text(controller.getDateCreated != null ? DateFormat('yyyy-MM-dd').format(controller.getDateCreated!) : '-', style: const pw.TextStyle(fontSize: 14)),
+                    ),
+                  ],
+                ),
+                pw.SizedBox(height: 12),
+                pw.Text('Description:', style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
+                pw.Text(controller.getDescription ?? '-', style: const pw.TextStyle(fontSize: 14))
+              ]
+            )
+          ),
+           pw.SizedBox(width: 16),
+          // Right side: Images (45% width)
+          pw.Container(
+            width: PdfPageFormat.a4.availableWidth * 0.55,
+            child: pw.Column(
+              children: []
+            )
+          )
+        ]
+      ),
+    ],
+    footer: (context) => getFooter(context, logoImage)
+  );
+}
+
+pw.MultiPage buildSnagListPage(
+  String projectName,
+  SingleProjectController controller,
+  String imageQuality,
+  List<String>? selectedCategories,
+  List<String>? selectedStatuses,
+  List snagList,
+  pw.ImageProvider logoImage) {
+  return pw.MultiPage(
       pageFormat: PdfPageFormat.a4,
       header: (context) => getHeader(projectName),
       margin: const pw.EdgeInsets.symmetric(horizontal: 24, vertical: 32),
       build: (pw.Context context) {
-        snagList = controller.getAllSnags()
-          // Filter by selected categories if provided
-          .where((snag) {
-            final snagCategory = (snag.categories != null && snag.categories.isNotEmpty)
-                ? snag.categories[0].name
-                : "Uncategorized";
-            final snagStatus = snag.status?.name;
-            final categoryMatch = selectedCategories == null || selectedCategories.isEmpty
-                ? true
-                : (snagCategory != null && selectedCategories.contains(snagCategory));
-            final statusMatch = selectedStatuses == null || selectedStatuses.isEmpty
-                ? true
-                : (snagStatus != null && selectedStatuses.contains(snagStatus));
-            return categoryMatch && statusMatch;
-          }).toList();
-
-        // Sort snags by category name
-        snagList.sort((a, b) {
-          final aCat = (a.categories != null && a.categories.isNotEmpty) ? a.categories[0].name ?? '-' : '-';
-          final bCat = (b.categories != null && b.categories.isNotEmpty) ? b.categories[0].name ?? '-' : '-';
-          return aCat.compareTo(bCat);
-        });
 
         List<pw.TableRow> rows = [
           // Table header
@@ -255,204 +486,80 @@ Future<void> savePdfFile(
         ];
       },
       footer: (context) => getFooter(context, logoImage)
-    ),
-  );
-
-    // Process all images in parallel with caching
-    final Map<String, pw.MemoryImage> imageCache = {};
-    final allImagePaths = snagList
-        .expand((snag) => snag.imagePaths ?? <String>[])
-        .where((path) => path.isNotEmpty)
-        .toSet();
-
-    // Process all unique images in parallel
-    await Future.wait(
-      allImagePaths.map((path) async {
-        try {
-          final file = File(path);
-          if (await file.exists()) {
-            final imgBytes = await file.readAsBytes();
-            final processed = await processImageForQuality(imgBytes, imageQuality);
-            imageCache[path] = pw.MemoryImage(processed);
-          }
-        } catch (e) {
-          // Skip failed images
-        }
-      }),
     );
+}
 
-    for (final snag in snagList) {
-      // Use cached processed images
-      final processedImages = snag.imagePaths
-          ?.where((path) => imageCache.containsKey(path))
-          .map((path) => imageCache[path]!)
-          .toList() ?? <pw.MemoryImage>[];
-
-      pdf.addPage(
-        pw.MultiPage(
-          pageFormat: PdfPageFormat.a4,
-          header: (context) => getHeader(projectName),
-          margin: const pw.EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-          footer: (context) => getFooter(context, logoImage),
-          build: (pw.Context context) {
-            return [
-              // Snag name above everything
-              pw.Text(
-                snag.name ?? '-',
-                style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold),
-              ),
-              pw.SizedBox(height: 12),
-              
-              // Main content row: Images on left, details on right
-              pw.Row(
-                crossAxisAlignment: pw.CrossAxisAlignment.start,
+pw.MultiPage buildSnagPage(String projectName, SnagController snag, String imageQuality, List processedImages, pw.ImageProvider logoImage) {
+  return pw.MultiPage(
+    pageFormat: PdfPageFormat.a4,
+    header: (context) => getHeader(projectName),
+    margin: const pw.EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+    footer: (context) => getFooter(context, logoImage),
+    build: (pw.Context context) {
+      return [
+        // Snag name above everything
+        pw.Text(
+          snag.name ?? '-',
+          style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold),
+        ),
+        pw.SizedBox(height: 12),
+        
+        // Main content row: Images on left, details on right
+        pw.Row(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          children: [
+            // Left side: Images (35% width)
+            pw.Container(
+              width: PdfPageFormat.a4.availableWidth * 0.45,
+              child: pw.Column(
                 children: [
-                  // Left side: Images (35% width)
-                  pw.Container(
-                    width: PdfPageFormat.a4.availableWidth * 0.45,
-                    child: pw.Column(
-                      children: [
-                        // Main image (large)
-                        if (processedImages.isNotEmpty)
-                          pw.Container(
-                            width: double.infinity,
-                            height: PdfPageFormat.a4.availableWidth * 0.45,
-                            child: pw.Image(processedImages[0], fit: pw.BoxFit.cover),
-                          ),
-                        // Smaller images below
-                        if (processedImages.length > 1) ...[  
-                          pw.SizedBox(height: 8),
-                          pw.Wrap(
-                            spacing: 2,
-                            runSpacing: 2,
-                            children: processedImages.skip(1).map<pw.Widget>((img) {
-                              return pw.Container(
-                                width: (PdfPageFormat.a4.availableWidth * 0.45) / 2.5,
-                                height: (PdfPageFormat.a4.availableWidth * 0.45) / 2.5,
-                                child: pw.Image(img, fit: pw.BoxFit.cover),
-                              );
-                            }).toList(),
-                          ),
-                        ],
-                      ],
+                  // Main image (large)
+                  if (processedImages.isNotEmpty)
+                    pw.Container(
+                      width: double.infinity,
+                      height: PdfPageFormat.a4.availableWidth * 0.45,
+                      child: pw.Image(processedImages[0], fit: pw.BoxFit.cover),
                     ),
-                  ),
-                  
-                  pw.SizedBox(width: 16),
-                  
-                  // Right side: Details (remaining width)
-                  pw.Expanded(
-                    child: pw.Column(
-                      crossAxisAlignment: pw.CrossAxisAlignment.start,
-                      children: [
-                        pw.Text('Category: ${(snag.categories != null && snag.categories!.isNotEmpty) ? snag.categories![0].name : 'Uncategorized'}'),
-                        pw.SizedBox(height: 4),
-                        pw.Text('Status: ${snag.status?.name ?? '-'}'),
-                        pw.SizedBox(height: 8),
-                        pw.Text('Description:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-                        pw.Text(snag.description ?? '-', style: const pw.TextStyle(fontSize: 12)),
-                      ],
+                  // Smaller images below
+                  if (processedImages.length > 1) ...[  
+                    pw.SizedBox(height: 8),
+                    pw.Wrap(
+                      spacing: 2,
+                      runSpacing: 2,
+                      children: processedImages.skip(1).map<pw.Widget>((img) {
+                        return pw.Container(
+                          width: (PdfPageFormat.a4.availableWidth * 0.45) / 2.5,
+                          height: (PdfPageFormat.a4.availableWidth * 0.45) / 2.5,
+                          child: pw.Image(img, fit: pw.BoxFit.cover),
+                        );
+                      }).toList(),
                     ),
-                  ),
+                  ],
                 ],
               ),
-            ];
-
-          },
+            ),
+            
+            pw.SizedBox(width: 16),
+            
+            // Right side: Details (remaining width)
+            pw.Expanded(
+              child: pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  pw.Text('Category: ${(snag.categories != null && snag.categories!.isNotEmpty) ? snag.categories![0].name : 'Uncategorized'}'),
+                  pw.SizedBox(height: 4),
+                  pw.Text('Status: ${snag.status?.name ?? '-'}'),
+                  pw.SizedBox(height: 8),
+                  pw.Text('Description:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                  pw.Text(snag.description ?? '-', style: const pw.TextStyle(fontSize: 12)),
+                ],
+              ),
+            ),
+          ],
         ),
-      );
-    }
+      ];
 
-    final bytes = await pdf.save();
-    final pdfDirPath = await getPdfDirectory();
-    final timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
-    final fileName = '$projectName-$timestamp.pdf';
-    final file = File('$pdfDirPath/$fileName');
-    await file.writeAsBytes(bytes);
-
-
-    // create a record of the export
-    final pdfRecord = PdfExportRecords(
-      exportDate: DateTime.now(),
-      fileName: fileName,
-      fileHash: _calculateHash(bytes),
-      fileSize: bytes.length,
-    );
-
-    controller.addPdfExportRecord(pdfRecord);
-    await Share.shareXFiles([XFile(file.path)]);
-
-    Navigator.of(context).pop();
-  } catch (e) {
-    Navigator.of(context).pop();
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Error generating PDF')),
-    );
-  }
-}
-
-Future<void> openPdfFromRecord(PdfExportRecords record) async {
-  final pdfDirPath = await getPdfDirectory();
-  final filePath = '$pdfDirPath/${record.fileName}';
-  final file = File(filePath);
-  if (await file.exists()) {
-    final result = await OpenFile.open(filePath);
-    if (result.type != ResultType.done) {
-      throw Exception('Could not open PDF: ${result.message}');
-    }
-  } else {
-    throw FileSystemException('File not found', filePath);
-  }
-}
-
-String _calculateHash(List<int> bytes) {
-  return sha256.convert(bytes).toString();
-}
-
-pw.Widget getHeader(String projectName) {
-  return pw.Container(
-    padding: const pw.EdgeInsets.only(bottom: 16),
-    child: pw.Center(
-      child: pw.Text(
-        projectName,
-        style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold),
-      ),
-    ),
-  );
-}
-
-pw.Widget getFooter(pw.Context context, pw.ImageProvider logoImage) {
-  return pw.Stack(
-    children: [
-      // Center: Produced by CII (perfectly centered like header)
-      pw.Container(
-        width: PdfPageFormat.a4.availableWidth,
-        height: 40,
-        child: pw.Center(
-          child: pw.Text(
-            'Produced by CII',
-            style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.normal),
-          ),
-        ),
-      ),
-
-      // Left: Logo at absolute position
-      pw.Positioned(
-        left: 0,
-        top: 5,
-        child: pw.Image(logoImage, width: 60, height: 30, fit: pw.BoxFit.contain),
-      ),
-
-      // Right: Page number at absolute position
-      pw.Positioned(
-        right: 0,
-        top: 14,
-        child: pw.Text(
-          'Page ${context.pageNumber}',
-          style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.normal),
-        ),
-      ),
-    ],
+    },
   );
 }
 

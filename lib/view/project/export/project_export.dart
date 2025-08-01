@@ -1,6 +1,7 @@
 import 'package:cii/controllers/single_project_controller.dart';
 import 'package:cii/services/pdf_exporter.dart';
 import 'package:cii/utils/common.dart';
+import 'package:cii/view/project/export/project_csv_export_customizer.dart';
 import 'package:cii/view/project/export/project_export_customizer.dart';
 import 'package:cii/view/utils/constants.dart';
 import 'package:cii/view/utils/text.dart';
@@ -45,14 +46,10 @@ class _ProjectExportState extends State<ProjectExport> with SingleTickerProvider
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             buildTextButton("Export to $type", () async {
-              // TODO: Bring user to customization options
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => ProjectExportCustomizer(projectController: widget.projectController))
               );
-              // await savePdfFile(widget.projectController);
-              // widget.projectController.saveProject();
-              // setState((){});
             }), const SizedBox(height: 24.0),
             const Row(
               children: [
@@ -131,8 +128,30 @@ class _ProjectExportState extends State<ProjectExport> with SingleTickerProvider
           ]
         )
       );
-    } else if (type == "Excel") {
-      return const Center(child: Text('Excel Export. Coming soon!'));
+    } else if (type == "CSV") {
+      return Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            buildTextButton("Export to $type", () async {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => ProjectCsvExportCustomizer(projectController: widget.projectController))
+              );
+            }), const SizedBox(height: 24.0),
+            const Row(
+              children: [
+                Expanded(child: Divider()),
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 8.0),
+                  child: Text("Previous Exports", style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14.0))
+                ), Expanded(child: Divider()),
+              ]
+            )
+          ],
+        )
+      );
     } else {
       return const Center(child: Text('Unknown Export Type'));
     }
@@ -145,7 +164,7 @@ class _ProjectExportState extends State<ProjectExport> with SingleTickerProvider
 
     const List<Widget> tabs = [
       Tab(text: 'PDF'),
-      Tab(text: 'Excel')
+      Tab(text: 'CSV')
     ];
 
     return Scaffold(
@@ -169,7 +188,7 @@ class _ProjectExportState extends State<ProjectExport> with SingleTickerProvider
                   controller: tabController,
                   children: [
                     buildExporterTab('PDF'),
-                    buildExporterTab('Excel'),
+                    buildExporterTab('CSV'),
                   ]
                 )
               );
