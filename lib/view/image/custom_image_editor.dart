@@ -45,7 +45,6 @@ class EditorState {
         fontSize: t.fontSize, 
         fontWeight: t.fontWeight,
         fontStyle: t.fontStyle,
-        backgroundColor: t.backgroundColor,
       ))),
       List<Shape>.from(shapes.map((s) => Shape(s.start, s.end, s.color, s.strokeWidth, s.type))),
     );
@@ -150,7 +149,6 @@ class _CustomImageEditorState extends State<CustomImageEditor> {
       setState(() {
         _imageBounds = newBounds;
       });
-      print('Image bounds updated: $_imageBounds'); // Debug info
     }
   }
 
@@ -324,6 +322,25 @@ class _CustomImageEditorState extends State<CustomImageEditor> {
                   scrollDirection: Axis.horizontal,
                   child: Row(
                     children: [
+                      // Black and white first
+                      ...[Colors.black, Colors.white].map((color) => 
+                        GestureDetector(
+                          onTap: () => setState(() => _selectedColor = color),
+                          child: Container(
+                            width: 36,
+                            height: 36,
+                            margin: const EdgeInsets.only(right: 8),
+                            decoration: BoxDecoration(
+                              color: color,
+                              shape: BoxShape.circle,
+                              border: _selectedColor == color 
+                                ? Border.all(width: 3, color: Colors.blue) 
+                                : Border.all(width: 1, color: Colors.grey[300]!),
+                            ),
+                          ),
+                        ),
+                      ),
+                      // Then primary colors
                       ...Colors.primaries.map((color) => 
                         GestureDetector(
                           onTap: () => setState(() => _selectedColor = color),
@@ -344,24 +361,6 @@ class _CustomImageEditorState extends State<CustomImageEditor> {
                                   spreadRadius: 1,
                                 ),
                               ] : null,
-                            ),
-                          ),
-                        ),
-                      ),
-                      // Add black and white
-                      ...[Colors.black, Colors.white].map((color) => 
-                        GestureDetector(
-                          onTap: () => setState(() => _selectedColor = color),
-                          child: Container(
-                            width: 36,
-                            height: 36,
-                            margin: const EdgeInsets.only(right: 8),
-                            decoration: BoxDecoration(
-                              color: color,
-                              shape: BoxShape.circle,
-                              border: _selectedColor == color 
-                                ? Border.all(width: 3, color: Colors.blue) 
-                                : Border.all(width: 1, color: Colors.grey[300]!),
                             ),
                           ),
                         ),
@@ -408,76 +407,68 @@ class _CustomImageEditorState extends State<CustomImageEditor> {
 
   Widget _buildTextControlsOverlay() {
     return Positioned(
-      top: 20,
-      left: 20,
+      bottom: 20,
       right: 20,
-      child: IgnorePointer(
-        ignoring: false,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.95),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.grey[300]!, width: 1),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.15),
-                blurRadius: 8,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              _buildFloatingButton(
-                icon: Icons.edit,
-                label: 'Edit',
-                color: Colors.blue,
-                onPressed: _editSelectedText,
-              ),
-              _buildFloatingButton(
-                icon: Icons.copy,
-                label: 'Copy',
-                color: Colors.green,
-                onPressed: _duplicateSelectedText,
-              ),
-              _buildFloatingButton(
-                icon: Icons.delete,
-                label: 'Delete',
-                color: Colors.red,
-                onPressed: _deleteSelectedText,
-              ),
-            ],
-          ),
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.95),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.grey[300]!, width: 1),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.15),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildCompactButton(
+              icon: Icons.edit,
+              color: Colors.blue,
+              onPressed: _editSelectedText,
+            ),
+            const SizedBox(height: 4),
+            _buildCompactButton(
+              icon: Icons.copy,
+              color: Colors.green,
+              onPressed: _duplicateSelectedText,
+            ),
+            const SizedBox(height: 4),
+            _buildCompactButton(
+              icon: Icons.delete,
+              color: Colors.red,
+              onPressed: _deleteSelectedText,
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildFloatingButton({
+  Widget _buildCompactButton({
     required IconData icon,
-    required String label,
     required Color color,
     required VoidCallback onPressed,
   }) {
-    return Expanded(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 4),
-        child: ElevatedButton.icon(
-          onPressed: onPressed,
-          icon: Icon(icon, size: 16),
-          label: Text(label, style: const TextStyle(fontSize: 12)),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: color,
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-            elevation: 2,
+    return SizedBox(
+      width: 40,
+      height: 40,
+      child: ElevatedButton(
+        onPressed: onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: color,
+          foregroundColor: Colors.white,
+          padding: EdgeInsets.zero,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(6),
           ),
+          elevation: 2,
         ),
+        child: Icon(icon, size: 18),
       ),
     );
   }
@@ -623,7 +614,6 @@ class _CustomImageEditorState extends State<CustomImageEditor> {
           fontSize: textAnnotation.fontSize,
           fontWeight: textAnnotation.fontWeight,
           fontStyle: textAnnotation.fontStyle,
-          backgroundColor: textAnnotation.backgroundColor,
         );
       }
     } else if (_textEditMode == TextEditMode.scaling && _scaleStartPosition != null) {
@@ -638,7 +628,6 @@ class _CustomImageEditorState extends State<CustomImageEditor> {
         fontSize: newFontSize,
         fontWeight: textAnnotation.fontWeight,
         fontStyle: textAnnotation.fontStyle,
-        backgroundColor: textAnnotation.backgroundColor,
       );
     }
   }
@@ -803,7 +792,6 @@ class _CustomImageEditorState extends State<CustomImageEditor> {
                     fontSize: textAnnotation.fontSize,
                     fontWeight: textAnnotation.fontWeight,
                     fontStyle: textAnnotation.fontStyle,
-                    backgroundColor: textAnnotation.backgroundColor,
                   );
                 });
               }
@@ -829,7 +817,6 @@ class _CustomImageEditorState extends State<CustomImageEditor> {
         fontSize: textAnnotation.fontSize,
         fontWeight: textAnnotation.fontWeight,
         fontStyle: textAnnotation.fontStyle,
-        backgroundColor: textAnnotation.backgroundColor,
       ));
       _selectedTextIndex = _textAnnotations.length - 1;
     });
@@ -850,7 +837,6 @@ class _CustomImageEditorState extends State<CustomImageEditor> {
     final controller = TextEditingController();
     bool isBold = false;
     bool isItalic = false;
-    Color backgroundColor = Colors.transparent;
     
     showDialog(
       context: context,
@@ -887,45 +873,6 @@ class _CustomImageEditorState extends State<CustomImageEditor> {
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  const Text('Background: '),
-                  const SizedBox(width: 8),
-                  GestureDetector(
-                    onTap: () => setDialogState(() => backgroundColor = Colors.transparent),
-                    child: Container(
-                      width: 30,
-                      height: 30,
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: backgroundColor == Colors.transparent 
-                        ? const Icon(Icons.clear, size: 16)
-                        : null,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  ...Colors.primaries.take(4).map((color) => 
-                    GestureDetector(
-                      onTap: () => setDialogState(() => backgroundColor = color.withOpacity(0.3)),
-                      child: Container(
-                        width: 30,
-                        height: 30,
-                        margin: const EdgeInsets.only(right: 4),
-                        decoration: BoxDecoration(
-                          color: color.withOpacity(0.3),
-                          border: backgroundColor == color.withOpacity(0.3) 
-                            ? Border.all(color: Colors.black, width: 2)
-                            : Border.all(color: Colors.grey),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
             ],
           ),
           actions: [
@@ -945,7 +892,6 @@ class _CustomImageEditorState extends State<CustomImageEditor> {
                       fontSize: 16,
                       fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
                       fontStyle: isItalic ? FontStyle.italic : FontStyle.normal,
-                      backgroundColor: backgroundColor,
                     ));
                     _selectedTextIndex = _textAnnotations.length - 1;
                   });
@@ -994,7 +940,7 @@ class _CustomImageEditorState extends State<CustomImageEditor> {
             fontSize: t.fontSize, 
             fontWeight: t.fontWeight,
             fontStyle: t.fontStyle,
-            backgroundColor: t.backgroundColor))));
+            ))));
         _shapes.clear();
         _shapes.addAll(List<Shape>.from(state.shapes.map((s) => 
           Shape(s.start, s.end, s.color, s.strokeWidth, s.type))));
@@ -1021,7 +967,7 @@ class _CustomImageEditorState extends State<CustomImageEditor> {
             fontSize: t.fontSize, 
             fontWeight: t.fontWeight,
             fontStyle: t.fontStyle,
-            backgroundColor: t.backgroundColor))));
+            ))));
         _shapes.clear();
         _shapes.addAll(List<Shape>.from(state.shapes.map((s) => 
           Shape(s.start, s.end, s.color, s.strokeWidth, s.type))));
@@ -1035,22 +981,6 @@ class _CustomImageEditorState extends State<CustomImageEditor> {
   }
 
   void _saveImage() async {
-    // Show loading dialog
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => const AlertDialog(
-        content: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            CircularProgressIndicator(),
-            SizedBox(width: 16),
-            Text('Saving image...'),
-          ],
-        ),
-      ),
-    );
-
     try {
       // Clear text selection before saving
       setState(() {
@@ -1061,98 +991,15 @@ class _CustomImageEditorState extends State<CustomImageEditor> {
       // Wait for UI to update
       await Future.delayed(const Duration(milliseconds: 100));
       
-      // Load original image to get its dimensions
-      final originalImage = await _loadOriginalImage();
-      final originalWidth = originalImage.width;
-      final originalHeight = originalImage.height;
-      
-      // Get the current image bounds (where the image is actually displayed)
-      if (_imageBounds == null) {
-        throw Exception('Image bounds not calculated yet');
-      }
-      
-      // Calculate the scale factors from display bounds to original image
-      final scaleX = originalWidth / _imageBounds!.width;
-      final scaleY = originalHeight / _imageBounds!.height;
-      
-      print('Original: ${originalWidth}x$originalHeight');
-      print('Display bounds: ${_imageBounds!.width}x${_imageBounds!.height}');
-      print('Scale factors: $scaleX, $scaleY');
-      
-      // Create a custom painter for the final image at original resolution
-      final recorder = ui.PictureRecorder();
-      final canvas = Canvas(recorder);
-      
-      // Draw the original image at full resolution
-      canvas.drawImage(originalImage, Offset.zero, Paint());
-      
-      // Transform and draw all annotations
-      canvas.save();
-      
-      // Scale the canvas to match original image resolution
-      canvas.scale(scaleX, scaleY);
-      
-      // Create transformed annotations that account for the image bounds offset
-      final transformedPoints = _points.map((point) {
-        if (point.offset == Offset.infinite) return point;
-        return DrawingPoint(
-          point.offset - _imageBounds!.topLeft,
-          point.color,
-          point.strokeWidth,
-        );
-      }).toList();
-      
-      final transformedTextAnnotations = _textAnnotations.map((text) {
-        return TextAnnotation(
-          text.position - _imageBounds!.topLeft,
-          text.text,
-          text.color,
-          fontSize: text.fontSize,
-          fontWeight: text.fontWeight,
-          fontStyle: text.fontStyle,
-          backgroundColor: text.backgroundColor,
-        );
-      }).toList();
-      
-      final transformedShapes = _shapes.map((shape) {
-        return Shape(
-          shape.start - _imageBounds!.topLeft,
-          shape.end - _imageBounds!.topLeft,
-          shape.color,
-          shape.strokeWidth,
-          shape.type,
-        );
-      }).toList();
-      
-      // Draw all the annotations with the transformed coordinates
-      final scaledPainter = DrawingPainter(
-        transformedPoints,
-        transformedTextAnnotations,
-        transformedShapes,
-        null, // No selection for saving
-        currentTool: _currentTool,
-        selectedColor: _selectedColor,
-        strokeWidth: _strokeWidth,
-        textEditMode: TextEditMode.none,
-        imageBounds: Rect.fromLTWH(0, 0, _imageBounds!.width, _imageBounds!.height),
-      );
-      
-      scaledPainter.paint(canvas, _imageBounds!.size);
-      canvas.restore();
-      
-      // Convert to image
-      final picture = recorder.endRecording();
-      final finalImage = await picture.toImage(originalWidth, originalHeight);
-      final byteData = await finalImage.toByteData(format: ui.ImageByteFormat.png);
+      RenderRepaintBoundary boundary = _repaintKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
+      ui.Image image = await boundary.toImage(pixelRatio: 1.0);
+      ByteData? byteData = await image.toByteData(format: ui.ImageByteFormat.png);
       
       if (byteData != null) {
         final directory = Directory.systemTemp;
         final file = File('${directory.path}/${DateTime.now().millisecondsSinceEpoch}.png');
         await file.writeAsBytes(byteData.buffer.asUint8List());
         
-        Navigator.of(context).pop(); // Close loading dialog
-        
-        // Show success message
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Row(
@@ -1168,22 +1015,12 @@ class _CustomImageEditorState extends State<CustomImageEditor> {
         );
         
         widget.onSave(file.path);
-      } else {
-        throw Exception('Failed to convert image to bytes');
       }
     } catch (e) {
-      Navigator.of(context).pop(); // Close loading dialog
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Row(
-            children: [
-              const Icon(Icons.error, color: Colors.white),
-              const SizedBox(width: 8),
-              Expanded(child: Text('Error saving image: $e')),
-            ],
-          ),
+          content: Text('Error saving image: $e'),
           backgroundColor: Colors.red,
-          duration: const Duration(seconds: 3),
         ),
       );
     }
@@ -1213,7 +1050,6 @@ class TextAnnotation {
   final double fontSize;
   final FontWeight fontWeight;
   final FontStyle fontStyle;
-  final Color backgroundColor;
   
   TextAnnotation(
     this.position, 
@@ -1222,7 +1058,6 @@ class TextAnnotation {
     this.fontSize = 16,
     this.fontWeight = FontWeight.normal,
     this.fontStyle = FontStyle.normal,
-    this.backgroundColor = Colors.transparent,
   });
 }
 
@@ -1257,7 +1092,9 @@ class DrawingPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     Paint paint = Paint()
       ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round;
+      ..strokeJoin = StrokeJoin.round
+      ..isAntiAlias = true
+      ..filterQuality = FilterQuality.high;
     
     // Draw image bounds indicator (subtle border)
     if (imageBounds != null) {
@@ -1343,19 +1180,7 @@ class DrawingPainter extends CustomPainter {
       );
       textPainter.layout();
       
-      // Draw background if specified
-      if (textAnnotation.backgroundColor != Colors.transparent) {
-        final backgroundRect = Rect.fromLTWH(
-          textAnnotation.position.dx - 4,
-          textAnnotation.position.dy - 2,
-          textPainter.width + 8,
-          textPainter.height + 4,
-        );
-        canvas.drawRRect(
-          RRect.fromRectAndRadius(backgroundRect, const Radius.circular(4)),
-          Paint()..color = textAnnotation.backgroundColor,
-        );
-      }
+
       
       // Draw selection indicators
       if (isSelected) {

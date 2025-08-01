@@ -364,7 +364,7 @@ Widget showImageWithEditAbility(
             color: Colors.grey[200],
             child: Image.file(
               File(imageFilePath),
-              fit: BoxFit.contain, // Changed from cover to contain
+              fit: BoxFit.cover,
               alignment: Alignment.center,
             ),
           ),
