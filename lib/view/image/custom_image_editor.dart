@@ -992,7 +992,8 @@ class _CustomImageEditorState extends State<CustomImageEditor> {
       await Future.delayed(const Duration(milliseconds: 100));
       
       RenderRepaintBoundary boundary = _repaintKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
-      ui.Image image = await boundary.toImage(pixelRatio: 1.0);
+      // Use higher pixelRatio (3.0) to render at 3x resolution and reduce pixelation artifacts
+      ui.Image image = await boundary.toImage(pixelRatio: 3.0);
       ByteData? byteData = await image.toByteData(format: ui.ImageByteFormat.png);
       
       if (byteData != null) {
