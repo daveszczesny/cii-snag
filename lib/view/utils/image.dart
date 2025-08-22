@@ -1,11 +1,107 @@
 import 'dart:io';
-
+import 'dart:typed_data';
+import 'dart:ui' as ui;
+import 'package:image/image.dart' as img;
 import 'package:cii/utils/common.dart';
 import 'package:cii/view/image/pro_annotation.dart';
 import 'package:cii/view/utils/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
+class SimpleCropper extends StatefulWidget {
+  final String imagePath;
+
+  const SimpleCropper({super.key, required this.imagePath});
+  @override
+  State<SimpleCropper> createState() => _SimpleCropperState();
+}
+
+class _SimpleCropperState extends State<SimpleCropper> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Crop Image"),
+        actions: [
+          IconButton(icon: const Icon(Icons.check), onPressed: () => _cropAndSave(),)
+        ]
+      ),
+      body: Center(
+        child: AspectRatio(
+          aspectRatio: 1.0,
+          child: Image.file(
+            File(widget.imagePath),
+            fit: BoxFit.cover,
+          )
+        )
+      )
+    );
+  }
+
+  Future<void> _cropAndSave() async {
+    try {
+      final file = File(widget.imagePath);
+      final bytes = await file.readAsBytes();
+      final image = img.decodeImage(bytes);
+
+      if (image == null) return;
+
+      final size = image.width < image.height ? image.width : image.height;
+      final x = (image.width - size) ~/2;
+      final y = (image.height - size) ~/2;
+
+      final cropped = img.copyCrop(image, x: x, y:y, width: size, height: size);
+
+      final croppedPath = await saveImageToAppDir(File.fromRawPath(img.encodePng(cropped)));
+      Navigator.pop(context, croppedPath);
+    } catch (e) {
+      Navigator.pop(context, widget.imagePath);
+    }
+  } 
+}
+
+Future<bool> _checkAspectRatio(String imagePath) async {
+  final file = File(imagePath);
+  final bytes = await file.readAsBytes();
+  final image = img.decodeImage(bytes);
+
+  print("Checking aspect ratio");
+
+  if (image == null || image.height == 0) return false;
+
+  final aspectRatio = image.width / image.height;
+
+  print("aspect ratio $aspectRatio");
+
+  return aspectRatio >= 0.75 && aspectRatio <= 1.33;
+}
+
+
+Future<void> _showCropDialog(BuildContext context, String imagePath, Function(String) onChange) async {
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (context) => AlertDialog(
+      title: const Text("Crop Required"),
+      content: const Text("This image has an unusual aspect ratio and must be cropped to continue."),
+      actions: [
+        TextButton(
+          onPressed: () async {
+            Navigator.pop(context);
+            final croppedPath = await Navigator.push<String>(
+              context,
+              MaterialPageRoute(
+                builder: (context) => SimpleCropper(imagePath: imagePath),
+              ),
+            );
+            onChange(croppedPath ?? imagePath);
+          }, 
+          child: const Text('Crop')
+        )
+      ]
+    )
+  );
+}
 
 Widget buildImageShowcase(BuildContext context, onChange, onSave, List<String> imageFilePaths,
   {double horizontalPadding = 48.0, Function(String)? onLongPress}) {
@@ -469,7 +565,7 @@ void _showImageSourceActionSheet(
               title: const Text(AppStrings.photoLibrary),
               onTap: () {
                 Navigator.of(context).pop();
-                pickImageFromSource(onChange, ImageSource.gallery);
+                pickImageFromSource(onChange, ImageSource.gallery, context);
               },
             ),
             ListTile(
@@ -477,7 +573,7 @@ void _showImageSourceActionSheet(
               title: const Text(AppStrings.photoCamera),
               onTap: () {
                 Navigator.of(context).pop();
-                pickImageFromSource(onChange, ImageSource.camera);
+                pickImageFromSource(onChange, ImageSource.camera, context);
               },
             )
           ]
@@ -525,19 +621,25 @@ void _showImageSourceActionSheet(
 
 Future<void> pickImageFromSource(
   void Function(String) onChange,
-  ImageSource source
+  ImageSource source,
+  BuildContext context
 ) async {
   final ImagePicker picker = ImagePicker();
+  XFile? image;
+
   if (source == ImageSource.gallery) {
-    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-    if (image != null) {
-      String imagePath = await saveImageToAppDir(File(image.path));
-      onChange(imagePath);
-    }
+    image = await picker.pickImage(source: ImageSource.gallery);
   } else {
-    final XFile? image = await picker.pickImage(source: ImageSource.camera);
-    if (image != null) {
-      String imagePath = await saveImageToAppDir(File(image.path));
+    image = await picker.pickImage(source: ImageSource.camera);
+  }
+
+  if (image != null) {
+    String imagePath = await saveImageToAppDir(File(image.path));
+
+    final hasGoodAspectRatio = await _checkAspectRatio(imagePath);
+    if (!hasGoodAspectRatio) {
+      _showCropDialog(context, imagePath, onChange);
+    } else {
       onChange(imagePath);
     }
   }
