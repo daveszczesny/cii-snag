@@ -57,6 +57,7 @@ class _SnagCreateState extends State<SnagCreate> {
   @override
   void initState() {
     super.initState();
+    clearInputs();
     projectController = widget.projectController;
     selectProject();
 
@@ -159,38 +160,91 @@ class _SnagCreateState extends State<SnagCreate> {
   }  
 
   void onChange({String p = ''}) {
-    if (selectedImage == '') {
-
-      // check if an annotated image exists
-      if (annotatedImages.isNotEmpty) {
+    if (p != '') {
+      // When a specific image is selected
+      if (annotatedImages.containsKey(p)) {
+        selectedImage = annotatedImages[p]!;
+      } else {
+        selectedImage = p;
+      }
+    } else {
+      // Check if current selectedImage still exists in imageFilePaths
+      String currentOriginalPath = selectedImage;
+      for (var entry in annotatedImages.entries) {
+        if (entry.value == selectedImage) {
+          currentOriginalPath = entry.key;
+          break;
+        }
+      }
+      
+      if (selectedImage != '' && !imageFilePaths.contains(currentOriginalPath)) {
+        // Current selected image was removed, select first available or clear
+        if (imageFilePaths.isNotEmpty) {
+          if (annotatedImages.containsKey(imageFilePaths[0])) {
+            selectedImage = annotatedImages[imageFilePaths[0]]!;
+          } else {
+            selectedImage = imageFilePaths[0];
+          }
+        } else {
+          selectedImage = '';
+        }
+      } else if (selectedImage == '' && imageFilePaths.isNotEmpty) {
+        // Only set initial selection if no image is currently selected
         if (annotatedImages.containsKey(imageFilePaths[0])) {
           selectedImage = annotatedImages[imageFilePaths[0]]!;
         } else {
           selectedImage = imageFilePaths[0];
         }
-      } else {
-        selectedImage = imageFilePaths.isNotEmpty ? imageFilePaths[0] : '';
-      }
-
-    } else {
-      if (annotatedImages.isNotEmpty) {
-        if (annotatedImages.containsKey(p)) {
-          selectedImage = annotatedImages[p]!;
-        } else {
-          selectedImage = p;
-        }
-      } else {
-        selectedImage = p;
       }
     }
-
     setState(() {});
+  }
+
+  // Discard snag creation
+  bool _hasUnsavedChanges() {
+    return nameController.text.isNotEmpty ||
+           descriptionController.text.isNotEmpty ||
+           assigneeController.text.isNotEmpty ||
+           locationController.text.isNotEmpty ||
+           imageFilePaths.isNotEmpty ||
+           snagCategory != null ||
+           (snagTags?.isNotEmpty ?? false);
+  }
+
+  Future<bool> _showDiscardDialog() async {
+    return await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Discard Snag?'),
+        content: const Text('You have unsaved changes. Do you want to discard this snag?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Discard'),
+          ),
+        ],
+      ),
+    ) ?? false;
   }
 
   void saveAnnotatedImage(String originalPath, String path) {
     setState(() {
-      annotatedImages[originalPath] = path;
-      onChange(p: originalPath);
+      // find the actual original image path
+      String originalPath_ = originalPath;
+
+      // check if originalPath is actually an annotated image
+      for (var entry in annotatedImages.entries) {
+        if (entry.value == originalPath){
+          originalPath_ = entry.key;
+          break;
+        }
+      }
+      annotatedImages[originalPath_] = path;
+      onChange(p: originalPath_);
     });
   }
 
@@ -201,28 +255,42 @@ class _SnagCreateState extends State<SnagCreate> {
     locationController.clear();
     priorityController.clear();
     imageFilePaths = [];
-    annotatedImages = {};
+    annotatedImages.clear();
     snagCategory = null;
     snagTags = [];
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      // AppBar is only shown if user is using QUICK ADD
-      appBar: widget.projectController == null
+    return WillPopScope(
+      onWillPop: () async {
+        if (_hasUnsavedChanges()) {
+          return await _showDiscardDialog();
+        }
+        return true;
+      },
+      child: Scaffold(
+        // AppBar is only shown if user is using QUICK ADD
+        appBar: widget.projectController == null
         ? AppBar(
           title: Text(AppStrings.snagCreate()),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
-            onPressed: () {
-              Navigator.pop(context);
+            onPressed: () async {
+              if (_hasUnsavedChanges()) {
+                final shouldDiscard = await _showDiscardDialog();
+                if (shouldDiscard) {
+                  Navigator.pop(context);
+                }
+              } else {
+                Navigator.pop(context);
+              }
             }
           ),
         )
         : null,
 
-      body: SingleChildScrollView(
+        body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
           child: Column(
@@ -246,9 +314,11 @@ class _SnagCreateState extends State<SnagCreate> {
                 const SizedBox(height: 28.0),
               ],
 
+              // If image is empty, show image input
               if (imageFilePaths.isEmpty) ... [
                 buildMultipleImageInput_V2(context, imageFilePaths, onChange),
               ] else ... [
+                // so if image is not empty then show image with an edit icon
                 showImageWithEditAbility(context, selectedImage != '' ? selectedImage : imageFilePaths[0], saveAnnotatedImage)
               ],
 
@@ -257,7 +327,7 @@ class _SnagCreateState extends State<SnagCreate> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
-                    buildImageShowcase(context, onChange, saveAnnotatedImage, imageFilePaths),
+                    buildImageShowcase(context, onChange, (){}, imageFilePaths),
                     if (imageFilePaths.length < 5) ... [
                       buildMultipleImageInput_V2(context, imageFilePaths, onChange, large: false),
                     ],
@@ -335,6 +405,7 @@ class _SnagCreateState extends State<SnagCreate> {
           )
         )
       )
-    );
-  }
+      )
+    );}
+  
 }

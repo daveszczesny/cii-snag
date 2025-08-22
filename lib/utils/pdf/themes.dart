@@ -15,8 +15,9 @@ pw.MultiPage buildSnagPage_theme1(String projectName, SnagController snag, Strin
     build: (pw.Context context) {
       return [
         // Snag name above everything
+        pw.SizedBox(height: 8),
         pw.Text(
-          snag.name ?? '-',
+          snag.name,
           style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold),
         ),
         pw.SizedBox(height: 12),

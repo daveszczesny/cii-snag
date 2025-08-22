@@ -173,7 +173,7 @@ Widget buildDropdownInput(String label, List<String> options, TextEditingControl
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      Text(label, style: const TextStyle(fontSize:20, fontWeight: FontWeight.w600, fontFamily: 'Roboto')),
+      Text(label, style: const TextStyle(color: Color(0xFF333333), fontSize: 14, fontWeight: FontWeight.w300, fontFamily: 'Roboto')),
       const SizedBox(height: 12.0),
       DropdownButtonFormField<String>(
         value: controller.text.isEmpty ? null : controller.text,
@@ -183,7 +183,7 @@ Widget buildDropdownInput(String label, List<String> options, TextEditingControl
         onChanged: (String? value) { controller.text = value ?? ''; },
         decoration: InputDecoration(
           hintText: 'Select $label',
-          hintStyle: const TextStyle(color: Color(0xFF333333), fontSize: 16, fontWeight: FontWeight.w300, fontFamily: 'Roboto'),
+          hintStyle: const TextStyle(color: Color(0xFF333333), fontSize: 14, fontWeight: FontWeight.w300, fontFamily: 'Roboto'),
           enabledBorder: const UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFF333333))),
           focusedBorder: const UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFF333333))),
         ),

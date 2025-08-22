@@ -21,7 +21,8 @@ import 'package:cii/utils/pdf/themes.dart' as theme;
 Future<void> savePdfFile(
   BuildContext context,
   SingleProjectController controller,
-  String imageQuality, // "High", "Medium", "Low"
+  String imageQuality, // "High", "Medium", "Low",
+  Function themeFunction,
   List<String>? selectedCategories, // Categories to include in the export
   List<String>? selectedStatuses // Statuses to include in the export
 ) async {
@@ -95,8 +96,7 @@ Future<void> savePdfFile(
           .map((path) => imageCache[path]!)
           .toList() ?? <pw.MemoryImage>[];
 
-      final snagPage = buildSnagPage(projectName, snag, imageQuality, processedImages, logoImage);
-      final snagPageThemed = theme.buildSnagPage_theme1(projectName, snag, imageQuality, processedImages, logoImage);
+      final snagPageThemed = themeFunction(projectName, snag, imageQuality, processedImages, logoImage);
       pdf.addPage(snagPageThemed);
     }
 
@@ -163,37 +163,50 @@ pw.Widget getHeader(String projectName) {
 }
 
 pw.Widget getFooter(pw.Context context, pw.ImageProvider logoImage) {
-  return pw.Stack(
-    children: [
-      // Center: Produced by CII (perfectly centered like header)
-      pw.Container(
-        width: PdfPageFormat.a4.availableWidth,
-        height: 40,
-        child: pw.Center(
+  final pageWidth = PdfPageFormat.a4.width;
+  const leftMargin = 24.0;
+  
+  return pw.Container(
+    width: pageWidth,
+    height: 40,
+    child: pw.Stack(
+      children: [
+        // Logo - positioned at left margin
+        pw.Positioned(
+          left: leftMargin,
+          top: 5,
+          child: pw.Image(
+            logoImage, 
+            width: 60, 
+            height: 30, 
+            fit: pw.BoxFit.contain
+          ),
+        ),
+        
+        // "Produced by CII" - absolutely centered on the page
+        pw.Positioned(
+          left: 0,
+          right: 0,
+          top: 14,
+          child: pw.Center(
+            child: pw.Text(
+              'Produced by CII',
+              style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.normal),
+            ),
+          ),
+        ),
+        
+        // Page number - positioned at right margin
+        pw.Positioned(
+          right: leftMargin,
+          top: 14,
           child: pw.Text(
-            'Produced by CII',
+            'Page ${context.pageNumber}',
             style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.normal),
           ),
         ),
-      ),
-
-      // Left: Logo at absolute position
-      pw.Positioned(
-        left: 0,
-        top: 5,
-        child: pw.Image(logoImage, width: 60, height: 30, fit: pw.BoxFit.contain),
-      ),
-
-      // Right: Page number at absolute position
-      pw.Positioned(
-        right: 0,
-        top: 14,
-        child: pw.Text(
-          'Page ${context.pageNumber}',
-          style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.normal),
-        ),
-      ),
-    ],
+      ],
+    ),
   );
 }
 
@@ -264,7 +277,7 @@ pw.MultiPage buildProjectDetailsPage(String projectName, SingleProjectController
                       child: pw.Text('Location:', style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
                     ),
                     pw.Expanded(
-                      child: pw.Text(controller.getLocation ?? '-', style: const pw.TextStyle(fontSize: 14)),
+                      child: pw.Text(controller.getLocation == "" ? '-' : controller.getLocation!, style: const pw.TextStyle(fontSize: 14)),
                     ),
                   ],
                 ),
@@ -277,7 +290,7 @@ pw.MultiPage buildProjectDetailsPage(String projectName, SingleProjectController
                       child: pw.Text('Client:', style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
                     ),
                     pw.Expanded(
-                      child: pw.Text(controller.getClient ?? '-', style: const pw.TextStyle(fontSize: 14)),
+                      child: pw.Text(controller.getClient == "" ? '-' : controller.getClient!, style: const pw.TextStyle(fontSize: 14)),
                     ),
                   ],
                 ),
@@ -290,7 +303,7 @@ pw.MultiPage buildProjectDetailsPage(String projectName, SingleProjectController
                       child: pw.Text('Contractor:', style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
                     ),
                     pw.Expanded(
-                      child: pw.Text(controller.getContractor ?? '-', style: const pw.TextStyle(fontSize: 14)),
+                      child: pw.Text(controller.getContractor == "" ? '-' : controller.getContractor!, style: const pw.TextStyle(fontSize: 14)),
                     ),
                   ],
                 ),
@@ -303,7 +316,7 @@ pw.MultiPage buildProjectDetailsPage(String projectName, SingleProjectController
                       child: pw.Text('Reference:', style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
                     ),
                     pw.Expanded(
-                      child: pw.Text(controller.getProjectRef ?? '-', style: const pw.TextStyle(fontSize: 14)),
+                      child: pw.Text(controller.getProjectRef!, style: const pw.TextStyle(fontSize: 14)),
                     ),
                   ],
                 ),
@@ -316,7 +329,7 @@ pw.MultiPage buildProjectDetailsPage(String projectName, SingleProjectController
                       child: pw.Text('Status:', style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
                     ),
                     pw.Expanded(
-                      child: pw.Text(controller.getStatus ?? '-', style: const pw.TextStyle(fontSize: 14)),
+                      child: pw.Text(controller.getStatus!, style: const pw.TextStyle(fontSize: 14)),
                     ),
                   ],
                 ),
@@ -335,7 +348,7 @@ pw.MultiPage buildProjectDetailsPage(String projectName, SingleProjectController
                 ),
                 pw.SizedBox(height: 12),
                 pw.Text('Description:', style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
-                pw.Text(controller.getDescription ?? '-', style: const pw.TextStyle(fontSize: 14))
+                pw.Text(controller.getDescription == "" ? '-' : controller.getDescription!, style: const pw.TextStyle(fontSize: 14))
               ]
             )
           ),
@@ -367,7 +380,6 @@ pw.MultiPage buildSnagListPage(
       header: (context) => getHeader(projectName),
       margin: const pw.EdgeInsets.symmetric(horizontal: 24, vertical: 32),
       build: (pw.Context context) {
-
         List<pw.TableRow> rows = [
           // Table header
           pw.TableRow(
@@ -468,6 +480,7 @@ pw.MultiPage buildSnagListPage(
         }
 
         return [
+          pw.SizedBox(height: 8),
           pw.Text(
             '${AppStrings.snag()} List',
             style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),

@@ -34,6 +34,15 @@ class SingleProjectController {
   }
 
   void deleteProject() {
+
+    // delete all pdf records associated with the project
+    if (project.pdfExportRecords != null) {
+      final recrodsToDelete = List<PdfExportRecords>.from(project.pdfExportRecords!);
+      for (final record in recrodsToDelete) {
+        deletePdfExportRecord(record);
+      }
+    }
+
     project.delete();
   }
 
