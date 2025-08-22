@@ -96,9 +96,7 @@ class _CustomImageEditorState extends State<CustomImageEditor> {
         _calculateImageBounds();
       });
       setState(() {}); // Trigger rebuild after image is loaded
-    } catch (e) {
-      print('Error loading image: $e');
-    }
+    } catch (e) {}
   }
 
   void _calculateImageBounds() {
@@ -979,214 +977,6 @@ class _CustomImageEditorState extends State<CustomImageEditor> {
     }
   }
 
-  // void _saveImage() async {
-  //   showDialog(
-  //     context: context,
-  //     barrierDismissible: false,
-  //     builder: (context) => const Center(child: CircularProgressIndicator())
-  //   );
-
-  //   try {
-  //     // Clear text selection before saving
-  //     setState(() {
-  //       _selectedTextIndex = null;
-  //       _textEditMode = TextEditMode.none;
-  //     });
-      
-  //     await Future.delayed(const Duration(milliseconds: 100));
-      
-  //     if (_loadedImage == null || _imageBounds == null) {
-  //       throw Exception('Image not loaded or bounds not calculated');
-  //     }
-      
-  //     final originalWidth = _loadedImage!.width;
-  //     final originalHeight = _loadedImage!.height;
-
-  //     // Create a high-quality picture recorder
-  //     final recorder = ui.PictureRecorder();
-  //     final canvas = Canvas(recorder);
-      
-  //     // Set up high-quality canvas
-  //     canvas.clipRect(Rect.fromLTWH(0, 0, originalWidth.toDouble(), originalHeight.toDouble()));
-
-  //     // Draw the original image with maximum quality
-  //     final imageRect = Rect.fromLTWH(0, 0, originalWidth.toDouble(), originalHeight.toDouble());
-  //     canvas.drawImageRect(
-  //       _loadedImage!,
-  //       Rect.fromLTWH(0, 0, originalWidth.toDouble(), originalHeight.toDouble()),
-  //       imageRect,
-  //       Paint()
-  //         ..isAntiAlias = true
-  //         ..filterQuality = FilterQuality.high
-  //         ..blendMode = BlendMode.srcOver,
-  //     );
-
-      // Calculate precise scale factors
-      // final scaleX = originalWidth.toDouble() / _imageBounds!.width;
-      // final scaleY = originalHeight.toDouble() / _imageBounds!.height;
-
-      // // Create high-quality paint for annotations
-      // final annotationPaint = Paint()
-      //   ..strokeCap = StrokeCap.round
-      //   ..strokeJoin = StrokeJoin.round
-      //   ..isAntiAlias = true
-      //   ..filterQuality = FilterQuality.high
-      //   ..style = PaintingStyle.stroke;
-
-      // Draw shapes with precise positioning
-      // for (final shape in _shapes) {
-      //   final start = Offset(
-      //     (shape.start.dx - _imageBounds!.left) * scaleX,
-      //     (shape.start.dy - _imageBounds!.top) * scaleY,
-      //   );
-      //   final end = Offset(
-      //     (shape.end.dx - _imageBounds!.left) * scaleX,
-      //     (shape.end.dy - _imageBounds!.top) * scaleY,
-      //   );
-        
-      //   annotationPaint.color = shape.color;
-      //   annotationPaint.strokeWidth = shape.strokeWidth * math.sqrt(scaleX * scaleY);
-        
-      //   switch (shape.type) {
-      //     case DrawingTool.line:
-      //       canvas.drawLine(start, end, annotationPaint);
-      //       break;
-      //     case DrawingTool.arrow:
-      //       canvas.drawLine(start, end, annotationPaint);
-      //       final angle = (end - start).direction;
-      //       final arrowLength = math.min(25.0 * math.sqrt(scaleX * scaleY), (end - start).distance * 0.3);
-      //       final arrowAngle = 0.5;
-      //       final arrowPoint1 = end + Offset(
-      //         arrowLength * math.cos(angle + math.pi - arrowAngle),
-      //         arrowLength * math.sin(angle + math.pi - arrowAngle),
-      //       );
-      //       final arrowPoint2 = end + Offset(
-      //         arrowLength * math.cos(angle + math.pi + arrowAngle),
-      //         arrowLength * math.sin(angle + math.pi + arrowAngle),
-      //       );
-      //       canvas.drawLine(end, arrowPoint1, annotationPaint);
-      //       canvas.drawLine(end, arrowPoint2, annotationPaint);
-      //       break;
-      //     case DrawingTool.rectangle:
-      //       canvas.drawRect(Rect.fromPoints(start, end), annotationPaint);
-      //       break;
-      //     case DrawingTool.circle:
-      //       final center = Offset((start.dx + end.dx) / 2, (start.dy + end.dy) / 2);
-      //       final radius = (end - start).distance / 2;
-      //       canvas.drawCircle(center, radius, annotationPaint);
-      //       break;
-      //     default:
-      //       break;
-      //   }
-      // }
-      
-      // // Draw free drawing with smooth paths
-      // if (_points.isNotEmpty) {
-      //   Path? currentPath;
-      //   Paint? currentPaint;
-        
-      //   for (int i = 0; i < _points.length; i++) {
-      //     if (_points[i].offset == Offset.infinite) {
-      //       // End current stroke
-      //       if (currentPath != null && currentPaint != null) {
-      //         canvas.drawPath(currentPath, currentPaint);
-      //       }
-      //       currentPath = null;
-      //       currentPaint = null;
-      //     } else {
-      //       final scaledPoint = Offset(
-      //         (_points[i].offset.dx - _imageBounds!.left) * scaleX,
-      //         (_points[i].offset.dy - _imageBounds!.top) * scaleY,
-      //       );
-            
-      //       if (currentPath == null) {
-      //         // Start new stroke
-      //         currentPath = Path();
-      //         currentPath.moveTo(scaledPoint.dx, scaledPoint.dy);
-      //         currentPaint = Paint()
-      //           ..color = _points[i].color
-      //           ..strokeWidth = _points[i].strokeWidth * math.sqrt(scaleX * scaleY)
-      //           ..strokeCap = StrokeCap.round
-      //           ..strokeJoin = StrokeJoin.round
-      //           ..style = PaintingStyle.stroke
-      //           ..isAntiAlias = true
-      //           ..filterQuality = FilterQuality.high;
-      //       } else {
-      //         currentPath.lineTo(scaledPoint.dx, scaledPoint.dy);
-      //       }
-      //     }
-      //   }
-        
-      //   // Draw final stroke if exists
-      //   if (currentPath != null && currentPaint != null) {
-      //     canvas.drawPath(currentPath, currentPaint);
-      //   }
-      // }
-      
-      // // Draw text annotations with high quality
-      // for (final textAnnotation in _textAnnotations) {
-      //   final scaledPosition = Offset(
-      //     (textAnnotation.position.dx - _imageBounds!.left) * scaleX,
-      //     (textAnnotation.position.dy - _imageBounds!.top) * scaleY,
-      //   );
-        
-      //   final textPainter = TextPainter(
-      //     text: TextSpan(
-      //       text: textAnnotation.text,
-      //       style: TextStyle(
-      //         color: textAnnotation.color,
-      //         fontSize: textAnnotation.fontSize * math.sqrt(scaleX * scaleY),
-      //         fontWeight: textAnnotation.fontWeight,
-      //         fontStyle: textAnnotation.fontStyle,
-      //       ),
-      //     ),
-      //     textDirection: TextDirection.ltr,
-      //   );
-      //   textPainter.layout();
-      //   textPainter.paint(canvas, scaledPosition);
-      // }
-      
-      // Convert to image with original dimensions
-  //     final picture = recorder.endRecording();
-  //     final image = await picture.toImage(originalWidth, originalHeight);
-      
-  //     // Convert to PNG bytes with no compression
-  //     final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-      
-  //     if (byteData != null) {
-  //       final directory = Directory.systemTemp;
-  //       final file = File('${directory.path}/${DateTime.now().millisecondsSinceEpoch}.png');
-  //       await file.writeAsBytes(byteData.buffer.asUint8List());
-
-  //       Navigator.of(context).pop();
-
-  //       ScaffoldMessenger.of(context).showSnackBar(
-  //         const SnackBar(
-  //           content: Row(
-  //             children: [
-  //               Icon(Icons.check_circle, color: Colors.white),
-  //               SizedBox(width: 8),
-  //               Text('Image saved!'),
-  //             ],
-  //           ),
-  //           backgroundColor: Colors.green,
-  //           duration: Duration(seconds: 2),
-  //         ),
-  //       );
-        
-  //       widget.onSave(file.path);
-  //     }
-  //   } catch (e) {
-  //     Navigator.of(context).pop();
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       SnackBar(
-  //         content: Text('Error saving image: $e'),
-  //         backgroundColor: Colors.red,
-  //       ),
-  //     );
-  //   }
-  // }
-  
   void _saveImage() async {
     showDialog(
       context: context, 
@@ -1218,8 +1008,6 @@ class _CustomImageEditorState extends State<CustomImageEditor> {
       final scaleX = originalWidth / _imageBounds!.width;
       final scaleY = originalHeight / _imageBounds!.height;
 
-      print('Original: ${originalWidth}x$originalHeight, Display: ${_imageBounds!.width}x${_imageBounds!.height}');
-      print('Scale factors: x=$scaleX, y=$scaleY');
 
       // Step 1: Create transparent overlay using Flutter Canvas
       final recorder = ui.PictureRecorder();
@@ -1357,34 +1145,10 @@ class _CustomImageEditorState extends State<CustomImageEditor> {
       final overlayBytes = overlayByteData.buffer.asUint8List();
       final overlayImgLib = img.decodePng(overlayBytes);
       if (overlayImgLib == null) throw Exception("Failed to decode overlay image");
-      
-      // Step 4: Composite overlay onto original image using image library
-      final compositeImage = img.Image.from(originalImage);
-      
-      // Blend the overlay onto the original image
-      for (int y = 0; y < originalHeight; y++) {
-        for (int x = 0; x < originalWidth; x++) {
-          final overlayPixel = overlayImgLib.getPixel(x, y);
-          final overlayAlpha = overlayPixel.a;
-          
-          if (overlayAlpha > 0) {
-            // Alpha blend the overlay pixel with the original
-            final originalPixel = compositeImage.getPixel(x, y);
-            
-            final alpha = overlayAlpha / 255.0;
-            final invAlpha = 1.0 - alpha;
-            
-            final blendedR = (overlayPixel.r * alpha + originalPixel.r * invAlpha).round();
-            final blendedG = (overlayPixel.g * alpha + originalPixel.g * invAlpha).round();
-            final blendedB = (overlayPixel.b * alpha + originalPixel.b * invAlpha).round();
-            
-            compositeImage.setPixel(x, y, img.ColorRgb8(blendedR, blendedG, blendedB));
-          }
-        }
-      }
-      
-      // Step 5: Save the final composite image
-      final pngBytes = img.encodePng(compositeImage);
+
+      final compositeImage = img.compositeImage(originalImage, overlayImgLib);
+
+      final pngBytes = img.encodePng(compositeImage, level: 0);
       
       final dir = Directory.systemTemp;
       final file = File('${dir.path}/${DateTime.now().millisecondsSinceEpoch}.png');
@@ -1415,7 +1179,6 @@ class _CustomImageEditorState extends State<CustomImageEditor> {
           backgroundColor: Colors.red,
         ),
       );
-      print('Save error: $e');
     }
   }
 

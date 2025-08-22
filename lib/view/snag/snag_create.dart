@@ -14,7 +14,6 @@ import 'package:cii/view/utils/selector.dart';
 import 'package:cii/view/utils/text.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
-import 'dart:ui' as ui;
 
 class SnagCreate extends StatefulWidget {
   final SingleProjectController? projectController;
@@ -318,7 +317,7 @@ class _SnagCreateState extends State<SnagCreate> {
 
               // If image is empty, show image input
               if (imageFilePaths.isEmpty) ... [
-                buildMultipleImageInput_V2(context, imageFilePaths, onChange),
+                buildImageInput_V3(context, onChange, imageFilePaths),
               ] else ... [
                 // so if image is not empty then show image with an edit icon
                 showImageWithEditAbility(context, selectedImage != '' ? selectedImage : imageFilePaths[0], saveAnnotatedImage)
@@ -331,7 +330,7 @@ class _SnagCreateState extends State<SnagCreate> {
                   children: [
                     buildImageShowcase(context, onChange, (){}, imageFilePaths),
                     if (imageFilePaths.length < 5) ... [
-                      buildMultipleImageInput_V2(context, imageFilePaths, onChange, large: false),
+                      buildImageInput_V3(context, onChange, imageFilePaths, large: false)
                     ],
                   ],
                 ),

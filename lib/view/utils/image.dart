@@ -1,12 +1,11 @@
 import 'dart:io';
-import 'dart:typed_data';
-import 'dart:ui' as ui;
 import 'package:image/image.dart' as img;
 import 'package:cii/utils/common.dart';
 import 'package:cii/view/image/pro_annotation.dart';
 import 'package:cii/view/utils/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
 
 class SimpleCropper extends StatefulWidget {
   final String imagePath;
@@ -17,62 +16,176 @@ class SimpleCropper extends StatefulWidget {
 }
 
 class _SimpleCropperState extends State<SimpleCropper> {
+  double _offsetX = 0;
+  double _offsetY = 0;
+  late img.Image _image;
+  late double _imageWidth;
+  late double _imageHeight;
+  late double _cropSize;
+  bool _imageLoaded = false;
+  double _initialScale = 1.0;
+  double _baseSize = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadImage();
+  }
+
+  Future<void> _loadImage() async {
+    final file = File(widget.imagePath);
+    final bytes = await file.readAsBytes();
+    final image = img.decodeImage(bytes);
+    
+    if (image != null) {
+      setState(() {
+        _image = image;
+        _imageWidth = image.width.toDouble();
+        _imageHeight = image.height.toDouble();
+        final minDimension = (_imageWidth < _imageHeight ? _imageWidth : _imageHeight);
+        _cropSize = minDimension * 0.8; // Start at 80% of smaller dimension
+        _offsetX = (_imageWidth - _cropSize) / 2;
+        _offsetY = (_imageHeight - _cropSize) / 2;
+        _imageLoaded = true;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Crop Image"),
         actions: [
-          IconButton(icon: const Icon(Icons.check), onPressed: () => _cropAndSave(),)
+          IconButton(icon: const Icon(Icons.check), onPressed: () => _cropAndSave())
         ]
       ),
-      body: Center(
-        child: AspectRatio(
-          aspectRatio: 1.0,
-          child: Image.file(
-            File(widget.imagePath),
-            fit: BoxFit.cover,
-          )
-        )
-      )
+      body: _imageLoaded ? _buildCropInterface() : const Center(child: CircularProgressIndicator())
+    );
+  }
+
+  Widget _buildCropInterface() {
+    return Column(
+      children: [
+        Expanded(
+          child: Container(
+            width: double.infinity,
+            child: Stack(
+              children: [
+                Positioned.fill(
+                  child: Image.file(File(widget.imagePath), fit: BoxFit.contain),
+                ),
+                Positioned.fill(
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final displayWidth = constraints.maxWidth;
+                      final displayHeight = constraints.maxHeight;
+                      
+                      final scaleX = displayWidth / _imageWidth;
+                      final scaleY = displayHeight / _imageHeight;
+                      final scale = scaleX < scaleY ? scaleX : scaleY;
+                      
+                      final scaledImageWidth = _imageWidth * scale;
+                      final scaledImageHeight = _imageHeight * scale;
+                      final scaledCropSize = _cropSize * scale;
+                      
+                      final imageLeft = (displayWidth - scaledImageWidth) / 2;
+                      final imageTop = (displayHeight - scaledImageHeight) / 2;
+                      
+                      return Stack(
+                        children: [
+                          Container(
+                            width: displayWidth,
+                            height: displayHeight,
+                            color: Colors.black54,
+                          ),
+                          Positioned(
+                            left: imageLeft + (_offsetX * scale),
+                            top: imageTop + (_offsetY * scale),
+                            child: GestureDetector(
+                              onScaleStart: (details) {
+                                _initialScale = 1.0;
+                                _baseSize = _cropSize;
+                              },
+                              onScaleUpdate: (details) {
+                                setState(() {
+                                  if (details.scale == 1.0) {
+                                    // Handle movement
+                                    final newOffsetX = _offsetX + (details.focalPointDelta.dx / scale);
+                                    final newOffsetY = _offsetY + (details.focalPointDelta.dy / scale);
+                                    
+                                    _offsetX = newOffsetX.clamp(0, _imageWidth - _cropSize);
+                                    _offsetY = newOffsetY.clamp(0, _imageHeight - _cropSize);
+                                  } else {
+                                    // Handle scaling with damping
+                                    final scaleFactor = (details.scale - 1.0) * 0.5 + 1.0; // Damping factor
+                                    final newSize = _baseSize * scaleFactor;
+                                    final maxSize = (_imageWidth < _imageHeight ? _imageWidth : _imageHeight);
+                                    final minSize = maxSize * 0.2;
+                                    
+                                    _cropSize = newSize.clamp(minSize, maxSize);
+                                    
+                                    _offsetX = _offsetX.clamp(0, _imageWidth - _cropSize);
+                                    _offsetY = _offsetY.clamp(0, _imageHeight - _cropSize);
+                                  }
+                                });
+                              },
+                              child: Container(
+                                width: scaledCropSize,
+                                height: scaledCropSize,
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: Colors.white, width: 2),
+                                ),
+                                child: Container(color: Colors.transparent),
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        Container(
+          padding: const EdgeInsets.all(16),
+          child: const Text("Drag to move • Pinch to resize", style: TextStyle(fontSize: 16, color: Colors.grey)),
+        ),
+      ],
     );
   }
 
   Future<void> _cropAndSave() async {
     try {
-      final file = File(widget.imagePath);
-      final bytes = await file.readAsBytes();
-      final image = img.decodeImage(bytes);
+      final cropped = img.copyCrop(
+        _image, 
+        x: _offsetX.round(), 
+        y: _offsetY.round(), 
+        width: _cropSize.round(), 
+        height: _cropSize.round()
+      );
 
-      if (image == null) return;
-
-      final size = image.width < image.height ? image.width : image.height;
-      final x = (image.width - size) ~/2;
-      final y = (image.height - size) ~/2;
-
-      final cropped = img.copyCrop(image, x: x, y:y, width: size, height: size);
-
-      final croppedPath = await saveImageToAppDir(File.fromRawPath(img.encodePng(cropped)));
-      Navigator.pop(context, croppedPath);
+      final appDir = await getApplicationDocumentsDirectory();
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final tempFile = File('${appDir.path}/cropped_$timestamp.png');
+      
+      await tempFile.writeAsBytes(img.encodePng(cropped));
+      
+      Navigator.pop(context, tempFile.path);
     } catch (e) {
       Navigator.pop(context, widget.imagePath);
     }
-  } 
+  }
 }
 
 Future<bool> _checkAspectRatio(String imagePath) async {
   final file = File(imagePath);
   final bytes = await file.readAsBytes();
   final image = img.decodeImage(bytes);
-
-  print("Checking aspect ratio");
-
   if (image == null || image.height == 0) return false;
-
   final aspectRatio = image.width / image.height;
-
-  print("aspect ratio $aspectRatio");
-
   return aspectRatio >= 0.75 && aspectRatio <= 1.33;
 }
 
@@ -378,6 +491,36 @@ Widget buildImageInputForSingleImage(
   );
 }
 
+Widget buildImageInput_V3(
+  BuildContext context,
+  VoidCallback onChange,
+  List<String> imageFilePaths,
+  {bool large = true,
+  horizontalPadding = 48.0}
+  ) {
+  double width = 120;
+  double height = 120;
+  if (large) {
+    width = 120;
+    height = 120;
+  } else {
+    final double screenWidth = MediaQuery.of(context).size.width;
+    const double spacing = 8.0;
+    const int imagesPerRow = 5;
+    final double size = (screenWidth - horizontalPadding - (spacing * (imagesPerRow - 1))) / imagesPerRow;
+    width = size * 0.8;
+    height = size * 0.8;
+  }
+
+  return Center(
+    child: IconButton(
+      icon: Image.asset('lib/assets/icons/png/image_upload.png', width: width, height: height),
+      tooltip: "Upload Images",
+      onPressed: () => _showImagesSourceActionSheet(context, imageFilePaths, onChange)
+    )
+  );
+}
+
 // ignore: non_constant_identifier_names
 Widget buildImageInput_V2(BuildContext context, void Function(String) onChange) {
   return Center(
@@ -584,7 +727,7 @@ void _showImageSourceActionSheet(
 }
 
 // Multiple images
- void _showImagesSourceActionSheet(
+void _showImagesSourceActionSheet(
   BuildContext context,
   List<String> imageFilePaths,
   VoidCallback onChange,
@@ -600,7 +743,12 @@ void _showImageSourceActionSheet(
               title: const Text(AppStrings.photoLibrary),
               onTap: () {
                 Navigator.of(context).pop();
-                pickImagesFromSource(imageFilePaths, onChange, ImageSource.gallery);
+                pickImageFromSource((String path) {
+                  if (imageFilePaths.length < 5) {
+                    imageFilePaths.add(path);
+                    onChange();
+                  }
+                }, ImageSource.gallery, context);
               },
             ),
             ListTile(
@@ -608,7 +756,12 @@ void _showImageSourceActionSheet(
               title: const Text(AppStrings.photoCamera),
               onTap: () {
                 Navigator.of(context).pop();
-                pickImagesFromSource(imageFilePaths, onChange, ImageSource.camera);
+                pickImageFromSource((String path) {
+                  if (imageFilePaths.length < 5) {
+                    imageFilePaths.add(path);
+                    onChange();
+                  }
+                }, ImageSource.camera, context);
               },
             )
           ]
@@ -626,6 +779,7 @@ Future<void> pickImageFromSource(
 ) async {
   final ImagePicker picker = ImagePicker();
   XFile? image;
+  final rootContext = Navigator.of(context, rootNavigator: true).context;
 
   if (source == ImageSource.gallery) {
     image = await picker.pickImage(source: ImageSource.gallery);
@@ -638,7 +792,15 @@ Future<void> pickImageFromSource(
 
     final hasGoodAspectRatio = await _checkAspectRatio(imagePath);
     if (!hasGoodAspectRatio) {
-      _showCropDialog(context, imagePath, onChange);
+      if (rootContext.mounted) {
+        // navigate to cropping tool
+        final croppedPath = await Navigator.push<String>(rootContext,
+          MaterialPageRoute(builder: (context) => SimpleCropper(imagePath: imagePath)
+        ));
+        onChange(croppedPath!);
+      } else {
+        onChange(imagePath);
+      }
     } else {
       onChange(imagePath);
     }

@@ -3,7 +3,6 @@ import 'package:cii/services/pdf_exporter.dart';
 import 'package:cii/view/project/export/project_export_customizer_base.dart';
 import 'package:cii/view/utils/text.dart';
 import 'package:flutter/material.dart';
-import 'package:pdf/widgets.dart' as pw;
 import 'package:cii/utils/pdf/themes.dart';
 
 class ProjectExportCustomizer extends ProjectExportCustomizerBase {

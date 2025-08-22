@@ -405,7 +405,7 @@ class _SnagDetailState extends State<SnagDetail> {
                 children: [
                   const SizedBox(height: 12),
                   if (imageFilePaths.isEmpty || File(imageFilePaths[0]).existsSync() == false) ... [
-                    buildMultipleImageInput_V2(context, imageFilePaths, onChange),
+                    buildImageInput_V3(context, onChange, imageFilePaths)
                   ] else ... [
                     showImageWithEditAbility(context, selectedImage != '' ? selectedImage : getAnnotatedImage(imageFilePaths[0]), saveAnnotatedImage)
                   ],
@@ -419,7 +419,7 @@ class _SnagDetailState extends State<SnagDetail> {
                       children: [
                         buildImageShowcase(context, onChange, saveAnnotatedImage, imageFilePaths, onLongPress: setAsMainImage),
                         if (imageFilePaths.length < 5) ... [
-                          buildMultipleImageInput_V2(context, imageFilePaths, onChange, large: false),
+                          buildImageInput_V3(context, onChange, imageFilePaths, large: false)
                         ],
                       ],
                     ),

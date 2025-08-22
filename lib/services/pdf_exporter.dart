@@ -16,7 +16,6 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:share_plus/share_plus.dart';
 import 'package:flutter/services.dart';
 import 'package:image/image.dart' as img;
-import 'package:cii/utils/pdf/themes.dart' as theme;
 
 Future<void> savePdfFile(
   BuildContext context,
@@ -69,7 +68,7 @@ Future<void> savePdfFile(
     // Process all images in parallel with caching
     final Map<String, pw.MemoryImage> imageCache = {};
     final allImagePaths = snagList
-      .expand((snag) => snag.imagePaths)
+      .expand((snag) => [...snag.imagePaths, ...snag.annotatedImagePaths.values])
       .where((path) => path.isNotEmpty)
       .toSet();
 
@@ -92,9 +91,16 @@ Future<void> savePdfFile(
     for (final snag in snagList) {
       // Use cached processed images
       final processedImages = snag.imagePaths
-          ?.where((path) => imageCache.containsKey(path))
-          .map((path) => imageCache[path]!)
-          .toList() ?? <pw.MemoryImage>[];
+        ?.where((path) => imageCache.containsKey(path))
+        .map((path) {
+          // Check if there's an annotated version of this image
+          final annotatedPath = snag.annotatedImagePaths[path];
+          if (annotatedPath != null && imageCache.containsKey(annotatedPath)) {
+            return imageCache[annotatedPath]!;
+          }
+          return imageCache[path]!;
+        })
+        .toList() ?? <pw.MemoryImage>[];
 
       final snagPageThemed = themeFunction(projectName, snag, imageQuality, processedImages, logoImage);
       pdf.addPage(snagPageThemed);
@@ -125,6 +131,7 @@ Future<void> savePdfFile(
 
     Navigator.of(context).pop();
   } catch (e) {
+    print(e);
     Navigator.of(context).pop();
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Error generating PDF')),
