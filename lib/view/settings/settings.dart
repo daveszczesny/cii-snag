@@ -5,6 +5,7 @@ import 'package:cii/view/settings/naming_settings.dart';
 import 'package:cii/view/settings/privacy_policy.dart';
 import 'package:cii/view/settings/terms_conditions.dart';
 import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 class SettingsPage extends StatefulWidget {
 
@@ -59,17 +60,35 @@ class _SettingsPageState extends State<SettingsPage> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: GridView.count(
-          crossAxisCount: 2,
-          mainAxisSpacing: 16,
-          crossAxisSpacing: 16,
-          shrinkWrap: true,
+        child: Column(
           children: [
-            settingsTab(context, Icons.text_fields, "Terminology", const NamingSettings()),
-            settingsTab(context, Icons.calendar_today, "Date Time Format", const DateTimeSettings()),
-            settingsTab(context, Icons.apartment, "Company", const CompanySettings()),
-            settingsTab(context, Icons.description, "Terms & Conditions", const TermsConditions()),
-            settingsTab(context, Icons.privacy_tip, "Terms & Conditions", const PrivacyPolicy()),
+            Expanded(
+              child: GridView.count(
+                crossAxisCount: 2,
+                mainAxisSpacing: 16,
+                crossAxisSpacing: 16,
+                shrinkWrap: true,
+                children: [
+                  settingsTab(context, Icons.text_fields, "Terminology", const NamingSettings()),
+                  settingsTab(context, Icons.calendar_today, "Date Time Format", const DateTimeSettings()),
+                  settingsTab(context, Icons.apartment, "Company", const CompanySettings()),
+                  settingsTab(context, Icons.description, "Terms & Conditions", const TermsConditions()),
+                  settingsTab(context, Icons.privacy_tip, "Privacy Policy", const PrivacyPolicy()),
+                ],
+              ),
+            ),
+            FutureBuilder<PackageInfo>(
+              future: PackageInfo.fromPlatform(),
+              builder: (context, snapshot) {
+                if (snapshot.hasData) {
+                  return Text(
+                    'App Version: ${snapshot.data!.version}',
+                    style: const TextStyle(fontSize: 14, color: Colors.grey),
+                  );
+                }
+                return const SizedBox.shrink();
+              },
+            ),
           ],
         ),
       ),

@@ -1,7 +1,7 @@
 name: cii
 description: "CII - Snagging Application"
 publish_to: 'none'
-version: 0.1.0
+version: 1.0.5
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -34,6 +34,7 @@ dependencies:
   flutter_local_notifications: ^17.2.2
   timezone: ^0.9.4
   csv: ^6.0.0
+  package_info_plus: ^4.2.0
 
 dev_dependencies:
   flutter_test:
@@ -71,7 +72,6 @@ flutter:
     - lib/assets/icons/png/priority_medium_icon.png
     - lib/assets/icons/png/priority_high_icon.png
     - lib/assets/icons/png/priority_low_icon_16.png
-    # - lib/assets/icons/png/priority_medium_icon_16.png
     - lib/assets/icons/png/priority_high_icon_16.png
     - lib/assets/icons/png/image_upload.png
     - lib/assets/icons/png/assignee_unassigned.png

@@ -161,7 +161,7 @@ class _ProjectCreateState extends State<ProjectCreate> {
               ],
               buildTextInput(AppStrings.projectTite, AppStrings.projectTitleExample, _nameController),
               const SizedBox(height: 28.0),
-              buildTextInput(AppStrings.projectRef, AppStrings.projectRefExample, _projectRefController, optional: false),
+              buildTextInputForREF(AppStrings.projectRef, AppStrings.projectRefExample, _projectRefController, optional: false),
               const SizedBox(height: 28.0),
               buildLongTextInput(AppStrings.projectDescription, AppStrings.projectDescriptionExample, _descriptionController),
               const SizedBox(height: 28.0),

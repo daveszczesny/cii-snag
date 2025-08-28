@@ -1,7 +1,6 @@
 import 'package:cii/controllers/project_controller.dart';
 import 'package:cii/controllers/single_project_controller.dart';
 import 'package:cii/models/project.dart';
-import 'package:cii/models/status.dart';
 import 'package:cii/view/project/project_card_widget.dart';
 import 'package:cii/view/utils/constants.dart';
 import 'package:flutter/material.dart';
@@ -61,24 +60,30 @@ class _ProjectListTabWidgetState extends State<ProjectListTabWidget> with Single
 
   @override
   Widget build(BuildContext context) {
-    // final double screenWidth = MediaQuery.of(context).size.width;
-    // final double tabWidth = screenWidth * 0.7;
-
-    const List<Widget> tabs = [
-      Tab(text: 'Recent'),
-      Tab(text: 'All'),
-      Tab(text: 'Closed'),
-    ];
-
     return Scaffold(
       body: Column(
         children: [
-          TabBar(
-            controller: tabController,
-            indicatorSize: TabBarIndicatorSize.tab,
-            isScrollable: false,
-            labelPadding: const EdgeInsets.symmetric(horizontal: 16.0),
-            tabs: tabs,
+          ValueListenableBuilder(
+            valueListenable: controller.projectBox.listenable(),
+            builder: (context, Box<Project> box, _) {
+              final recentCount = controller.getProjectsByStatus("Recent")?.length ?? 0;
+              final allCount = controller.getAllProjects().length;
+              final closedCount = controller.getProjectsByStatus("Closed")?.length ?? 0;
+
+              final tabs = [
+                Tab(text: 'Recent ($recentCount)'),
+                Tab(text: 'All ($allCount)'),
+                Tab(text: 'Closed ($closedCount)'),
+              ];
+
+              return TabBar(
+                controller: tabController,
+                indicatorSize: TabBarIndicatorSize.tab,
+                isScrollable: false,
+                labelPadding: const EdgeInsets.symmetric(horizontal: 16.0),
+                tabs: tabs,
+              );
+            }
           ),
           ValueListenableBuilder(
             valueListenable: AppTerminology.version,
@@ -89,7 +94,7 @@ class _ProjectListTabWidgetState extends State<ProjectListTabWidget> with Single
                   children: [
                     buildProjectList('Recent'),
                     buildProjectList('All'),
-                    buildProjectList('Closed'),
+                    buildProjectList('Closed')
                   ]
                 )
               );
