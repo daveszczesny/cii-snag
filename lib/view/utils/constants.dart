@@ -178,3 +178,22 @@ class AppDateTimeFormat {
     loadDateTimePrefs();
   }
 }
+
+class AppDueDateReminder {
+  static ValueNotifier<int> version = ValueNotifier<int>(0);
+
+  static int dueDateReminderDays = 14;
+
+  static Future<void> loadDueDateReminderPrefs() async {
+    final prefs = await SharedPreferences.getInstance();
+    AppDueDateReminder.dueDateReminderDays = prefs.getInt("due_date_reminder_days") ?? 14;
+  }
+
+  static Future<void> saveDueDateReminderPrefs(int v) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt("due_date_reminder_days", v);
+    version.value++;
+
+    loadDueDateReminderPrefs();
+  }
+}

@@ -2,6 +2,7 @@ import 'package:cii/models/project.dart';
 import 'package:cii/utils/colors/app_colors.dart';
 import 'package:cii/utils/common.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 
 Widget buildTextDetail(String label, String text) {
@@ -104,6 +105,31 @@ Widget buildTextInput(String label, String hintText, TextEditingController contr
           controller: controller,
           autocorrect: true,
           textCapitalization: TextCapitalization.sentences,
+          style: const TextStyle(color: Colors.black, fontSize: 16, fontWeight: FontWeight.w400, fontFamily: 'Roboto'),
+          decoration: InputDecoration(
+            hintText: hintText, hintStyle: const TextStyle(color: Color(0xFF333333), fontSize: 14, fontWeight: FontWeight.w300, fontFamily: 'Roboto'),
+            enabledBorder: const UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFF333333))),
+            focusedBorder: const UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFF333333))),
+          ),
+        ),
+      ],
+    );
+}
+
+Widget buildNumericInput(String label, String hintText, TextEditingController controller, {bool optional = true}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text(label, style: const TextStyle(color: Color(0xFF333333), fontSize: 14, fontWeight: FontWeight.w300, fontFamily: 'Roboto')),
+            if (!optional) const Text(' *',style: TextStyle(color: Colors.red, fontSize: 20, fontWeight: FontWeight.w600, fontFamily: 'Roboto')),
+          ],
+        ),
+        TextField(
+          controller: controller,
+          keyboardType: TextInputType.number,
+          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
           style: const TextStyle(color: Colors.black, fontSize: 16, fontWeight: FontWeight.w400, fontFamily: 'Roboto'),
           decoration: InputDecoration(
             hintText: hintText, hintStyle: const TextStyle(color: Color(0xFF333333), fontSize: 14, fontWeight: FontWeight.w300, fontFamily: 'Roboto'),

@@ -426,6 +426,45 @@ class _SnagDetailState extends State<SnagDetail> {
                     const SizedBox(height: 28.0),
                   ],
 
+                  // Alert on due date
+                  ValueListenableBuilder(
+                    valueListenable: AppDueDateReminder.version,
+                    builder: (context, _, __) {
+                      if (widget.snag.getDueDate != null) {
+                        final dueDateTime = widget.snag.getDueDate!;
+                        final now = DateTime.now();
+                        final diff = dueDateTime.difference(now).inDays;
+                        
+                        if (diff <= AppDueDateReminder.dueDateReminderDays - 1 && diff >= 0) {
+                          return Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(12),
+                            margin: const EdgeInsets.only(bottom: 16),
+                            decoration: BoxDecoration(
+                              color: Colors.orange.withOpacity(0.1),
+                              border: Border.all(color: Colors.orange, width: 1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.warning, color: Colors.orange, size: 20),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    diff == 0 ? 'Due today!' : 'Due in ${diff + 1} days',
+                                    style: const TextStyle(color: Colors.orange, fontWeight: FontWeight.w500),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }
+                      }
+                      return const SizedBox.shrink();
+                    },
+                  ),
+
+                  // Status
                   buildCustomSegmentedControl(label: 'Status', options: statusOptions, selectedNotifier: selectedStatusOption),
                   const SizedBox(height: 28),
                   Padding(

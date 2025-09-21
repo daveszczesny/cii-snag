@@ -1,4 +1,5 @@
 import 'package:cii/utils/colors/app_colors.dart';
+import 'package:cii/view/settings/app_settings.dart';
 import 'package:cii/view/settings/company_settings.dart';
 import 'package:cii/view/settings/datetime_settings.dart';
 import 'package:cii/view/settings/naming_settings.dart';
@@ -69,6 +70,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 crossAxisSpacing: 16,
                 shrinkWrap: true,
                 children: [
+                  settingsTab(context, Icons.dashboard_customize_outlined, "App", const AppSettings()),
                   settingsTab(context, Icons.text_fields, "Terminology", const NamingSettings()),
                   settingsTab(context, Icons.calendar_today, "Date Time Format", const DateTimeSettings()),
                   settingsTab(context, Icons.apartment, "Company", const CompanySettings()),
