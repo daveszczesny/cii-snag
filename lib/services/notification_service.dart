@@ -1,3 +1,4 @@
+import 'package:cii/models/project.dart';
 import 'package:cii/utils/common.dart';
 import 'package:cii/view/utils/constants.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -169,6 +170,56 @@ class NotificationService {
       message: '$snagName is approaching due date',
       type: NotificationType.dueDateApproaching,
     );
+  }
+
+  Future<void> checkDueDateReminders() async {
+    final projectBox = Hive.box<Project>('projects');
+    final projects = projectBox.values.toList();
+    final now = DateTime.now();
+    
+    // Group snags by project that are within reminder threshold
+    final Map<String, List<Snag>> projectSnags = {};
+    
+    for (final project in projects) {
+      final approachingSnags = <Snag>[];
+      
+      for (final snag in project.snags) {
+        if (snag.dueDate != null) {
+          final daysUntilDue = snag.dueDate!.difference(now).inDays;
+          
+          if (daysUntilDue <= AppDueDateReminder.dueDateReminderDays && daysUntilDue >= 0) {
+            approachingSnags.add(snag);
+          }
+        }
+      }
+      
+      if (approachingSnags.isNotEmpty) {
+        projectSnags[project.name] = approachingSnags;
+      }
+    }
+    
+    // Create one notification per project
+    for (final entry in projectSnags.entries) {
+      final projectName = entry.key;
+      final snags = entry.value;
+      
+      if (snags.length == 1) {
+        final snag = snags.first;
+        final daysUntilDue = snag.dueDate!.difference(now).inDays;
+        await _createNotification(
+          title: '${AppStrings.snag()} Due Soon',
+          message: '${snag.name} in $projectName is due in ${daysUntilDue == 0 ? 'today' : '$daysUntilDue day${daysUntilDue == 1 ? '' : 's'}'}',
+          type: NotificationType.dueDateApproaching,
+          snagId: snag.uuid,
+        );
+      } else {
+        await _createNotification(
+          title: 'Multiple ${AppStrings.snags()} Due Soon',
+          message: '${snags.length} ${AppStrings.snags().toLowerCase()} in $projectName are approaching their due dates',
+          type: NotificationType.dueDateApproaching,
+        );
+      }
+    }
   }
 
   // Future<void> createStatusChangeNotification(String snagName, String newStatus) async {

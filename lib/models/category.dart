@@ -27,6 +27,7 @@ class Category extends HiveObject {
         Category(name: 'Plumbing', color: AppColors.plumbingOrange),
         Category(name: 'Structural', color: AppColors.structuralGreen),
         Category(name: 'Safety', color: AppColors.safetyRed),
+        Category(name: 'General', color: AppColors.primaryGrey)
       ];
 
   static void sortCategories(List<Category> categories) {

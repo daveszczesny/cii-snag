@@ -53,7 +53,7 @@ void main() async {
   await notificationController.checkAndCreateNotifications();
   
   // Start background notification checks
-  BackgroundNotificationService().startPeriodicChecks();
+  await BackgroundNotificationService.initialize();
 
 
   runApp(const MainApp());

@@ -37,12 +37,13 @@ class _NotificationsState extends State<Notifications> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Notifications'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: _createTestNotifications,
-          ),
-        ],
+        // DEBUG
+        // actions: [
+        //   IconButton(
+        //     icon: const Icon(Icons.add),
+        //     onPressed: _createTestNotifications,
+        //   ),
+        // ],
       ),
       body: _notifications.isEmpty
           ? const Center(
