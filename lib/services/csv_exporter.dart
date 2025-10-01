@@ -1,13 +1,19 @@
 
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:cii/controllers/single_project_controller.dart';
 import 'package:cii/controllers/snag_controller.dart';
+import 'package:cii/models/csvexportrecords.dart';
+import 'package:cii/utils/common.dart';
 import 'package:cii/view/utils/constants.dart';
+import 'package:crypto/crypto.dart';
 import 'package:csv/csv.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
+import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -28,6 +34,11 @@ Future<void> saveCsvFile(
   SingleProjectController projectController,
 ) async {
 
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (context) => const Center(child: CircularProgressIndicator())
+  );
 
   List<List<dynamic>> csvData = [];
 
@@ -75,11 +86,23 @@ Future<void> saveCsvFile(
 
   String csv = const ListToCsvConverter().convert(csvData);
 
-  final directory = await getApplicationDocumentsDirectory();
-  final file = File("${directory.path}/${projectController.getName}_export.csv");
-
+  final bytes = utf8.encode(csv);
+  final csvDirPath = await getCsvDirectory();
+  final timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
+  final fileName = '${projectController.getName}_export_$timestamp.csv';
+  final file = File('$csvDirPath/$fileName');
   await file.writeAsString(csv);
-  await Share.shareXFiles([XFile(file.path)], text: "Project CSV Export");
+
+  final csvRecord = CsvExportRecords(
+    exportDate: DateTime.now(),
+    fileName: fileName,
+    fileHash: sha256.convert(bytes).toString(),
+    fileSize: bytes.length,
+  );
+
+  projectController.addCsvExportRecord(csvRecord);
+  await Share.shareXFiles([XFile(file.path)]);
+  Navigator.of(context).pop(); // Remove loading indicator
 
 }
 
@@ -113,4 +136,18 @@ List<Map<String, String>> getSnagList(SingleProjectController controller) {
       "Description": snag.description == "" ? '-' : snag.description,
     };
   }).toList();
+}
+
+Future<void> openCsvFromRecord(CsvExportRecords record) async {
+  final csvDirPath = await getCsvDirectory();
+  final filePath = '$csvDirPath/${record.fileName}';
+  final file = File(filePath);
+  if (await file.exists()) {
+    final result = await OpenFile.open(filePath);
+    if (result.type != ResultType.done) {
+      throw Exception("Could not open CSV: ${result.message}");
+    }
+  } else {
+    throw FileSystemException("File not found", filePath);
+  }
 }

@@ -522,7 +522,7 @@ Widget buildImageInput_V3(
 }
 
 // ignore: non_constant_identifier_names
-Widget buildImageInput_V2(BuildContext context, void Function(String) onChange) {
+Widget buildImageInput_V2(BuildContext context, void Function(String) onChange, {bool ignoreAspectRatio = false}) {
   return Center(
     child: IconButton(
         icon: Image.asset(
@@ -531,7 +531,7 @@ Widget buildImageInput_V2(BuildContext context, void Function(String) onChange) 
           height: 120,
         ),
         tooltip: 'Upload Image',
-        onPressed: () => _showImageSourceActionSheet(context, onChange),
+        onPressed: () => _showImageSourceActionSheet(context, onChange, ignoreAspectRatio:ignoreAspectRatio),
       )
   );
 }
@@ -696,6 +696,7 @@ Widget showImageWithNoEditAbility(
 void _showImageSourceActionSheet(
   BuildContext context,
   void Function(String) onChange,
+  {bool ignoreAspectRatio = false}
 ) {
   showModalBottomSheet(
     context: context,
@@ -708,7 +709,7 @@ void _showImageSourceActionSheet(
               title: const Text(AppStrings.photoLibrary),
               onTap: () {
                 Navigator.of(context).pop();
-                pickImageFromSource(onChange, ImageSource.gallery, context);
+                pickImageFromSource(onChange, ImageSource.gallery, context, ignoreAspectRatio: ignoreAspectRatio);
               },
             ),
             ListTile(
@@ -716,7 +717,7 @@ void _showImageSourceActionSheet(
               title: const Text(AppStrings.photoCamera),
               onTap: () {
                 Navigator.of(context).pop();
-                pickImageFromSource(onChange, ImageSource.camera, context);
+                pickImageFromSource(onChange, ImageSource.camera, context, ignoreAspectRatio: ignoreAspectRatio);
               },
             )
           ]
@@ -775,7 +776,8 @@ void _showImagesSourceActionSheet(
 Future<void> pickImageFromSource(
   void Function(String) onChange,
   ImageSource source,
-  BuildContext context
+  BuildContext context,
+  {bool ignoreAspectRatio = false}
 ) async {
   final ImagePicker picker = ImagePicker();
   XFile? image;
@@ -790,7 +792,10 @@ Future<void> pickImageFromSource(
   if (image != null) {
     String imagePath = await saveImageToAppDir(File(image.path));
 
-    final hasGoodAspectRatio = await _checkAspectRatio(imagePath);
+    var hasGoodAspectRatio = await _checkAspectRatio(imagePath);
+    if (ignoreAspectRatio) {
+      hasGoodAspectRatio = true;
+    }
     if (!hasGoodAspectRatio) {
       if (rootContext.mounted) {
         // navigate to cropping tool

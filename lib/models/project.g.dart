@@ -38,13 +38,14 @@ class ProjectAdapter extends TypeAdapter<Project> {
       snagsCreatedCount: fields[18] as int?,
     )
       ..snags = (fields[15] as List).cast<Snag>()
-      ..pdfExportRecords = (fields[20] as List?)?.cast<PdfExportRecords>();
+      ..pdfExportRecords = (fields[20] as List?)?.cast<PdfExportRecords>()
+      ..csvExportRecords = (fields[21] as List?)?.cast<CsvExportRecords>();
   }
 
   @override
   void write(BinaryWriter writer, Project obj) {
     writer
-      ..writeByte(21)
+      ..writeByte(22)
       ..writeByte(0)
       ..write(obj.uuid)
       ..writeByte(1)
@@ -86,7 +87,9 @@ class ProjectAdapter extends TypeAdapter<Project> {
       ..writeByte(19)
       ..write(obj.dueDate)
       ..writeByte(20)
-      ..write(obj.pdfExportRecords);
+      ..write(obj.pdfExportRecords)
+      ..writeByte(21)
+      ..write(obj.csvExportRecords);
   }
 
   @override

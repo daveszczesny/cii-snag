@@ -269,7 +269,7 @@ class _SnagDetailState extends State<SnagDetail> {
       children: [
         buildTextDetail('ID', id),
         const SizedBox(height: gap),
-        buildTextDetail('Snag Name', name),
+        buildTextDetail('${AppStrings.snag()} Name', name),
         const SizedBox(height: gap),
         buildJustifiedTextDetail('Description', description),
         const SizedBox(height: gap),
@@ -501,7 +501,7 @@ class _SnagDetailState extends State<SnagDetail> {
                   ObjectSelector(
                     label: AppStrings.category,
                     pluralLabel: AppStrings.categories,
-                    hint: AppStrings.tagHint(),
+                    hint: AppStrings.categoryHint(),
                     options: widget.projectController.getCategories ?? [],
                     getName: (cat) => cat.name,
                     getColor: (cat) => cat.color,
@@ -512,13 +512,22 @@ class _SnagDetailState extends State<SnagDetail> {
                       });
                     },
                     onSelect: (cat) {
-                      setState(() {
-                        widget.snag.setCategory(cat);
-                        widget.projectController.saveProject();
-                        widget.onStatusChanged!();
-                      });
+                      if (widget.snag.getCategoryByName(cat.name) != null) {
+                        setState(() {
+                          widget.snag.categories.clear();
+                          widget.projectController.saveProject();
+                          widget.onStatusChanged!();
+                        });
+                      } else {
+                        setState(() {
+                          widget.snag.setCategory(cat);
+                          widget.projectController.saveProject();
+                          widget.onStatusChanged!();
+                        });
+                      }
                     },
                     hasColorSelector: true,
+                    selectedItems: widget.snag.categories,
                   ),
 
                   const SizedBox(height: 24.0),
@@ -539,20 +548,24 @@ class _SnagDetailState extends State<SnagDetail> {
                     onSelect: (tag) {
                       setState(() {
                         // Check if tag is already in snag
-                        if (widget.snag.tags.contains(tag)) {
+                        if (widget.snag.getTagByName(tag.name) != null) {
                           // Remove tag from snag
-                          widget.snag.snag.tags?.remove(tag);
+                          widget.snag.removeTagByName(tag.name);
                         } else {
                           // Add tag to snag
                           widget.snag.setTag(tag);
+                          widget.projectController.saveProject();
+                          widget.onStatusChanged!();
                         }
                       });
                     },
                     hasColorSelector: true,
+                    selectedItems: widget.snag.tags,
                   ),
                 ],
               ),
-            )
+            ),
+            const SizedBox(height: 24.0),
           ]
         )
       ),

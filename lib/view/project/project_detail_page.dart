@@ -230,7 +230,7 @@ class ProjectDetailPageState extends State<ProjectDetailPage> {
                   const SizedBox(height: 24.0),
                 ] else ... [
                   // if there is no project image allow the user to add one
-                  buildImageInput_V2(context, (v) => setState(() {widget.projectController.setMainImagePath(v);})),
+                  buildImageInput_V2(context, (v) => setState(() {widget.projectController.setMainImagePath(v);}), ignoreAspectRatio: true),
                   const SizedBox(height: 24.0),
                 ],
 
@@ -262,7 +262,32 @@ class ProjectDetailPageState extends State<ProjectDetailPage> {
                       setState(() {
                         widget.projectController.addCategory(name, color);
                       });
-                    }
+                    },
+                    onDelete: (cat) {
+                      // Check if any snag is using this category
+                      if (widget.projectController.getSnagsByCategory(cat.name).isNotEmpty) {
+                        // block user from deleting category
+                        showDialog(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: const Text('Cannot Delete Category'),
+                            content: Text('This category is being used by one or more ${AppStrings.snags()}. Please remove the category from the ${AppStrings.snag()} before deleting this category.'),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.of(context).pop(),
+                                child: const Text('OK')
+                              )
+                            ],
+                          )
+                        );
+                      } else {
+                        // delete the category
+                        setState(() {
+                          widget.projectController.removeCategory(cat.name);
+                          widget.projectController.saveProject();
+                        });
+                      }
+                    },
                   ),
                   const SizedBox(height: 28.0),
                   ObjectSelector(
@@ -276,7 +301,30 @@ class ProjectDetailPageState extends State<ProjectDetailPage> {
                       setState(() {
                         widget.projectController.addTag(name, color);
                       });
-                    }
+                    },
+                    onDelete: (tag) {
+                      if (widget.projectController.getSnagsByTag(tag.name).isNotEmpty) {
+                        // block user from deleting tag
+                        showDialog(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: const Text('Cannot Delete Tag'),
+                            content: Text('This tag is being used by one or more ${AppStrings.snags()}. Please remove the tag from the ${AppStrings.snag()} before deleting this tag.'),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.of(context).pop(),
+                                child: const Text('OK')
+                              )
+                            ],
+                          )
+                        );
+                      } else {
+                        // delete the tag
+                        setState(() {
+                          widget.projectController.removeTag(tag.name);
+                        });
+                      }
+                    },
                   ),
 
                   // Project Analytics

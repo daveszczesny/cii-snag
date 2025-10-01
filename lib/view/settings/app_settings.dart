@@ -161,7 +161,6 @@ class _AppSettingsState extends State<AppSettings> {
     );
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(

@@ -156,7 +156,7 @@ class _ProjectCreateState extends State<ProjectCreate> {
                   const SizedBox(height: 24.0),
                 ] else ... [
                   // if there is no project image allow the user to add one
-                  buildImageInput_V2(context, (v) => setState(() {imagePath = v;})),
+                  buildImageInput_V2(context, (v) => setState(() {imagePath = v;}), ignoreAspectRatio: true),
                   const SizedBox(height: 24.0),
               ],
               buildTextInput(AppStrings.projectTite, AppStrings.projectTitleExample, _nameController),

@@ -1,5 +1,6 @@
 import 'package:cii/models/category.dart';
 import 'package:cii/models/comment.dart';
+import 'package:cii/models/csvexportrecords.dart';
 import 'package:cii/models/pdfexportrecords.dart';
 import 'package:cii/models/snag.dart';
 import 'package:cii/models/status.dart';
@@ -90,6 +91,9 @@ class Project extends HiveObject {
 
   @HiveField(20)
   List<PdfExportRecords>? pdfExportRecords;
+
+  @HiveField(21)
+  List<CsvExportRecords>? csvExportRecords;
 
 
   Project({

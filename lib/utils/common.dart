@@ -183,3 +183,12 @@ Future<String> getPdfDirectory() async {
   }
   return pdfDir.path;
 }
+
+Future<String> getCsvDirectory() async {
+  final appDir = await getApplicationDocumentsDirectory();
+  final csvDir = Directory('${appDir.path}/csv_exports');
+  if (!await csvDir.exists()) {
+    await csvDir.create();
+  }
+  return csvDir.path;
+}

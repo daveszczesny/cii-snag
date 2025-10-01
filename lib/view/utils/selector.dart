@@ -11,8 +11,11 @@ class ObjectSelector<T> extends StatefulWidget {
   final Color Function(T) getColor;
   final void Function(String name, Color color) onCreate;
   final void Function(T)? onSelect;
+  final void Function(T)? onDelete;
   final bool allowMultiple;
   final bool hasColorSelector;
+
+  final List<T>? selectedItems;
 
   const ObjectSelector({
     super.key,
@@ -23,7 +26,9 @@ class ObjectSelector<T> extends StatefulWidget {
     required this.getName,
     required this.getColor,
     required this.onCreate,
+    this.selectedItems,
     this.onSelect,
+    this.onDelete,
     this.allowMultiple = false,
     this.hasColorSelector = true,
   });
@@ -41,15 +46,32 @@ class _ObjectSelectorState<T> extends State<ObjectSelector<T>> {
   @override
   void initState() {
     super.initState();
+    if (widget.selectedItems != null && widget.selectedItems!.isNotEmpty) {
+      // get the names of the selected items
+      final selectedNames = widget.selectedItems!.map((item) => widget.getName(item)).toSet();
+
+      if (widget.allowMultiple) {
+        _selectedObjs = widget.options.where((option) =>
+          selectedNames.contains(widget.getName(option))
+        ).toSet();
+      } else {
+        final selectedName = widget.getName(widget.selectedItems!.first);
+        try {
+          _selectedObj = widget.options.firstWhere((option) => widget.getName(option) == selectedName);
+        } catch (e) {
+          _selectedObj = null;
+        }
+      }
+    }
   }
 
   void _handleTap(T obj) {
-    if (widget.onSelect == null) return; // no onSelect function
+    if (widget.onSelect == null) return;
+
     setState(() {
       if (widget.allowMultiple) {
         if (_selectedObjs.contains(obj)) {
           _selectedObjs.remove(obj);
-          widget.onSelect!(obj);
         } else {
           _selectedObjs.add(obj);
         }
@@ -57,7 +79,7 @@ class _ObjectSelectorState<T> extends State<ObjectSelector<T>> {
       } else {
         if (_selectedObj == obj) {
           _selectedObj = null;
-          widget.onSelect!(obj); // deselect the obj
+          widget.onSelect!(obj);
         } else {
           _selectedObj = obj;
           widget.onSelect!(obj);
@@ -210,6 +232,24 @@ class _ObjectSelectorState<T> extends State<ObjectSelector<T>> {
               : _selectedObj == obj;
             return GestureDetector(
               onTap: () => widget.onSelect == null ? null : _handleTap(obj),
+              onLongPress: widget.onDelete != null ? () {
+                showDialog(
+                  context: context, 
+                  builder: (context) => AlertDialog(
+                    title: Text("Delete ${widget.label}"),
+                    content: Text("Are you sure you want to delete '$name'?"),
+                    actions: [
+                      TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancel')),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                          widget.onDelete!(obj);
+                        }, child: const Text('Delete')
+                      )
+                    ]
+                  ),
+                );
+              } : null,
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 5.0),
                 decoration: BoxDecoration(

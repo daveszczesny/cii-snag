@@ -42,6 +42,18 @@ Future<void> savePdfFile(
     final compressedLogoImage = await processImageForQuality(logoBytes.buffer.asUint8List(), imageQuality);
     final logoImage = pw.MemoryImage(compressedLogoImage);
 
+    pw.ImageProvider? projectLogoImage;
+    if (controller.getMainImagePath != null && controller.getMainImagePath!.isNotEmpty) {
+      try {
+        final projectLogoFile = File(controller.getMainImagePath!);
+        if (await projectLogoFile.exists()) {
+          final projectLogoBytes = await projectLogoFile.readAsBytes();
+          final compressedLogoImage = await processImageForQuality(projectLogoBytes, imageQuality);
+          projectLogoImage = pw.MemoryImage(compressedLogoImage);
+        }
+      } catch (e) {} // ignore error
+    }
+
     final snagList = controller.getAllSnags()
       .where((snag) {
         final snagCategory = snag.categories.isNotEmpty
@@ -57,7 +69,7 @@ Future<void> savePdfFile(
         return categoryMatch && statusMatch;
       }).toList();
 
-    final frontPage = buildFrontPage(projectName, logoImage);
+    final frontPage = buildFrontPage(projectName, logoImage, projectLogoImage);
     final projectDetailPage = buildProjectDetailsPage(projectName, controller, logoImage);
     final snagListPage = buildSnagListPage(projectName, controller, imageQuality, selectedCategories, selectedStatuses, snagList, logoImage);
 
@@ -218,12 +230,21 @@ pw.Widget getFooter(pw.Context context, pw.ImageProvider logoImage) {
 }
 
 
-pw.MultiPage buildFrontPage(String projectName, pw.ImageProvider logoImage) {
+pw.MultiPage buildFrontPage(String projectName, pw.ImageProvider logoImage, [pw.ImageProvider? projectLogoImage]) {
   return pw.MultiPage(
     pageFormat: PdfPageFormat.a4,
     margin: const pw.EdgeInsets.symmetric(horizontal: 24, vertical: 32),
     build: (pw.Context context) => [
-      pw.SizedBox(height: PdfPageFormat.a4.availableHeight * 0.45),
+      // project image if available
+      if (projectLogoImage != null) ... [
+        pw.SizedBox(height: PdfPageFormat.a4.availableHeight * 0.2),
+        pw.Center(
+          child: pw.Image(projectLogoImage, width: 450, height: 350, fit: pw.BoxFit.contain),
+        ),
+        pw.SizedBox(height: 64),
+      ] else ... [
+        pw.SizedBox(height: PdfPageFormat.a4.availableHeight * 0.45),
+      ],
       // Project name (middle left)
       pw.Row(
         mainAxisAlignment: pw.MainAxisAlignment.start,

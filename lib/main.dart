@@ -3,6 +3,7 @@ import 'package:cii/adapters/priority_enum_adapter.dart';
 import 'package:cii/models/category.dart';
 import 'package:cii/models/comment.dart';
 import 'package:cii/models/company.dart';
+import 'package:cii/models/csvexportrecords.dart';
 import 'package:cii/models/notification.dart';
 import 'package:cii/models/pdfexportrecords.dart';
 import 'package:cii/models/project.dart';
@@ -33,6 +34,7 @@ void main() async {
   Hive.registerAdapter(StatusAdapter());
   Hive.registerAdapter(SnagAdapter());
   Hive.registerAdapter(PdfExportRecordsAdapter());
+  Hive.registerAdapter(CsvExportRecordsAdapter());
   Hive.registerAdapter(NotificationTypeAdapter());
   Hive.registerAdapter(AppNotificationAdapter());
   // Hive.deleteBoxFromDisk('companies');

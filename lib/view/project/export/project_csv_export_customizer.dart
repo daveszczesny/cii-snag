@@ -28,6 +28,7 @@ class _ProjectCsvExportCustomizerState extends ProjectExportCustomizerBaseState<
       "Export to CSV",
       () async {
         saveCsvFile(context, widget.projectController);
+        Navigator.pop(context);
       }
     );
   }

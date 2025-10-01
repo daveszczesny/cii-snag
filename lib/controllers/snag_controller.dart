@@ -108,6 +108,40 @@ class SnagController {
     return snag.categories ?? [];
   }
 
+  cii.Category? getCategoryByName(String name) {
+    if (snag.categories == null || snag.categories!.isEmpty) return null;
+
+    try {
+      return snag.categories!.firstWhere((cat) => cat.name == name);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  void removeCategoryByName(String name) {
+    snag.categories!.removeWhere((cat) => cat.name == name);
+  }
+
+  Tag? getTagByName(String name) {
+    if (snag.tags == null || snag.tags!.isEmpty) return null;
+
+    try {
+      return snag.tags!.firstWhere((tag) => tag.name == name);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  void removeTagByName(String name) {
+    if (snag.tags == null || snag.tags!.isEmpty) return;
+
+    try {
+      snag.tags!.removeWhere((tag) => tag.name == name);
+    } catch (e) {
+      return;
+    }
+  }
+
 
   void setName(String v) { 
     snag.name = v; 

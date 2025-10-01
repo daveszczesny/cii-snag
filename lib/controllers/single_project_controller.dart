@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:cii/controllers/snag_controller.dart';
+import 'package:cii/models/csvexportrecords.dart';
 import 'package:cii/models/pdfexportrecords.dart';
 import 'package:cii/models/project.dart';
 import 'package:cii/models/snag.dart';
@@ -16,9 +17,11 @@ import 'package:intl/intl.dart';
 class SingleProjectController {
   final Project project;
   final ValueNotifier<List<PdfExportRecords>> pdfExportRecordsNotifier = ValueNotifier<List<PdfExportRecords>>([]);
+  final ValueNotifier<List<CsvExportRecords>> csvExportRecordsNotifier = ValueNotifier<List<CsvExportRecords>>([]);
 
   SingleProjectController(this.project) {
     pdfExportRecordsNotifier.value = project.pdfExportRecords ?? <PdfExportRecords>[];
+    csvExportRecordsNotifier.value = project.csvExportRecords ?? <CsvExportRecords>[];
   }
 
   void updateProject(Project updatedProject) {
@@ -259,6 +262,14 @@ class SingleProjectController {
     ).toList();
   }
 
+  List<Snag> getSnagsByTag(String tag) {
+    return project.snags.where((snag) => 
+      snag.tags != null &&
+      snag.tags!.isNotEmpty &&
+      snag.tags!.first.name.toLowerCase() == tag.toLowerCase()
+    ).toList();
+  }
+
   List<Snag> getSnagsWithNoCategory() {
     return project.snags.where((snag) => snag.categories == null || snag.categories!.isEmpty).toList();
   }
@@ -300,6 +311,33 @@ class SingleProjectController {
       if (await file.exists()) {
         await file.delete();
       }
+    } catch (e) {
+      debugPrint('Error deleting file: $e');
+    }
+  }
+
+  void addCsvExportRecord(CsvExportRecords record) {
+    project.csvExportRecords ??= <CsvExportRecords>[];
+    project.csvExportRecords?.add(record);
+    csvExportRecordsNotifier.value = List.from(project.csvExportRecords!);
+    saveProject();
+  }
+
+  ValueListenable<List<CsvExportRecords>> getCsvExportRecordsListenable() {
+    return csvExportRecordsNotifier;
+  }
+
+  void deleteCsvExportRecord(CsvExportRecords record) async {
+    if (project.csvExportRecords == null) return;
+
+    project.csvExportRecords!.removeWhere((r) => r.uuid == record.uuid);
+    csvExportRecordsNotifier.value = List.from(project.csvExportRecords!);
+    saveProject();
+
+    try {
+      final dir = Directory(await getCsvDirectory());
+      final file = File('${dir.path}/${record.fileName}');
+      if (await file.exists()) await file.delete();
     } catch (e) {
       debugPrint('Error deleting file: $e');
     }

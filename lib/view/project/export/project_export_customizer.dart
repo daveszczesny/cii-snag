@@ -19,7 +19,7 @@ class _ProjectExportCustomizerState extends ProjectExportCustomizerBaseState<Pro
 
   final Map<String, dynamic> options = {
     "Standard I": buildSnagPage_theme1,
-    "Standard II": buildSnagPage_theme1,
+    // "Standard II": buildSnagPage_theme1,
   };
   final TextEditingController themeController = TextEditingController();
 

@@ -67,14 +67,6 @@ class _ProjectAnalyticsState extends State<ProjectAnalytics> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 16),
-              // Text('To do: $totalNewPercentage%', style: const TextStyle(fontSize: 14)),
-              // const SizedBox(height: 8),
-              // Text('In progress: $totalInProgressPercentage%', style: const TextStyle(fontSize: 14)),
-              // const SizedBox(height: 8),
-              // Text('On Hold: $totalOnHoldPercentage%', style: const TextStyle(fontSize: 14)),
-              // const SizedBox(height: 8),
-              // Text('Completed: $totalCompletedPercentage%', style: const TextStyle(fontSize: 14)),
-              // const SizedBox(height: 24),
               PieChart(
                 dataMap: dataMap,
                 colorList: colorList,
