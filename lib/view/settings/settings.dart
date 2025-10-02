@@ -1,9 +1,11 @@
 import 'package:cii/utils/colors/app_colors.dart';
 import 'package:cii/view/settings/app_settings.dart';
 import 'package:cii/view/settings/company_settings.dart';
+import 'package:cii/view/settings/feedback.dart';
 import 'package:cii/view/settings/naming_settings.dart';
 import 'package:cii/view/settings/privacy_policy.dart';
 import 'package:cii/view/settings/terms_conditions.dart';
+import 'package:cii/view/settings/feedback.dart' as ReportFeedback;
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
@@ -74,6 +76,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   settingsTab(context, Icons.apartment, "Company", const CompanySettings()),
                   settingsTab(context, Icons.description, "Terms & Conditions", const TermsConditions()),
                   settingsTab(context, Icons.privacy_tip, "Privacy Policy", const PrivacyPolicy()),
+                  settingsTab(context, Icons.feedback_outlined, "Report a bug", const ReportFeedback.Feedback()),
                 ],
               ),
             ),
