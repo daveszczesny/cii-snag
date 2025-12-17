@@ -16,7 +16,7 @@ class _FeedbackState extends State<Feedback> {
     final feedback = _feedbackController.text.trim();
     if (feedback.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter your feedback')),
+        const SnackBar(content: Text('Please enter feedback first'))
       );
       return;
     }
@@ -24,22 +24,22 @@ class _FeedbackState extends State<Feedback> {
     final Uri emailUri = Uri(
       scheme: 'mailto',
       path: 'contact@constructionitis.com',
-      query: 'subject=App Feedback&body=${Uri.encodeComponent(feedback)}',
+      query: 'subject=Bug Report&body=${Uri.encodeComponent(feedback)}',
     );
 
     try {
-      if (await canLaunchUrl(emailUri)) {
-        await launchUrl(emailUri);
-      } else {
-        throw 'Could not launch email app';
-      }
+      await launchUrl(
+        emailUri,
+        mode: LaunchMode.externalApplication,
+      );
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Could not open email app')),
+          const SnackBar(content: Text('Could not open email app'))
         );
       }
     }
+
 
     Navigator.pop(context);
   }
@@ -49,45 +49,58 @@ class _FeedbackState extends State<Feedback> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Report a Bug'),
+        elevation: 0,
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Tell us about the issue',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
-            ),
-            const SizedBox(height: 12),
-            Expanded(
-              child: Container(
-                // Make the container like 70% height
-                // height: MediaQuery.of(context).size.height * 0.7,
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey.shade300),
-                  borderRadius: BorderRadius.circular(8),
+            Row(
+              children: [
+                Icon(Icons.bug_report, color: Colors.red.shade600, size: 24),
+                const SizedBox(width: 8),
+                const Text(
+                  'Tell us about the issue',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
                 ),
-                child: TextField(
-                  controller: _feedbackController,
-                  maxLines: null,
-                  expands: true,
-                  textAlignVertical: TextAlignVertical.top,
-                  decoration: const InputDecoration(
-                    hintText: 'Describe the issue you encountered...',
-                    border: InputBorder.none,
-                    contentPadding: EdgeInsets.all(16),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Help us improve the app by describing any bugs or issues you\'ve encountered.',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey.shade600,
+              ),
+            ),
+            const SizedBox(height: 20),
+            Expanded(
+              child: Card(
+                elevation: 2,
+                child: Padding(
+                  padding: const EdgeInsets.all(4.0),
+                  child: TextField(
+                    controller: _feedbackController,
+                    maxLines: null,
+                    expands: true,
+                    textAlignVertical: TextAlignVertical.top,
+                    decoration: const InputDecoration(
+                      hintText: 'Describe the issue you encountered...\n\nPlease include:\n• What you were trying to do\n• What happened instead\n• Steps to reproduce the issue',
+                      border: InputBorder.none,
+                      contentPadding: EdgeInsets.all(16),
+                    ),
                   ),
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
             SizedBox(
               width: double.infinity,
-              height: 48,
-              child: buildTextButton("Send Feedback", _sendEmail)
+              height: 50,
+              child: buildTextButton("Send Bug Report", _sendEmail),
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 20),
           ],
         ),
       ),

@@ -5,6 +5,34 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 
+class SafeTextInputFormatter extends TextInputFormatter {
+  static final RegExp _emojiRegex = RegExp(
+    r'[\u{1F300}-\u{1FAFF}'
+    r'\u{2600}-\u{27BF}'
+    r'\u{1F1E6}-\u{1F1FF}'
+    r'\u{200D}'
+    r'\u{FE0F}]',
+    unicode: true,
+  );
+
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    final sanitized = newValue.text.replaceAll(_emojiRegex, '');
+
+    if (sanitized == newValue.text) {
+      return newValue;
+    }
+
+    return TextEditingValue(
+      text: sanitized,
+      selection: TextSelection.collapsed(offset: sanitized.length),
+    );
+  }
+}
+
 Widget buildTextDetail(String label, String text) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -104,6 +132,7 @@ Widget buildTextInput(String label, String hintText, TextEditingController contr
         TextField(
           controller: controller,
           autocorrect: true,
+          inputFormatters: [SafeTextInputFormatter()],
           textCapitalization: TextCapitalization.sentences,
           style: const TextStyle(color: Colors.black, fontSize: 16, fontWeight: FontWeight.w400, fontFamily: 'Roboto'),
           decoration: InputDecoration(
@@ -129,7 +158,7 @@ Widget buildNumericInput(String label, String hintText, TextEditingController co
         TextField(
           controller: controller,
           keyboardType: TextInputType.number,
-          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+          inputFormatters: [FilteringTextInputFormatter.digitsOnly, SafeTextInputFormatter()],
           style: const TextStyle(color: Colors.black, fontSize: 16, fontWeight: FontWeight.w400, fontFamily: 'Roboto'),
           decoration: InputDecoration(
             hintText: hintText, hintStyle: const TextStyle(color: Color(0xFF333333), fontSize: 14, fontWeight: FontWeight.w300, fontFamily: 'Roboto'),
@@ -154,6 +183,7 @@ Widget buildTextInputForREF(String label, String hintText, TextEditingController
         TextField(
           controller: controller,
           textCapitalization: TextCapitalization.characters,
+          inputFormatters: [SafeTextInputFormatter()],
           style: const TextStyle(color: Colors.black, fontSize: 16, fontWeight: FontWeight.w400, fontFamily: 'Roboto'),
           decoration: InputDecoration(
             hintText: hintText, hintStyle: const TextStyle(color: Color(0xFF333333), fontSize: 14, fontWeight: FontWeight.w300, fontFamily: 'Roboto'),
@@ -210,6 +240,7 @@ Widget buildLongTextInput(label, hintText, controller) {
         TextField(
           controller: controller,
           autocorrect: true,
+          inputFormatters: [SafeTextInputFormatter()],
           textCapitalization: TextCapitalization.sentences,
           maxLines: null,
           style: const TextStyle(color: Colors.black, fontSize: 16, fontWeight: FontWeight.w400, fontFamily: 'Roboto'),

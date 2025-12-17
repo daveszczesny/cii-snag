@@ -147,7 +147,7 @@ class _ScreenState extends State<Screen> {
 
   @override
   Widget build(BuildContext context) {
-    if (companyController.getCompany() == null) {
+    if ("123" == null) {
       return Scaffold(
         body: Center(
           child: Padding(

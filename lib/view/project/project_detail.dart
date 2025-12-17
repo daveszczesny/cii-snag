@@ -5,7 +5,6 @@ import 'package:cii/view/snag/snag_create.dart';
 import 'package:cii/view/snag/snag_list.dart';
 import 'package:cii/view/utils/constants.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 
 class ProjectDetail extends StatefulWidget {
   final SingleProjectController projectController;
@@ -146,10 +145,6 @@ class _ProjectDetailState extends State<ProjectDetail> {
                         value: 'export',
                         child: Text('Export Project')
                       ),
-                      const PopupMenuItem<String>(
-                        value: 'settings',
-                        child: Text('Project Settings')
-                      )
                     ];
                   },
                 )

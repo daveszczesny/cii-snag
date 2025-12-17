@@ -1,7 +1,7 @@
 name: cii
 description: "CII - Snagging Application"
 publish_to: 'none'
-version: 1.0.8
+version: 1.0.10
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -37,6 +37,7 @@ dependencies:
   package_info_plus: ^9.0.0
   workmanager: ^0.9.0
   url_launcher: ^6.2.1
+  in_app_purchase: ^3.2.3
 
 dev_dependencies:
   flutter_test:
@@ -81,3 +82,6 @@ flutter:
     - lib/assets/splash/SplashScreen.png
 
     - lib/assets/logo/CII_logo.png
+
+    # Terms and Conditions
+    - lib/assets/text/terms_conditions.txt

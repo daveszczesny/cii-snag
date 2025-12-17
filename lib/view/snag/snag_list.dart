@@ -58,11 +58,11 @@ class _SnagListState extends State<SnagList> with SingleTickerProviderStateMixin
 
   List<SnagController> filterSnags(String status) {
     switch (status.toLowerCase()) {
-      case 'new':
+      case 'open':
         return sorted(widget.projectController.getSnagsByStatus(Status.todo));
       case 'in progress':
         return sorted(widget.projectController.getSnagsByStatus(Status.inProgress));
-      case 'completed':
+      case 'closed':
         return sorted(widget.projectController.getSnagsByStatus(Status.completed));
       case 'blocked':
       case 'on hold':

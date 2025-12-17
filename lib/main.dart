@@ -19,46 +19,70 @@ import 'package:cii/view/screen.dart';
 import 'package:cii/view/utils/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:cii/services/premium_service.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  try {
+    WidgetsFlutterBinding.ensureInitialized();
+    await PremiumService.instance.init();
 
-  await Hive.initFlutter();
-  Hive.registerAdapter(ColorAdapter());
-  Hive.registerAdapter(PriorityAdapter());
-  Hive.registerAdapter(CommentAdapter());
-  Hive.registerAdapter(CategoryAdapter());
-  Hive.registerAdapter(TagAdapter());
-  Hive.registerAdapter(CompanyAdapter());
-  Hive.registerAdapter(ProjectAdapter());
-  Hive.registerAdapter(StatusAdapter());
-  Hive.registerAdapter(SnagAdapter());
-  Hive.registerAdapter(PdfExportRecordsAdapter());
-  Hive.registerAdapter(CsvExportRecordsAdapter());
-  Hive.registerAdapter(NotificationTypeAdapter());
-  Hive.registerAdapter(AppNotificationAdapter());
-  // Hive.deleteBoxFromDisk('companies');
+    await Hive.initFlutter();
 
-  // load user preferences
-  AppTerminology.loadTerminologyPrefs();
-  AppDateTimeFormat.loadDateTimePrefs();
+    try {
+      Hive.registerAdapter(ColorAdapter());
+      Hive.registerAdapter(PriorityAdapter());
+      Hive.registerAdapter(CommentAdapter());
+      Hive.registerAdapter(CategoryAdapter());
+      Hive.registerAdapter(TagAdapter());
+      Hive.registerAdapter(CompanyAdapter());
+      Hive.registerAdapter(ProjectAdapter());
+      Hive.registerAdapter(StatusAdapter());
+      Hive.registerAdapter(SnagAdapter());
+      Hive.registerAdapter(PdfExportRecordsAdapter());
+      Hive.registerAdapter(CsvExportRecordsAdapter());
+      Hive.registerAdapter(NotificationTypeAdapter());
+      Hive.registerAdapter(AppNotificationAdapter());
+    } catch (e) {
+      debugPrint("Error registerin hive adapters: $e");
+    }
+    
+    // Hive.deleteBoxFromDisk('companies');
 
-  await Hive.openBox<Company>('companies');
-  await Hive.openBox<Project>('projects');
-  await Hive.openBox<Snag>('snags');
-  
-  // Initialize notification service
-  await NotificationService().initialize();
-  
-  // Check for notifications on app start
-  final notificationController = NotificationController();
-  await notificationController.checkAndCreateNotifications();
-  
-  // Start background notification checks
-  await BackgroundNotificationService.initialize();
+    // load user preferences
+    try {
+      AppTerminology.loadTerminologyPrefs();
+      AppDateTimeFormat.loadDateTimePrefs();
+    } catch (e) {
+      debugPrint("Error loading preferences $e");
+    }
+
+    try {
+      await Hive.openBox<Company>('companies');
+      await Hive.openBox<Project>('projects');
+      await Hive.openBox<Snag>('snags');
+    } catch (e) {
+      debugPrint("Error loading preferences $e");
+    }
+    
+    try {
+      // Initialize notification service
+      await NotificationService().initialize();
+      
+      // Check for notifications on app start
+      final notificationController = NotificationController();
+      await notificationController.checkAndCreateNotifications();
+      
+      // Start background notification checks
+      await BackgroundNotificationService.initialize();
+    } catch (e) {
+      debugPrint("Error initializing notifications: $e"); 
+    }
 
 
-  runApp(const MainApp());
+    runApp(const MainApp());
+  } catch (e) {
+    debugPrint("Error initializing app: $e");
+  }
 }
 
 class MainApp extends StatelessWidget {

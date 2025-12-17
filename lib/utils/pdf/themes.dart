@@ -6,9 +6,10 @@ import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
-pw.MultiPage buildSnagPage_theme1(String projectName, SnagController snag, String imageQuality, List processedImages, pw.ImageProvider logoImage) {
+pw.MultiPage buildSnagPage_theme1(String projectName, SnagController snag, String imageQuality, List processedImages, pw.ImageProvider logoImage, [pw.ThemeData? theme]) {
   return pw.MultiPage(
     pageFormat: PdfPageFormat.a4,
+    theme: theme,
     header: (context) => getHeader(projectName),
     margin: const pw.EdgeInsets.symmetric(horizontal: 24, vertical: 32),
     footer: (context) => getFooter(context, logoImage),

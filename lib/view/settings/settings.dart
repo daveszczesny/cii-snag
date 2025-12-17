@@ -73,7 +73,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 children: [
                   settingsTab(context, Icons.dashboard_customize_outlined, "App", const AppSettings()),
                   settingsTab(context, Icons.text_fields, "Terminology", const NamingSettings()),
-                  settingsTab(context, Icons.apartment, "Company", const CompanySettings()),
+                  // settingsTab(context, Icons.apartment, "Company", const CompanySettings()),
                   settingsTab(context, Icons.description, "Terms & Conditions", const TermsConditions()),
                   settingsTab(context, Icons.privacy_tip, "Privacy Policy", const PrivacyPolicy()),
                   settingsTab(context, Icons.feedback_outlined, "Report a bug", const ReportFeedback.Feedback()),

@@ -536,11 +536,11 @@ class _CustomImageEditorState extends State<CustomImageEditor> {
     if (_selectedTextIndex != null) {
       final textAnnotation = _textAnnotations[_selectedTextIndex!];
       final textBounds = _getTextBounds(textAnnotation);
-      
+
       // Check for scale handles
       final scaleHandles = _getScaleHandles(textBounds);
       for (int i = 0; i < scaleHandles.length; i++) {
-        if ((position - scaleHandles[i]).distance < 20) {
+        if ((position - scaleHandles[i]).distance < 30) {
           _textEditMode = TextEditMode.scaling;
           _scaleStartPosition = position;
           _initialFontSize = textAnnotation.fontSize;
@@ -556,7 +556,7 @@ class _CustomImageEditorState extends State<CustomImageEditor> {
         return;
       }
     }
-    
+
     // Check if clicking on any text to select it
     for (int i = 0; i < _textAnnotations.length; i++) {
       final textAnnotation = _textAnnotations[i];
@@ -572,7 +572,7 @@ class _CustomImageEditorState extends State<CustomImageEditor> {
         return;
       }
     }
-    
+
     // Clear selection if clicking elsewhere
     _clearTextSelection();
   }

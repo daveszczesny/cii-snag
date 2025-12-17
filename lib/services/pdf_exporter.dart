@@ -37,10 +37,16 @@ Future<void> savePdfFile(
     final pdf = pw.Document();
     final projectName = controller.getName!;
 
+    final robotoRegular = await rootBundle.load('lib/assets/fonts/Roboto-Regular.ttf');
+    final robotoBold = await rootBundle.load('lib/assets/fonts/Roboto-Bold.ttf');
+
+    final theme = pw.ThemeData.withFont(
+      base: pw.Font.ttf(robotoRegular),
+      bold: pw.Font.ttf(robotoBold),
+    );
 
     final logoBytes = await rootBundle.load('lib/assets/logo/CII_logo.png');
-    final compressedLogoImage = await processImageForQuality(logoBytes.buffer.asUint8List(), imageQuality);
-    final logoImage = pw.MemoryImage(compressedLogoImage);
+    final logoImage = pw.MemoryImage(logoBytes.buffer.asUint8List());
 
     pw.ImageProvider? projectLogoImage;
     if (controller.getMainImagePath != null && controller.getMainImagePath!.isNotEmpty) {
@@ -69,9 +75,9 @@ Future<void> savePdfFile(
         return categoryMatch && statusMatch;
       }).toList();
 
-    final frontPage = buildFrontPage(projectName, logoImage, projectLogoImage);
-    final projectDetailPage = buildProjectDetailsPage(projectName, controller, logoImage);
-    final snagListPage = buildSnagListPage(projectName, controller, imageQuality, selectedCategories, selectedStatuses, snagList, logoImage);
+    final frontPage = buildFrontPage(projectName, logoImage, projectLogoImage, theme);
+    final projectDetailPage = buildProjectDetailsPage(projectName, controller, logoImage, theme);
+    final snagListPage = buildSnagListPage(projectName, controller, imageQuality, selectedCategories, selectedStatuses, snagList, logoImage, theme);
 
     pdf.addPage(frontPage);
     pdf.addPage(projectDetailPage);
@@ -114,7 +120,7 @@ Future<void> savePdfFile(
         })
         .toList() ?? <pw.MemoryImage>[];
 
-      final snagPageThemed = themeFunction(projectName, snag, imageQuality, processedImages, logoImage);
+      final snagPageThemed = themeFunction(projectName, snag, imageQuality, processedImages, logoImage, theme);
       pdf.addPage(snagPageThemed);
     }
 
@@ -230,14 +236,15 @@ pw.Widget getFooter(pw.Context context, pw.ImageProvider logoImage) {
 }
 
 
-pw.MultiPage buildFrontPage(String projectName, pw.ImageProvider logoImage, [pw.ImageProvider? projectLogoImage]) {
+pw.MultiPage buildFrontPage(String projectName, pw.ImageProvider logoImage, [pw.ImageProvider? projectLogoImage, pw.ThemeData? theme]) {
   return pw.MultiPage(
     pageFormat: PdfPageFormat.a4,
+    theme: theme,
     margin: const pw.EdgeInsets.symmetric(horizontal: 24, vertical: 32),
     build: (pw.Context context) => [
       // project image if available
       if (projectLogoImage != null) ... [
-        pw.SizedBox(height: PdfPageFormat.a4.availableHeight * 0.2),
+        pw.SizedBox(height: PdfPageFormat.a4.availableHeight * 0.15),
         pw.Center(
           child: pw.Image(projectLogoImage, width: 450, height: 350, fit: pw.BoxFit.contain),
         ),
@@ -265,9 +272,10 @@ pw.MultiPage buildFrontPage(String projectName, pw.ImageProvider logoImage, [pw.
   );
 }
 
-pw.MultiPage buildProjectDetailsPage(String projectName, SingleProjectController controller, pw.ImageProvider logoImage) {
+pw.MultiPage buildProjectDetailsPage(String projectName, SingleProjectController controller, pw.ImageProvider logoImage, [pw.ThemeData? theme] ) {
   return pw.MultiPage(
     pageFormat: PdfPageFormat.a4,
+    theme: theme,
     margin: const pw.EdgeInsets.symmetric(horizontal: 24, vertical: 32),
     build: (pw.Context context) => [
       // Project name (top middle)
@@ -402,9 +410,11 @@ pw.MultiPage buildSnagListPage(
   List<String>? selectedCategories,
   List<String>? selectedStatuses,
   List snagList,
-  pw.ImageProvider logoImage) {
+  pw.ImageProvider logoImage,
+  [pw.ThemeData? theme]) {
   return pw.MultiPage(
       pageFormat: PdfPageFormat.a4,
+      theme: theme,
       header: (context) => getHeader(projectName),
       margin: const pw.EdgeInsets.symmetric(horizontal: 24, vertical: 32),
       build: (pw.Context context) {

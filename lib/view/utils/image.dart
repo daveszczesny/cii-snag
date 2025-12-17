@@ -186,7 +186,7 @@ Future<bool> _checkAspectRatio(String imagePath) async {
   final image = img.decodeImage(bytes);
   if (image == null || image.height == 0) return false;
   final aspectRatio = image.width / image.height;
-  return aspectRatio >= 0.75 && aspectRatio <= 1.33;
+  return aspectRatio >= 0.9 && aspectRatio <= 1.1;
 }
 
 

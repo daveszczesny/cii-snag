@@ -1,3 +1,4 @@
+import 'package:cii/view/utils/text.dart';
 import 'package:flutter/material.dart';
 
 typedef ObjectCreator<T> = void Function(String name);
@@ -186,6 +187,7 @@ class _ObjectSelectorState<T> extends State<ObjectSelector<T>> {
             Expanded(
               child: TextField(
                 controller: _controller,
+                inputFormatters: [SafeTextInputFormatter()],
                 decoration: InputDecoration(hintText: 'Add new ${widget.label}'),
                 style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w400, fontFamily: 'Roboto'),
               ),
