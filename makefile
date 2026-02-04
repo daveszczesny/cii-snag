@@ -4,4 +4,6 @@ build-model:
 	@echo "Models built successfully."
 
 build-apk:
+	flutter clean
+	flutter pub get
 	flutter build apk --release

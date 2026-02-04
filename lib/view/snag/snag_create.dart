@@ -6,6 +6,8 @@ import 'package:cii/models/project.dart';
 import 'package:cii/models/snag.dart';
 import 'package:cii/models/status.dart';
 import 'package:cii/models/tag.dart';
+import 'package:cii/models/tier_limits.dart';
+import 'package:cii/services/tier_service.dart';
 import 'package:cii/utils/common.dart';
 import 'package:cii/view/project/project_detail.dart';
 import 'package:cii/view/utils/constants.dart';
@@ -400,7 +402,16 @@ class _SnagCreateState extends State<SnagCreate> {
                 ),
               ],
               const SizedBox(height: 35.0),
-              buildTextButton(AppStrings.snagCreate(), createSnag),
+
+              buildTextButton(AppStrings.snagCreate(), () {
+                if (!TierService.instance.canCreateSnag(projectController!.getTotalSnags())) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Max number of ${AppStrings.snags()} per project reached (${TierLimits.free.maxSnagsPerProject})'))
+                  );
+                  return;
+                }
+                createSnag();
+              }),
               const SizedBox(height: 12.0),
             ],
           )

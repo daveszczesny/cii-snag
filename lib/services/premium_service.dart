@@ -20,8 +20,7 @@ class PremiumService {
   Future<void> init() async {
     // Load premium flag from local storage
     final prefs = await SharedPreferences.getInstance();
-    _isPremium = prefs.getBool(_premiumKey) ?? false;
-
+    _isPremium = prefs.getBool(_premiumKey) ?? false; // True for premium, false for not
     // listen to purchase updates
     _subscription = _iap.purchaseStream.listen(_onPurchaseUpdated, onDone: () {
       _subscription.cancel();
@@ -45,7 +44,7 @@ class PremiumService {
       return;
     }
 
-    const Set<String> _kIds = {'premium_upgrade'}; // TODO: replace with product ID
+    const Set<String> _kIds = {'com.cii.renomate.premium'}; // TODO: replace with product ID
     final response = await _iap.queryProductDetails(_kIds);
     if (response.notFoundIDs.isNotEmpty) {
       debugPrint('Product not found: ${response.notFoundIDs}');

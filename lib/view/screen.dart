@@ -1,7 +1,9 @@
 import 'package:cii/controllers/company_controller.dart';
 import 'package:cii/controllers/project_controller.dart';
 import 'package:cii/models/company.dart';
+import 'package:cii/models/tier_limits.dart';
 import 'package:cii/services/notification_service.dart';
+import 'package:cii/services/tier_service.dart';
 import 'package:cii/view/company/company_create.dart';
 import 'package:cii/view/notifications/notification.dart';
 import 'package:cii/view/project/project_create.dart';
@@ -88,20 +90,25 @@ class _ScreenState extends State<Screen> {
           Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              IconButton(
-                icon: const ImageIcon(
-                  AssetImage(AppAssets.projectIcon),
-                  size: 100,
-                ),
-                onPressed: () {
-                  // Hide the bottom sheet
+              GestureDetector(
+                onTap: TierService.instance.canCreateProject(projectController) ? null : () {
                   Navigator.pop(context);
-
-                  // navigate to create project screen
-                  Navigator.of(context).push(
-                    MaterialPageRoute(builder: (context) => const ProjectCreate())
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Free tier limited to a maximum of 2 projects.'))
                   );
                 },
+                child: IconButton(
+                  icon: const ImageIcon(
+                    AssetImage(AppAssets.projectIcon),
+                    size: 100,
+                  ),
+                  onPressed: TierService.instance.canCreateProject(projectController) ?() {
+                    Navigator.pop(context);
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (context) => const ProjectCreate())
+                    );
+                  } : null,
+                ),
               ),
               const Text(
                 AppStrings.project,

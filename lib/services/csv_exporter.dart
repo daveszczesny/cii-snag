@@ -6,6 +6,7 @@ import 'dart:io';
 import 'package:cii/controllers/single_project_controller.dart';
 import 'package:cii/controllers/snag_controller.dart';
 import 'package:cii/models/csvexportrecords.dart';
+import 'package:cii/services/tier_service.dart';
 import 'package:cii/utils/common.dart';
 import 'package:cii/view/utils/constants.dart';
 import 'package:crypto/crypto.dart';
@@ -14,7 +15,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
 import 'package:open_file/open_file.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 /*
@@ -29,10 +29,13 @@ The SaveCsvFile function will do the following
 - Export to CSV file
   */
 
+
 Future<void> saveCsvFile(
   BuildContext context,
   SingleProjectController projectController,
 ) async {
+
+  TierService.instance.checkCsvExport();
 
   showDialog(
     context: context,

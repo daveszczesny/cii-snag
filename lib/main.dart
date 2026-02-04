@@ -10,6 +10,7 @@ import 'package:cii/models/project.dart';
 import 'package:cii/models/snag.dart';
 import 'package:cii/models/status.dart';
 import 'package:cii/models/tag.dart';
+import 'package:cii/services/demo_service.dart';
 import 'package:cii/services/notification_service.dart';
 import 'package:cii/services/background_notification_service.dart';
 import 'package:cii/controllers/notification_controller.dart';
@@ -76,6 +77,17 @@ void main() async {
       await BackgroundNotificationService.initialize();
     } catch (e) {
       debugPrint("Error initializing notifications: $e"); 
+    }
+
+    try {
+      // Create demo data if first launch
+      final isFirstLaunch = await DemoService.isFirstLaunch();
+      if (isFirstLaunch) {
+        await DemoService.createDemoData();
+        await DemoService.markFirstLaunchComplete();
+      }
+    } catch (e) {
+      debugPrint("Error creating demo data: $e");
     }
 
 

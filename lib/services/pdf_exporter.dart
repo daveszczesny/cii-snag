@@ -4,6 +4,7 @@ import 'package:cii/controllers/single_project_controller.dart';
 import 'package:cii/controllers/snag_controller.dart';
 import 'package:cii/models/pdfexportrecords.dart';
 import 'package:cii/models/status.dart';
+import 'package:cii/services/tier_service.dart';
 import 'package:cii/utils/common.dart';
 import 'package:cii/view/utils/constants.dart';
 import 'package:crypto/crypto.dart';
@@ -25,6 +26,8 @@ Future<void> savePdfFile(
   List<String>? selectedCategories, // Categories to include in the export
   List<String>? selectedStatuses // Statuses to include in the export
 ) async {
+
+  TierService.instance.checkPdfExport();
 
   showDialog(
     context: context,

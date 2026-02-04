@@ -1,5 +1,5 @@
-
 import 'package:cii/services/pdf_exporter.dart';
+import 'package:cii/services/tier_service.dart';
 import 'package:cii/view/project/export/project_export_customizer_base.dart';
 import 'package:cii/view/utils/text.dart';
 import 'package:flutter/material.dart';
@@ -27,7 +27,7 @@ class _ProjectExportCustomizerState extends ProjectExportCustomizerBaseState<Pro
   @override
   void initState() {
     super.initState();
-    selectedQualityNotifier = ValueNotifier<String>('High');
+    selectedQualityNotifier = ValueNotifier<String>('Low');
     themeController.text = options.keys.first;
   }
 
@@ -38,13 +38,16 @@ class _ProjectExportCustomizerState extends ProjectExportCustomizerBaseState<Pro
   List<Widget> buildCustomOptions() {
     return [
       buildCustomSegmentedControl(
-        label: "Photo Quality",
+        label: TierService.instance.canPdfQualityChange ? "Image Quality" : "Image Quality (Upgrade to Premium to unlock)",
         options: ["Low", "Medium", "High"],
-        selectedNotifier: selectedQualityNotifier
+        selectedNotifier: selectedQualityNotifier,
+        enabled: TierService.instance.canPdfQualityChange
       ),
       const SizedBox(height: 24.0),
 
-      buildDropdownInput("Theme", options.keys.toList(), themeController), // theme controller
+      buildDropdownInput(
+        "Theme",
+        options.keys.toList(), themeController, enabled: TierService.instance.canPdfThemeChange),
       const SizedBox(height: 24.0)
 
     ];

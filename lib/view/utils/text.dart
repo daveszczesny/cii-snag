@@ -255,23 +255,40 @@ Widget buildLongTextInput(label, hintText, controller) {
     );
 }
 
-Widget buildDropdownInput(String label, List<String> options, TextEditingController controller) {
+Widget buildDropdownInput(String label, List<String> options, TextEditingController controller, {bool enabled = true}) {
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      Text(label, style: const TextStyle(color: Color(0xFF333333), fontSize: 14, fontWeight: FontWeight.w300, fontFamily: 'Roboto')),
+      Text(
+        enabled ? label : "$label (Upgrade to premium to unlock)", 
+        style: TextStyle(
+          color: enabled ? const Color(0xFF333333) : Colors.grey, 
+          fontSize: 14, 
+          fontWeight: FontWeight.w300, 
+          fontFamily: 'Roboto'
+        )
+      ),
       const SizedBox(height: 12.0),
       DropdownButtonFormField<String>(
         value: controller.text.isEmpty ? null : controller.text,
-        items: options.map((String option) {
+        items: enabled ? options.map((String option) {
           return DropdownMenuItem(value: option, child: Text(option));
-        }).toList(),
-        onChanged: (String? value) { controller.text = value ?? ''; },
+        }).toList() : null,
+        onChanged: enabled ? (String? value) { controller.text = value ?? ''; } : null,
         decoration: InputDecoration(
           hintText: 'Select $label',
-          hintStyle: const TextStyle(color: Color(0xFF333333), fontSize: 14, fontWeight: FontWeight.w300, fontFamily: 'Roboto'),
-          enabledBorder: const UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFF333333))),
-          focusedBorder: const UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFF333333))),
+          hintStyle: TextStyle(
+            color: enabled ? const Color(0xFF333333) : Colors.grey, 
+            fontSize: 14, 
+            fontWeight: FontWeight.w300, 
+            fontFamily: 'Roboto'
+          ),
+          enabledBorder: UnderlineInputBorder(
+            borderSide: BorderSide(color: enabled ? const Color(0xFF333333) : Colors.grey)
+          ),
+          focusedBorder: UnderlineInputBorder(
+            borderSide: BorderSide(color: enabled ? const Color(0xFF333333) : Colors.grey)
+          ),
         ),
       ),
     ],
@@ -282,6 +299,7 @@ Widget buildCustomSegmentedControl({
   required String label,
   required List<String> options,
   required ValueNotifier<String> selectedNotifier,
+  bool enabled = true
 }) {
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
@@ -302,12 +320,12 @@ Widget buildCustomSegmentedControl({
                 final isSelected = value == options[index];
                 return Expanded(
                   child: GestureDetector(
-                    onTap: () => selectedNotifier.value = options[index],
+                    onTap: enabled ? () => selectedNotifier.value = options[index] : null,
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 150),
                       padding: const EdgeInsets.symmetric(vertical: 6),
                       decoration: BoxDecoration(
-                        color: isSelected ? Colors.blue : Colors.transparent,
+                        color: isSelected ? (enabled ? Colors.blue : Colors.grey) : Colors.transparent,
                         borderRadius: BorderRadius.horizontal(
                           left: index == 0 ? const Radius.circular(30) : Radius.zero,
                           right: index == options.length - 1 ? const Radius.circular(30) : Radius.zero,
@@ -317,7 +335,7 @@ Widget buildCustomSegmentedControl({
                       child: Text(
                         options[index],
                         style: TextStyle(
-                          color: isSelected ? Colors.white : Colors.black87,
+                          color: isSelected ? Colors.white : (enabled ? Colors.black87 : Colors.grey),
                           fontWeight: FontWeight.w500,
                           fontSize: 12,
                           fontFamily: 'Roboto',
@@ -420,10 +438,20 @@ Widget buildDropdownInputForObjects({
 }
 
 // This function creates a button with the given label and onPressed callback.
-Widget buildTextButton(String label, VoidCallback onPressed) {
+Widget buildTextButton(String label, VoidCallback? onPressed, {bool enabled = true}) {
   return SizedBox(
     width: double.infinity,
-    child: TextButton(style: ButtonStyle(backgroundColor: WidgetStateProperty.all(AppColors.createButtonColor),
-      foregroundColor: WidgetStateProperty.all(Colors.black)), onPressed: onPressed, child: Text(label)),
+    child: TextButton(
+      style: ButtonStyle(
+        backgroundColor: WidgetStateProperty.all(
+          enabled ? AppColors.createButtonColor : Colors.grey.shade300
+        ),
+        foregroundColor: WidgetStateProperty.all(
+          enabled ? Colors.black : Colors.grey.shade600
+        )
+      ), 
+      onPressed: enabled ? onPressed : null, 
+      child: Text(label)
+    ),
   );
 }

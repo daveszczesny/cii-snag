@@ -48,7 +48,6 @@ class _AppSettingsState extends State<AppSettings> {
     if(changed){
       showSnackBar();
     }
-    Navigator.pop(context);
   }
 
   void showSnackBar() {

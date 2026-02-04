@@ -1,6 +1,7 @@
 import 'package:cii/controllers/single_project_controller.dart';
 import 'package:cii/services/csv_exporter.dart';
 import 'package:cii/services/pdf_exporter.dart';
+import 'package:cii/services/tier_service.dart';
 import 'package:cii/utils/common.dart';
 import 'package:cii/view/project/export/project_csv_export_customizer.dart';
 import 'package:cii/view/project/export/project_export_customizer.dart';
@@ -136,11 +137,20 @@ class _ProjectExportState extends State<ProjectExport> with SingleTickerProvider
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             buildTextButton("Export to $type", () async {
+              if (!TierService.instance.canExportCsv) {
+                // Show snack bar
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('CSV export is not available in the free tier. Please upgrade to premium to unlock this feature.'))
+                );
+                return;
+              }
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => ProjectCsvExportCustomizer(projectController: widget.projectController))
+                MaterialPageRoute(builder: (context) => ProjectCsvExportCustomizer(projectController: widget.projectController)),
               );
-            }), 
+            },
+            enabled: TierService.instance.canExportCsv,
+            ),
             const SizedBox(height: 24.0),
             const Row(
               children: [

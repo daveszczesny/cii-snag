@@ -2,6 +2,7 @@
 import 'package:cii/controllers/single_project_controller.dart';
 import 'package:cii/models/category.dart';
 import 'package:cii/models/status.dart';
+import 'package:cii/services/tier_service.dart';
 import 'package:flutter/material.dart';
 
 abstract class ProjectExportCustomizerBase extends StatefulWidget {
@@ -60,8 +61,16 @@ abstract class ProjectExportCustomizerBaseState<T extends ProjectExportCustomize
               const Text("Customize your export settings"),
               const SizedBox(height: 24.0),
               ...buildCustomOptions(),
-              if (categories.isNotEmpty) ... buildCategorySection(),
-              ... buildStatusSection(),
+
+              if (TierService.instance.canPdfCustomizer) ... [
+                if (categories.isNotEmpty) ... buildCategorySection(),
+                ... buildStatusSection(),
+              ] else ... [
+                const Text(
+                  'Upgrade to Premium to customize categories and statuses in your export',
+                  style: TextStyle(color: Colors.red, fontSize: 14.0, fontWeight: FontWeight.w400)
+                ),
+              ],
               const SizedBox(height: 24.0),
               buildExportButton(),
             ]

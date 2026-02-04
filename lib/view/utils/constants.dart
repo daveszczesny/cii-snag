@@ -137,8 +137,8 @@ class AppTerminology {
   static String prefsSnag = 'snag_singular';
   static String prefsSnags = 'snag_plural';
 
-  static String singularSnag = 'Snag';
-  static String plurlaSnag = 'Snags';
+  static String singularSnag = 'Issue';
+  static String plurlaSnag = 'Issues';
 
   static void setSnagTerm({required String singular, required String plural}) {
     singularSnag = singular;
@@ -147,8 +147,8 @@ class AppTerminology {
 
   static Future<void> loadTerminologyPrefs() async {
     final prefs = await SharedPreferences.getInstance();
-    AppTerminology.singularSnag = prefs.getString(prefsSnag) ?? 'Snag';
-    AppTerminology.plurlaSnag = prefs.getString(prefsSnags) ?? 'Snags';
+    AppTerminology.singularSnag = prefs.getString(prefsSnag) ?? 'Issue';
+    AppTerminology.plurlaSnag = prefs.getString(prefsSnags) ?? 'Issues';
   }
 
   static Future<void> saveTerminologyPrefs(String k, String v) async {

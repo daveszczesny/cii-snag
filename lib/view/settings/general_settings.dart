@@ -27,9 +27,9 @@ class _GeneralSettingsState extends State<GeneralSettings> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          buildTextInput("Snag Term", "Snag", snagTermController),
+          buildTextInput("Issue Term", "Issue", snagTermController),
           const SizedBox(height: gap),
-          buildTextInput("Snags Term", "Snags", snagPluralTermController),
+          buildTextInput("Issues Term", "Issues", snagPluralTermController),
           const SizedBox(height: gap),
         ]
       )
