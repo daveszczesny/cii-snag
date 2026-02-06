@@ -8,6 +8,7 @@ import 'package:cii/utils/common.dart';
 import 'package:cii/view/snag/snag_detail.dart';
 import 'package:cii/view/utils/constants.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class SnagCardWidget extends StatefulWidget {
   final SingleProjectController projectController;
@@ -57,7 +58,8 @@ class _SnagCardWidgetState extends State<SnagCardWidget> {
                         width: width,
                         height: height
                       );
-                      
+                      widget.snagController.setDateClosed(DateFormat(AppDateTimeFormat.dateTimeFormatPattern).format(DateTime.now()));
+
                     } else {
                       setState(() {
                         widget.snagController.status = status;
@@ -197,25 +199,11 @@ class _SnagCardWidgetState extends State<SnagCardWidget> {
     );
   }
 
-  // Helper method for due date
-  Widget? _buildDueDatePill() {
-    final dueDate = widget.snagController.getDueDate;
-    if (dueDate == null) return null;
-
-    final now = DateTime.now();
-    final diff = dueDate.difference(now).inDays;
-
-    if (diff < -1) {
-      // overdue
-      return gesturePill(() {}, Colors.red.withOpacity(0.8), 'Overdue');
-    } else if (diff <= 7) {
-      // due soon
-      return gesturePill((){}, Colors.orange.withOpacity(0.8), '${diff}d left');
-    }
-    return null;
-  }
-
   Widget? _buildDueDateIcon() {
+
+    // If snag is complete do not show icon
+    if (widget.snagController.status.name == Status.completed.name) return null;
+
     final dueDate = widget.snagController.getDueDate;
     if (dueDate == null) return null;
     
@@ -276,13 +264,34 @@ class _SnagCardWidgetState extends State<SnagCardWidget> {
                   ClipRRect(
                     borderRadius: BorderRadius.circular(15),
                     child: (() {
-                      // Check if the image path is not null and the file exists
-                      // If it does, display the image; otherwise, display a grey box
                       final imagePaths = widget.snagController.imagePaths;
-                      if (imagePaths.isNotEmpty && imagePaths[0].isNotEmpty && File(imagePaths[0]).existsSync()) {
-                        return Image.file(File(imagePaths[0]), width: 75, height: 75, fit: BoxFit.cover);
+                      if (imagePaths != null && imagePaths.isNotEmpty) {
+                        final firstImageFileName = imagePaths[0];
+                        return FutureBuilder<String>(
+                          future: getImagePath(firstImageFileName),
+                          builder: (context, snapshot) {
+                            if (!snapshot.hasData || !File(snapshot.data!).existsSync()) {
+                              return Container(
+                                width: 75, 
+                                height: 75, 
+                                color: Colors.grey[300], 
+                                child: const Icon(Icons.image, color: Colors.white54, size: 36)
+                              );
+                            }
+                            return Container(
+                              width: 75,
+                              height: 75,
+                              child: Image.file(File(snapshot.data!), fit: BoxFit.cover),
+                            );
+                          },
+                        );
                       } else {
-                        return Container(width: 75, height: 75, color: Colors.grey[300], child: const Icon(Icons.image, color: Colors.white54, size: 36));
+                        return Container(
+                          width: 75, 
+                          height: 75, 
+                          color: Colors.grey[300], 
+                          child: const Icon(Icons.image, color: Colors.white54, size: 36)
+                        );
                       }
                     })(),
                   ),

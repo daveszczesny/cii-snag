@@ -95,6 +95,17 @@ class SnagController {
     return snag.description ?? '';
   }
 
+  DateTime? get getDateClosed {
+    return snag.dateClosed;
+  }
+
+  String? get getDateClosedString {
+    return snag.dateClosed != null ? DateFormat(AppDateTimeFormat.dateTimeFormatPattern).format(snag.dateClosed!) : null;
+  }
+
+  bool get isClosed {
+    return snag.status.name == Status.completed.name;
+  }
 
   List<Tag> get tags {
     return snag.tags ?? [];
@@ -142,7 +153,6 @@ class SnagController {
     }
   }
 
-
   void setName(String v) { 
     snag.name = v; 
     snag.lastModified = DateTime.now();
@@ -171,6 +181,10 @@ class SnagController {
   }
   void setDueDate(String v) { 
     snag.dueDate = DateFormat(AppDateTimeFormat.dateTimeFormatPattern).parse(v); 
+    snag.lastModified = DateTime.now();
+  }
+  void setDateClosed(String v) {
+    snag.dateClosed = DateFormat(AppDateTimeFormat.dateTimeFormatPattern).parse(v);
     snag.lastModified = DateTime.now();
   }
   void setReviewedBy(String value) { 

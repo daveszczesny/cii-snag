@@ -85,6 +85,9 @@ class Snag extends HiveObject {
   @HiveField(21)
   DateTime? dueDate;
 
+  @HiveField(22)
+  DateTime? dateClosed;
+
   Snag({
     String? uuid,
     String? id,
@@ -111,6 +114,7 @@ class Snag extends HiveObject {
     id = id ?? 'PID',
     dateCreated = dateCreated ?? DateTime.now(),
     dueDate = dueDate ?? null,
+    dateClosed = null,
     status = status ?? Status.todo,
     priority = priority ?? Priority.low;
 }

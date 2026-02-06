@@ -129,6 +129,8 @@ class ProjectDetailPageState extends State<ProjectDetailPage> {
           child: const Text('Cancel')
         ),
         TextButton(
+
+          // TODO! Delete the image from storage as well
           onPressed: () {
             Navigator.of(context).pop();
             // delete the image
@@ -225,7 +227,7 @@ class ProjectDetailPageState extends State<ProjectDetailPage> {
               children: [
                 const SizedBox(height: 12),
 
-                if (imagePath != null && imagePath != '' && File(imagePath).existsSync()) ... [
+                if (imagePath != null && imagePath != '') ... [
                   buildThumbnailImageShowcase(context, imagePath, onDelete: onDelete),
                   const SizedBox(height: 24.0),
                 ] else ... [

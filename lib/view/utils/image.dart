@@ -8,9 +8,9 @@ import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 
 class SimpleCropper extends StatefulWidget {
-  final String imagePath;
+  final String imageFileName;
 
-  const SimpleCropper({super.key, required this.imagePath});
+  const SimpleCropper({super.key, required this.imageFileName});
   @override
   State<SimpleCropper> createState() => _SimpleCropperState();
 }
@@ -33,7 +33,8 @@ class _SimpleCropperState extends State<SimpleCropper> {
   }
 
   Future<void> _loadImage() async {
-    final file = File(widget.imagePath);
+    final fullPath = await getImagePath(widget.imageFileName);
+    final file = File(fullPath);
     final bytes = await file.readAsBytes();
     final image = img.decodeImage(bytes);
     
@@ -73,7 +74,13 @@ class _SimpleCropperState extends State<SimpleCropper> {
             child: Stack(
               children: [
                 Positioned.fill(
-                  child: Image.file(File(widget.imagePath), fit: BoxFit.contain),
+                  child: FutureBuilder<String>(
+                    future: getImagePath(widget.imageFileName),
+                    builder: (context, snapshot) {
+                      if (!snapshot.hasData) return Container();
+                      return Image.file(File(snapshot.data!), fit: BoxFit.contain);
+                    }
+                  )
                 ),
                 Positioned.fill(
                   child: LayoutBuilder(
@@ -161,27 +168,40 @@ class _SimpleCropperState extends State<SimpleCropper> {
     try {
       final cropped = img.copyCrop(
         _image, 
-        x: _offsetX.round(), 
-        y: _offsetY.round(), 
-        width: _cropSize.round(), 
+        x: _offsetX.round(),
+        y: _offsetY.round(),
+        width: _cropSize.round(),
         height: _cropSize.round()
       );
 
       final appDir = await getApplicationDocumentsDirectory();
+      final imagesDir = Directory('${appDir.path}/images');
+      if (!await imagesDir.exists()) {
+        await imagesDir.create(recursive: true);
+      }
+
       final timestamp = DateTime.now().millisecondsSinceEpoch;
-      final tempFile = File('${appDir.path}/cropped_$timestamp.png');
-      
+      final fileName = 'cropped_$timestamp.png';
+      final tempFile = File('${imagesDir.path}/$fileName');
+
+      // Delete the original file to save memory
+      final originalPath = await getImagePath(widget.imageFileName);
+      final orginalFile = File(originalPath);
+      if (await orginalFile.exists()) {
+        await orginalFile.delete();
+      }
+
       await tempFile.writeAsBytes(img.encodePng(cropped));
-      
-      Navigator.pop(context, tempFile.path);
+      Navigator.pop(context, fileName);
     } catch (e) {
-      Navigator.pop(context, widget.imagePath);
+      Navigator.pop(context, widget.imageFileName);
     }
   }
 }
 
 Future<bool> _checkAspectRatio(String imagePath) async {
-  final file = File(imagePath);
+  final fullPath = await getImagePath(imagePath);
+  final file = File(fullPath);
   final bytes = await file.readAsBytes();
   final image = img.decodeImage(bytes);
   if (image == null || image.height == 0) return false;
@@ -204,7 +224,7 @@ Future<void> _showCropDialog(BuildContext context, String imagePath, Function(St
             final croppedPath = await Navigator.push<String>(
               context,
               MaterialPageRoute(
-                builder: (context) => SimpleCropper(imagePath: imagePath),
+                builder: (context) => SimpleCropper(imageFileName: imagePath),
               ),
             );
             onChange(croppedPath ?? imagePath);
@@ -229,73 +249,78 @@ Widget buildImageShowcase(BuildContext context, onChange, onSave, List<String> i
     child: Wrap(
       spacing: spacing,
       runSpacing: spacing,
-      children: imageFilePaths.map((path) {
+      children: imageFilePaths.map((fileName) {
+        return FutureBuilder<String>(
+          future: getImagePath(fileName),
+          builder: (context, snapshot) {
+            if (!snapshot.hasData || fileName.isEmpty) {
+              return const SizedBox.shrink();
+            }
+            final fullPath = snapshot.data!;
 
-        if (path.isEmpty || File(path).existsSync() == false) {
-          return const SizedBox.shrink();
-        }
-        return Stack(
-          children: [
-            // Main image tap (e.g., preview)
-            GestureDetector(
-              // same on tap behavior as edit button
-              onTap: () async {
-                onChange(p: path);
-              },
-              onLongPress: () {
-                if (onLongPress == null) return;
-                showModalBottomSheet(context: context,
-                  builder: (context) => Container(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        ListTile(
-                          leading: const Icon(Icons.star),
-                          title: const Text('Set as Main Image'),
-                          onTap: () {
-                            Navigator.pop(context);
-                            onLongPress(path);
-                          }
+            return Stack(
+              children: [
+                // Main image tap (e.g., preview)
+                GestureDetector(
+                  // same on tap behavior as edit button
+                  onTap: () async {
+                    onChange(p: fileName);
+                  },
+                  onLongPress: () {
+                    if (onLongPress == null) return;
+                    showModalBottomSheet(context: context,
+                      builder: (context) => Container(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            ListTile(
+                              leading: const Icon(Icons.star),
+                              title: const Text('Set as Main Image'),
+                              onTap: () {
+                                Navigator.pop(context);
+                                onLongPress(fileName);
+                              }
+                            )
+                          ],
                         )
-                      ],
-                    )
-                  )
-                );
-              },
-              child: ClipRRect(
-                borderRadius: const BorderRadius.all(Radius.circular(12)),
-                child: Container(
-                  height: size,
-                  width: size,
-                  color: Colors.grey[200],
-                  child: Image.file(
-                    File(path),
-                    fit: BoxFit.cover,
+                      )
+                    );
+                  },
+                  child: ClipRRect(
+                    borderRadius: const BorderRadius.all(Radius.circular(12)),
+                    child: Container(
+                      height: size,
+                      width: size,
+                      color: Colors.grey[200],
+                      child: Image.file(
+                        File(fullPath),
+                        fit: BoxFit.cover,
+                      ),
+                    ),
                   ),
                 ),
-              ),
-            ),
-            // Delete button
-            Positioned(
-              top: 4,
-              right: 4,
-              child: GestureDetector(
-                onTap: () {
-                  imageFilePaths.remove(path);
-                  onChange();
-                },
-                child: Container(
-                  decoration: const BoxDecoration(
-                    color: Colors.black54,
-                    shape: BoxShape.circle,
+                // Delete button
+                Positioned(
+                  top: 4,
+                  right: 4,
+                  child: GestureDetector(
+                    onTap: () {
+                      imageFilePaths.remove(fileName);
+                      onChange();
+                    },
+                    child: Container(
+                      decoration: const BoxDecoration(
+                        color: Colors.black54,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.close, color: Colors.red, size: 20),
+                    ),
                   ),
-                  child: const Icon(Icons.close, color: Colors.red, size: 20),
                 ),
-              ),
-            ),
-          ],
-        );
+              ],
+            );
+          });
       }).toList(),
     ),
   );
@@ -303,152 +328,185 @@ Widget buildImageShowcase(BuildContext context, onChange, onSave, List<String> i
 
 Widget buildSingleImageShowcase(
   BuildContext context,
-  String imageFilePath,
+  String imageFileName,
   VoidCallback onDelete,
 ) {
-  return Padding(
-    padding: const EdgeInsets.symmetric(vertical: 8),
-    child: Stack(
-      children: [
-        GestureDetector(
-          onTap: () {
-            // Show image full screen
-            showDialog(
-              context: context,
-              builder: (_) => Dialog(
-                backgroundColor: Colors.transparent,
-                child: GestureDetector(
-                  onTap: () => Navigator.of(context).pop(),
-                  child: InteractiveViewer(
-                    child: Image.file(File(imageFilePath)),
+  return FutureBuilder<String>(
+    future: getImagePath(imageFileName),
+    builder: (context, snapshot) {
+      if (!snapshot.hasData || imageFileName.isEmpty) {
+        return const SizedBox.shrink();
+      }
+
+      final imageFilePath = snapshot.data!;
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Stack(
+          children: [
+            GestureDetector(
+              onTap: () {
+                // Show image full screen
+                showDialog(
+                  context: context,
+                  builder: (_) => Dialog(
+                    backgroundColor: Colors.transparent,
+                    child: GestureDetector(
+                      onTap: () => Navigator.of(context).pop(),
+                      child: InteractiveViewer(
+                        child: Image.file(File(imageFilePath)),
+                      ),
+                    ),
                   ),
+                );
+              },
+              child: SizedBox(
+                width: 100,
+                height: 100,
+                child: Image.file(File(imageFilePath), fit: BoxFit.cover),
+              ),
+            ),
+            // Delete button
+            Positioned(
+              top: 4,
+              right: 4,
+              child: GestureDetector(
+                onTap: onDelete,
+                child: Container(
+                  decoration: const BoxDecoration(
+                    color: Colors.black54,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.close, color: Colors.white, size: 20),
                 ),
               ),
-            );
-          },
-          child: SizedBox(
-            width: 100,
-            height: 100,
-            child: Image.file(File(imageFilePath), fit: BoxFit.cover),
-          ),
-        ),
-        // Delete button
-        Positioned(
-          top: 4,
-          right: 4,
-          child: GestureDetector(
-            onTap: onDelete,
-            child: Container(
-              decoration: const BoxDecoration(
-                color: Colors.black54,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.close, color: Colors.white, size: 20),
             ),
-          ),
+          ],
         ),
-      ],
-    ),
+      );
+    }
   );
 }
 
 Widget buildThumbnailImageShowcase(
   BuildContext context,
-  String imageFilePath,
+  String imageFileName,
   {required Widget Function(BuildContext context) onDelete}
 ) {
-  final double screenHeight = MediaQuery.of(context).size.height;
-  final double height = screenHeight * 0.15;
+  
+  return FutureBuilder<String>(
+    future: getImagePath(imageFileName),
+    builder: (context, snapshot) {
+      if (!snapshot.hasData || imageFileName.isEmpty) {
+        return const SizedBox.shrink();
+      }
 
-  return Stack(
-    children: [
-      GestureDetector(
-        onTap: () {
-          showDialog(
-            context: context,
-            builder: (_) => Dialog(
-              backgroundColor: Colors.transparent,
-              child: GestureDetector(
-                onTap: () => Navigator.of(context).pop(),
-                child: InteractiveViewer(
-                  child: Image.file(File(imageFilePath)),
+      final imageFilePath = snapshot.data!;
+      final double screenHeight = MediaQuery.of(context).size.height;
+      final double height = screenHeight * 0.15;
+
+      return Stack(
+        children: [
+          GestureDetector(
+            onTap: () {
+              showDialog(
+                context: context,
+                builder: (_) => Dialog(
+                  backgroundColor: Colors.transparent,
+                  child: GestureDetector(
+                    onTap: () => Navigator.of(context).pop(),
+                    child: InteractiveViewer(
+                      child: Image.file(File(imageFilePath)),
+                    ),
+                  ),
+                ),
+              );
+            },
+            child: ClipRRect(
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(25),
+                topRight: Radius.circular(25),
+              ),
+              child: Container(
+                height: height,
+                width: double.infinity,
+                color: Colors.grey[200],
+                child: Image.file(
+                  File(imageFilePath),
+                  fit: BoxFit.cover,
                 ),
               ),
             ),
-          );
-        },
-        child: ClipRRect(
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(25),
-            topRight: Radius.circular(25),
           ),
-          child: Container(
-            height: height,
-            width: double.infinity,
-            color: Colors.grey[200],
-            child: Image.file(
-              File(imageFilePath),
-              fit: BoxFit.cover,
+          // Bin icon in the top right
+          Positioned(
+            top: 8,
+            right: 8,
+            child: GestureDetector(
+              onTap: () {
+                showDialog(context: context, builder: (ctx) => onDelete(ctx));
+              },
+              child: Container(
+                decoration: const BoxDecoration(
+                  color: Colors.black54,
+                  shape: BoxShape.circle,
+                ),
+                padding: const EdgeInsets.all(6),
+                child: const Icon(Icons.delete, color: Colors.white, size: 22),
+              ),
             ),
           ),
-        ),
-      ),
-      // Bin icon in the top right
-      Positioned(
-        top: 8,
-        right: 8,
-        child: GestureDetector(
-          onTap: () {
-            showDialog(context: context, builder: (ctx) => onDelete(ctx));
-          },
-          child: Container(
-            decoration: const BoxDecoration(
-              color: Colors.black54,
-              shape: BoxShape.circle,
-            ),
-            padding: const EdgeInsets.all(6),
-            child: const Icon(Icons.delete, color: Colors.white, size: 22),
-          ),
-        ),
-      ),
-    ],
+        ],
+      );
+    }
   );
+
 }
 
 Widget buildSingleImageShowcaseBig(
   BuildContext context,
-  String imageFilePath,
+  String imageFileName,
   VoidCallback onDelete,
 ) {
-  final double width = MediaQuery.of(context).size.width * 0.9;
-  return Padding(
-    padding: const EdgeInsets.symmetric(vertical: 8),
-    child: Stack(
-      children: [
-        GestureDetector(
-          onTap: () {},
-          child: SizedBox(
-            width: width,
-            height: width, // same as width for square
-            child: Image.file(File(imageFilePath), fit: BoxFit.cover),
-          ),
-        ),
-        Positioned(
-          top: 4,
-          right: 4,
-          child: GestureDetector(
-            onTap: onDelete,
-            child: Container(
-              decoration: const BoxDecoration(
-                color: Colors.black54,
-                shape: BoxShape.circle,
+  return FutureBuilder<String>(
+    future: getImagePath(imageFileName),
+    builder: (context, snapshot) {
+      if (!snapshot.hasData || imageFileName.isEmpty) {
+        return const SizedBox.shrink();
+      }
+
+      final imageFilePath = snapshot.data!;
+      final double width = MediaQuery.of(context).size.width * 0.9;
+
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Stack(
+          children: [
+            GestureDetector(
+              onTap: () {},
+              child: SizedBox(
+                width: width,
+                height: width, // same as width for square
+                child: Image.file(File(imageFilePath), fit: BoxFit.cover),
               ),
-              child: const Icon(Icons.close, color: Colors.white, size: 20),
             ),
-          ),
+            Positioned(
+              top: 4,
+              right: 4,
+              child: GestureDetector(
+                onTap: onDelete,
+                child: Container(
+                  decoration: const BoxDecoration(
+                    color: Colors.black54,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.close, color: Colors.white, size: 20),
+                ),
+              ),
+            ),
+          ],
         ),
-      ],
-    ),
+      );
+    }
   );
 }
 
@@ -565,15 +623,20 @@ Widget buildMultipleImageInput_V2(BuildContext context, List<String> imagePaths,
 
 Widget showImageWithEditAbility(
   BuildContext context,
-  String imageFilePath,
+  String imageFileName,
   onSave
 ) {
-  if (imageFilePath.isEmpty || File(imageFilePath).existsSync() == false) {
-    return const SizedBox.shrink();
-  }
-  
-  final double screenHeight = MediaQuery.of(context).size.height;
-  final double maxHeight = screenHeight * 0.4; // Increased max height slightly
+
+  return FutureBuilder<String>(
+    future: getImagePath(imageFileName),
+    builder: (context, snapshot) {
+      if (!snapshot.hasData){
+        return const SizedBox.shrink();
+      }
+
+      final imageFilePath = snapshot.data!;
+      final double screenHeight = MediaQuery.of(context).size.height;
+      final double maxHeight = screenHeight * 0.4;
 
   return Stack(
     children: [
@@ -621,7 +684,7 @@ Widget showImageWithEditAbility(
               )
             );
 
-            if (annotatedImagePath != null) onSave(imageFilePath, annotatedImagePath);
+            if (annotatedImagePath != null) onSave(imageFileName, annotatedImagePath);
           },
           child: Container(
             decoration: BoxDecoration(
@@ -642,52 +705,64 @@ Widget showImageWithEditAbility(
       ),
     ],
   );
+    }
+  );
 }
 
 
 Widget showImageWithNoEditAbility(
   BuildContext context,
-  String imageFilePath
+  String imageFileName
 ) {
-  if (imageFilePath.isEmpty || File(imageFilePath).existsSync() == false) {
-    return const SizedBox.shrink();
-  }
-  
-  final double screenHeight = MediaQuery.of(context).size.height;
-  final double height = screenHeight * 0.3;
 
-  return Stack(
-    children: [
-      GestureDetector(
-        onTap: () {
-          showDialog(
-            context: context,
-            builder: (_) => Dialog(
-              backgroundColor: Colors.transparent,
-              child: GestureDetector(
-                onTap: () => Navigator.of(context).pop(),
-                child: InteractiveViewer(
-                  child: Image.file(File(imageFilePath)),
+  return FutureBuilder<String>(
+    future: getImagePath(imageFileName),
+    builder: (context, snapshot) {
+      if (!snapshot.hasData) {
+        return const SizedBox.shrink();
+      }
+
+      final imageFilePath = snapshot.data!;
+      final double screenHeight = MediaQuery.of(context).size.height;
+      final double height = screenHeight * 0.3;
+
+      return Stack(
+        children: [
+          GestureDetector(
+            onTap: () {
+              showDialog(
+                context: context,
+                builder: (_) => Dialog(
+                  backgroundColor: Colors.transparent,
+                  child: GestureDetector(
+                    onTap: () => Navigator.of(context).pop(),
+                    child: InteractiveViewer(
+                      child: Image.file(File(imageFilePath)),
+                    ),
+                  ),
+                ),
+              );
+            },
+            child: ClipRRect(
+              borderRadius: const BorderRadius.all(Radius.circular(12)),
+              child: Container(
+                height: height,
+                width: double.infinity,
+                color: Colors.grey[200],
+                child: Image.file(
+                  File(imageFilePath),
+                  fit: BoxFit.cover,
                 ),
               ),
             ),
-          );
-        },
-        child: ClipRRect(
-          borderRadius: const BorderRadius.all(Radius.circular(12)),
-          child: Container(
-            height: height,
-            width: double.infinity,
-            color: Colors.grey[200],
-            child: Image.file(
-              File(imageFilePath),
-              fit: BoxFit.cover,
-            ),
           ),
-        ),
-      ),
-    ],
+        ],
+      );
+    }
   );
+
+  
+
 }
 
 // Helper functions
@@ -800,7 +875,7 @@ Future<void> pickImageFromSource(
       if (rootContext.mounted) {
         // navigate to cropping tool
         final croppedPath = await Navigator.push<String>(rootContext,
-          MaterialPageRoute(builder: (context) => SimpleCropper(imagePath: imagePath)
+          MaterialPageRoute(builder: (context) => SimpleCropper(imageFileName: imagePath)
         ));
         onChange(croppedPath!);
       } else {

@@ -151,7 +151,7 @@ class _ProjectCreateState extends State<ProjectCreate> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (imagePath != '' && File(imagePath).existsSync()) ... [
+              if (imagePath != '') ... [
                   buildThumbnailImageShowcase(context, imagePath, onDelete: onDelete),
                   const SizedBox(height: 24.0),
                 ] else ... [

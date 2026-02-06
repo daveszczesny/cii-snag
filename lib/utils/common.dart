@@ -12,9 +12,21 @@ import 'package:path/path.dart' as path;
 
 Future<String> saveImageToAppDir(File imageFile) async {
   final appDir = await getApplicationDocumentsDirectory();
+
+  final imagesDir = Directory('${appDir.path}/images');
+  if (!await imagesDir.exists()) {
+    await imagesDir.create(recursive: true);
+  }
+
   final fileName = path.basename(imageFile.path);
-  final savedImage = await imageFile.copy('${appDir.path}/$fileName');
-  return savedImage.path;
+  await imageFile.copy('${imagesDir.path}/$fileName');
+
+  return fileName;
+}
+
+Future<String> getImagePath(String fileName) async {
+  final appDir = await getApplicationDocumentsDirectory();
+  return '${appDir.path}/images/$fileName';
 }
 
 String capitilize(String s){

@@ -61,6 +61,8 @@ class _SnagDetailState extends State<SnagDetail> {
 
       // If status is completed, show the remarks dialog
       if (newStatus == Status.completed) {
+        final previousStatus = widget.snag.status.name;
+
         await buildFinalRemarksWidget(
           context,
           widget.snag,
@@ -75,6 +77,11 @@ class _SnagDetailState extends State<SnagDetail> {
           width: MediaQuery.of(context).size.width * 0.95,
           height: MediaQuery.of(context).size.height * 0.8,
         );
+
+        if (widget.snag.status.name != Status.completed.name) {
+          // User cancelled the completion, revert the selected status
+          selectedStatusOption.value = previousStatus;
+        }
       } else {
         setState(() {
           widget.snag.status = newStatus;
@@ -109,31 +116,27 @@ class _SnagDetailState extends State<SnagDetail> {
   // image related methods
   void onChange({String p = ''}) {
     final annotatedImages = widget.snag.annotatedImagePaths;
-    if (selectedImage == '') {
-      // check if an annotated image exists
-      if (annotatedImages.isNotEmpty) {
-        if (annotatedImages.containsKey(imageFilePaths[0])) {
-          selectedImage = annotatedImages[imageFilePaths[0]]!;
-        } else {
-          selectedImage = imageFilePaths[0];
-        }
-      } else {
-        selectedImage = imageFilePaths.isNotEmpty ? imageFilePaths[0] : '';
-      }
-
-    } else {
-      if (annotatedImages.isNotEmpty) {
-        if (annotatedImages.containsKey(p)) {
-          selectedImage = annotatedImages[p]!;
-        } else {
-          selectedImage = p;
-        }
+    
+    if (p != '') {
+      // User clicked on a specific image - set it as selected
+      if (annotatedImages.containsKey(p)) {
+        selectedImage = annotatedImages[p]!;
       } else {
         selectedImage = p;
       }
+    } else {
+      // No specific image provided - set default
+      if (selectedImage == '') {
+        if (annotatedImages.isNotEmpty && annotatedImages.containsKey(imageFilePaths[0])) {
+          selectedImage = annotatedImages[imageFilePaths[0]]!;
+        } else {
+          selectedImage = imageFilePaths.isNotEmpty ? imageFilePaths[0] : '';
+        }
+      }
     }
-    widget.onStatusChanged!();
+    
     setState(() {});
+    widget.onStatusChanged!();
   }
 
   void saveAnnotatedImage(String originalPath, String path) {
@@ -214,7 +217,7 @@ class _SnagDetailState extends State<SnagDetail> {
         const SizedBox(height: gap),
         buildDatePickerInput(context, 'Due Date', dueDate, dueDateController),
         const SizedBox(height: gap),
-        if (widget.snag.finalRemarks.isNotEmpty) ... [
+        if (widget.snag.status.name == Status.completed.name) ... [
           const SizedBox(height: gap),
           buildTextInput("Reviewed By", reviewedBy, reviewedByController),
           const SizedBox(height: gap),
@@ -234,11 +237,12 @@ class _SnagDetailState extends State<SnagDetail> {
     final dueDate = widget.snag.getDueDate != null ? widget.snag.getDueDateString! : 'No Due Date';
     final reviewedBy = widget.snag.reviewedBy != '' ? widget.snag.reviewedBy : 'No Reviewer';
     final finalRemarks = widget.snag.finalRemarks != '' ? widget.snag.finalRemarks : 'No Final Remarks';
+    final dateClosed = widget.snag.getDateClosed != null ? widget.snag.getDateClosedString! : '-';
     var dueDateSubtext = '';
     var dueDateIcon;
 
 
-    if (widget.snag.getDueDate != null) {
+    if (widget.snag.getDueDate != null && widget.snag.status.name != Status.completed.name) {
       final dueDateTime = widget.snag.getDueDate!;
       final now = DateTime.now();
       final diff = dueDateTime.difference(now).inDays;
@@ -281,6 +285,8 @@ class _SnagDetailState extends State<SnagDetail> {
         const SizedBox(height: gap),
         buildTextDetailWithIcon('Due Date', dueDate, dueDateIcon, subtext: dueDateSubtext),
         if (widget.snag.status.name == Status.completed.name) ... [
+          const SizedBox(height: gap),
+          buildTextDetail('Date Closed', dateClosed),
           const SizedBox(height: gap),
           buildTextDetail('Reviewed By', reviewedBy),
           const SizedBox(height: gap),
@@ -404,7 +410,7 @@ class _SnagDetailState extends State<SnagDetail> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 12),
-                  if (imageFilePaths.isEmpty || File(imageFilePaths[0]).existsSync() == false) ... [
+                  if (imageFilePaths.isEmpty) ... [
                     buildImageInput_V3(context, onChange, imageFilePaths)
                   ] else ... [
                     showImageWithEditAbility(context, selectedImage != '' ? selectedImage : getAnnotatedImage(imageFilePaths[0]), saveAnnotatedImage)
@@ -413,7 +419,7 @@ class _SnagDetailState extends State<SnagDetail> {
                   const SizedBox(height: 14.0),
 
                   // small image showcase
-                  if (imageFilePaths.isNotEmpty && File(imageFilePaths[0]).existsSync()) ... [
+                  if (imageFilePaths.isNotEmpty) ... [
                     Row(
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
@@ -481,7 +487,7 @@ class _SnagDetailState extends State<SnagDetail> {
                     )
                   ),
 
-                  if (widget.snag.finalImagePaths.isNotEmpty && File(widget.snag.finalImagePaths[0]).existsSync()) ... [
+                  if (widget.snag.finalImagePaths.isNotEmpty) ... [
                     const SizedBox(height: 16.0),
                     const Text('Final Images', style: TextStyle(color: Color(0xFF333333), fontSize: 14, fontWeight: FontWeight.w300, fontFamily: 'Roboto')),
                     const SizedBox(height: 8.0),
@@ -531,7 +537,8 @@ class _SnagDetailState extends State<SnagDetail> {
                   ),
 
                   const SizedBox(height: 24.0),
-                  const Text(AppStrings.tags),
+
+                  // Tag Selector
                   ObjectSelector(
                     label: AppStrings.tag,
                     pluralLabel: AppStrings.tags,

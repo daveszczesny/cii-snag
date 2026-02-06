@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cii/controllers/single_project_controller.dart';
 import 'package:cii/services/csv_exporter.dart';
 import 'package:cii/services/pdf_exporter.dart';
@@ -31,10 +33,30 @@ class _ProjectExportState extends State<ProjectExport> with SingleTickerProvider
 
   late TabController tabController;
 
+
+  bool _highlightFirstItem = false;
+  Timer? _highlightTimer;
+
+  int _pdfExportsCount = 0;
+  int _csvExportsCount = 0;
+
   @override
   void initState() {
     super.initState();
     tabController = TabController(length: 2, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _highlightTimer?.cancel();
+    super.dispose();
+  }
+
+  void _checkForNewExport() {
+    setState(() => _highlightFirstItem = true);
+    _highlightTimer = Timer(const Duration(seconds: 3), () {
+      if(mounted) setState(() => _highlightFirstItem = false);
+    });
   }
 
   Widget buildExporterTab(String type) {
@@ -48,10 +70,14 @@ class _ProjectExportState extends State<ProjectExport> with SingleTickerProvider
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             buildTextButton("Export to $type", () async {
-              Navigator.push(
+              _pdfExportsCount = widget.projectController.getPdfExportRecordsListenable().value.length;
+              await Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => ProjectExportCustomizer(projectController: widget.projectController))
               );
+              if (widget.projectController.getPdfExportRecordsListenable().value.length > _pdfExportsCount){
+                _checkForNewExport();
+              }
             }), const SizedBox(height: 24.0),
             const Row(
               children: [
@@ -74,6 +100,7 @@ class _ProjectExportState extends State<ProjectExport> with SingleTickerProvider
                     itemCount: sortedExports.length,
                     itemBuilder: (context, index) {
                       final record = sortedExports[index];
+                      final isHighlighted = _highlightFirstItem && index == 0;
                       return Dismissible(
                         key: Key(record.uuid),
                         background: Container(
@@ -104,22 +131,29 @@ class _ProjectExportState extends State<ProjectExport> with SingleTickerProvider
                             const SnackBar(content: Text('Export deleted'), duration: Duration(seconds: 2))
                           );
                         },
-                        child: ListTile(
-                          leading: const Icon(Icons.picture_as_pdf),
-                          title: Text(record.fileName),
-                          subtitle: Text(
-                            '${DateFormat(AppDateTimeFormat.dateTimeFormatPattern).format(record.exportDate)} - ${formatFileSize(record.fileSize)}'
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 300),
+                          decoration: BoxDecoration(
+                            color: isHighlighted ? Colors.blue.withOpacity(0.1) : null,
+                            borderRadius: BorderRadius.circular(8),
                           ),
-                          trailing: const Icon(Icons.open_in_new),
-                          onTap: () async {
-                            try {
-                              await openPdfFromRecord(record);
-                            } catch (e) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('Could not open PDF. ${e.toString()}'))
-                              );
+                          child: ListTile(
+                            leading: const Icon(Icons.picture_as_pdf),
+                            title: Text(record.fileName),
+                            subtitle: Text(
+                              '${DateFormat(AppDateTimeFormat.dateTimeFormatPattern).format(record.exportDate)} - ${formatFileSize(record.fileSize)}'
+                            ),
+                            trailing: const Icon(Icons.open_in_new),
+                            onTap: () async {
+                              try {
+                                await openPdfFromRecord(record);
+                              } catch (e) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Could not open PDF. ${e.toString()}'))
+                                );
+                              }
                             }
-                          }
+                          ),
                         ),
                       );
                     }
@@ -144,10 +178,16 @@ class _ProjectExportState extends State<ProjectExport> with SingleTickerProvider
                 );
                 return;
               }
-              Navigator.push(
+
+              _csvExportsCount = widget.projectController.getCsvExportRecordsListenable().value.length;
+              await Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => ProjectCsvExportCustomizer(projectController: widget.projectController)),
               );
+
+              if (widget.projectController.getCsvExportRecordsListenable().value.length > _csvExportsCount){
+                _checkForNewExport();
+              }
             },
             enabled: TierService.instance.canExportCsv,
             ),
@@ -175,6 +215,7 @@ class _ProjectExportState extends State<ProjectExport> with SingleTickerProvider
                     itemCount: sortedExports.length,
                     itemBuilder: (context, index) {
                       final record = sortedExports[index];
+                      final isHighlighted = _highlightFirstItem && index == 0;
                       return Dismissible(
                         key: Key(record.uuid),
                         background: Container(
@@ -205,22 +246,29 @@ class _ProjectExportState extends State<ProjectExport> with SingleTickerProvider
                             const SnackBar(content: Text('Export deleted'), duration: Duration(seconds: 2))
                           );
                         },
-                        child: ListTile(
-                          leading: const Icon(Icons.table_chart),
-                          title: Text(record.fileName),
-                          subtitle: Text(
-                            '${DateFormat(AppDateTimeFormat.dateTimeFormatPattern).format(record.exportDate)} - ${formatFileSize(record.fileSize)}'
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 300),
+                          decoration: BoxDecoration(
+                            color: isHighlighted ? Colors.blue.withOpacity(0.1) : null,
+                            borderRadius: BorderRadius.circular(8),
                           ),
-                          trailing: const Icon(Icons.open_in_new),
-                          onTap: () async {
-                            try {
-                              await openCsvFromRecord(record);
-                            } catch (e) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('Could not open CSV. ${e.toString()}'))
-                              );
+                          child: ListTile(
+                            leading: const Icon(Icons.table_chart),
+                            title: Text(record.fileName),
+                            subtitle: Text(
+                              '${DateFormat(AppDateTimeFormat.dateTimeFormatPattern).format(record.exportDate)} - ${formatFileSize(record.fileSize)}'
+                            ),
+                            trailing: const Icon(Icons.open_in_new),
+                            onTap: () async {
+                              try {
+                                await openCsvFromRecord(record);
+                              } catch (e) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Could not open CSV. ${e.toString()}'))
+                                );
+                              }
                             }
-                          }
+                          ),
                         ),
                       );
                     }
@@ -241,9 +289,20 @@ class _ProjectExportState extends State<ProjectExport> with SingleTickerProvider
   Widget build(BuildContext context) {
 
 
-    const List<Widget> tabs = [
-      Tab(text: 'PDF'),
-      Tab(text: 'CSV')
+    final List<Widget> tabs = [
+      const Tab(text: 'PDF'),
+      Tab(
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('CSV'),
+            if (!TierService.instance.canExportCsv) ...[
+              const SizedBox(width: 4),
+              const Icon(Icons.star, size: 16, color: Colors.amber),
+            ],
+          ],
+        ),
+      ),
     ];
 
     return Scaffold(

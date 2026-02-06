@@ -1,88 +1,68 @@
 
 Terms & Conditions and End User License Agreement (EULA)
-Construction It Is (CII)  Last Updated: [14/12/2025]
+Construction It Is (CII)  Last Updated: [05/02/2026]
 
 1. Introduction
 These Terms & Conditions (“Terms”) and End User License Agreement (“EULA”) govern your use of the Construction It Is (“CII”) snagging application (“App”) and our website www.constructionitis.com. By downloading, accessing, or using the App or website, you agree to be bound by these Terms and the EULA.
 
-2. Eligibility
-You must be at least 16 years old to use the App.
-By creating an account, you confirm that the information you provide is accurate and complete.
-Accounts may be created by individuals or companies.
-
-3. Services Provided
-CII provides construction professionals, site managers, and tradespeople with tools to:
+2. Services Provided
+Construct RenoMate, published by Construction It Is (CII), provides homeowners, construction professionals, site managers, and tradespeople with tools to:
 Capture and manage snagging reports.
-Upload photos, notes, and project data.
-Access industry insights and publications.
-Subscribe to newsletters and updates.
+Add photos, notes, and project data.
 
-4. Account Responsibilities
-You are responsible for maintaining the confidentiality of your login credentials.
-You must notify us immediately of any unauthorized use of your account.
-We reserve the right to suspend or terminate accounts that violate these Terms.
+3. User Content
+You retain full ownership of the snagging reports, photos, and data you upload.
+All data, photos, and reports are stored locally on the user’s device. CII does not store or process user data on external servers.
+Users are responsible for maintaining backups of their data. CII is not responsible for any loss of data resulting from device failure, deletion of the App, or other circumstances beyond our control.
 
-5. User Content
-You retain ownership of the snagging reports, photos, and data you upload.
-By uploading content, you grant CII a non‑exclusive license to store, process, and display it within the App.
-You are responsible for ensuring that your content does not infringe third‑party rights or contain unlawful material.
-
-6. Intellectual Property
+4. Intellectual Property
 The App, website, and all related content are owned by CII.
 You may not copy, modify, distribute, reverse engineer, or exploit the App or website without our prior written consent.
 
-7. Free and Paid Versions
+5. Free and Paid Versions
 The App may be offered in both free and paid versions.
 The free version provides access to core features.
 The paid version unlocks additional functionality, which will be clearly described at the point of purchase.
-All payments are one‑time purchases processed through secure third‑party providers (e.g., Apple App Store, Google Play Store).
-Refunds are subject to the policies of the relevant app store.
+All payments are one-time purchases processed through the Apple App Store or Google Play Store. Purchases and refunds are handled in accordance with the applicable app store’s policies.
 
-8. Third‑Party Integrations
-The App may integrate with third‑party services (e.g., cloud storage, analytics, newsletter providers).
-CII is not responsible for the availability or policies of these third‑party services.
-
-9. Limitation of Liability
-The App is provided “as is” without warranties of any kind.
+6. Limitation of Liability
+The App is provided “as is” and “as available” without warranties of any kind, to the extent permitted by applicable law.
 CII is not responsible for construction outcomes, project delays, or damages arising from reliance on the App.
 To the maximum extent permitted by law, our liability is limited to the amount you paid for the paid version of the App.
+Nothing in these Terms limits or excludes any rights that cannot be limited or excluded under applicable consumer protection laws.
 
-10. Termination
-We may suspend or terminate your account if you breach these Terms.
-You may stop using the App at any time by deleting your account.
-
-11. Governing Law & Jurisdiction
+7. Governing Law & Jurisdiction
 These Terms are governed by the laws of England and Wales.
 Any disputes will be subject to the exclusive jurisdiction of the courts of England and Wales.
 
-12. Changes to Terms
+8. Changes to Terms
 We may update these Terms from time to time.
 Updates will be posted on our website and App with a revised “Last Updated” date.
 Continued use of the App after changes constitutes acceptance of the new Terms.
 
-13. End User License Agreement (EULA)
-13.1 License Grant
+9. End User License Agreement (EULA)
+9.1 License Grant
 CII grants you a limited, non‑exclusive, non‑transferable, revocable license to download, install, and use the App solely for personal or professional use in accordance with these Terms.
 
-13.2 Restrictions
+9.2 Restrictions
 You may not:
 Copy, modify, or distribute the App.
 Reverse engineer, decompile, or attempt to extract source code.
 Use the App for unlawful purposes or in violation of applicable regulations.
 Rent, lease, or sublicense the App to third parties.
 
-13.3 Ownership
+9.3 Ownership
 The App is licensed, not sold. All rights, title, and interest in the App remain with CII.
 
-13.4 App Store Terms
+9.4 App Store Terms
 If you download the App from the Apple App Store, you agree to Apple’s Licensed Application End User License Agreement.
 If you download the App from Google Play, you agree to Google Play’s Terms of Service.
 In case of conflict between this EULA and the applicable app store terms, the app store terms will prevail.
 
-13.5 Termination of License
+9.5 Termination of License
 This license is effective until terminated. CII may terminate your license if you fail to comply with these Terms. Upon termination, you must delete all copies of the App.
 
-14. Contact Us
+10. Contact Us
 For questions about these Terms or the EULA, contact us at:
 Email: contact@constructionitis.com
 

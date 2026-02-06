@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:cii/controllers/single_project_controller.dart';
 import 'package:cii/models/status.dart';
 import 'package:cii/utils/colors/app_colors.dart';
+import 'package:cii/utils/common.dart';
 import 'package:cii/view/project/export/project_export.dart';
 import 'package:cii/view/project/project_detail.dart';
 import 'package:cii/view/utils/constants.dart';
@@ -116,8 +117,20 @@ class _ProjectCardWidgetState extends State<ProjectCardWidget> {
                     borderRadius: BorderRadius.circular(15),
                     child: (() {
                       final path = widget.projectController.getMainImagePath;
-                      if (path != null && path.isNotEmpty && File(path).existsSync()) {
-                        return Image.file(File(path), width: 75, height: 75, fit: BoxFit.cover);
+                      if (path != null && path.isNotEmpty) {
+                        return FutureBuilder<String>(
+                          future: getImagePath(path),
+                          builder: (context, snapshot) {
+                            if (!snapshot.hasData || !File(snapshot.data!).existsSync()) {
+                              return Container(width: 75, height: 75, color: Colors.grey[300], child: const Icon(Icons.image, color: Colors.white54, size: 36));
+                            }
+                            return Container(
+                              width: 75,
+                              height: 75,
+                              child: Image.file(File(snapshot.data!), fit: BoxFit.cover),
+                            );
+                          },
+                        );
                       } else {
                         return Container(width: 75, height: 75, color: Colors.grey[300], child: const Icon(Icons.image, color: Colors.white54, size: 36));
                       }

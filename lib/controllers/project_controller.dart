@@ -1,7 +1,10 @@
+import 'dart:io';
+
 import 'package:cii/models/project.dart';
 import 'package:cii/models/status.dart';
 import 'package:cii/models/category.dart' as cii;
 import 'package:cii/models/tag.dart';
+import 'package:cii/utils/common.dart';
 import 'package:hive/hive.dart';
 
 class ProjectController {
@@ -23,11 +26,10 @@ class ProjectController {
     String? projectRef,
     List<cii.Category>? categories,
     List<Tag>? tags,
-    String? imagePath,
+    String? imagePath, // file name
     DateTime? dueDate,
   }) async {
     try {
-
       final project = Project(
         name: name,
         description: description,

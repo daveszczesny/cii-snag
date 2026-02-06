@@ -1,7 +1,7 @@
 name: cii
 description: "Construction & Renovation tool"
 publish_to: 'none'
-version: 1.0.11
+version: 1.0.13
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -90,8 +90,9 @@ flutter:
 
     - lib/assets/logo/CII_logo.png
 
-    # Terms and Conditions
+    # Terms and Conditions & privacy policy
     - lib/assets/text/terms_conditions.txt
+    - lib/assets/text/privacy_policy.txt
 
     # Demo project images
     - lib/assets/demo/project.JPG

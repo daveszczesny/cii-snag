@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image/image.dart' as img;
+import 'package:path_provider/path_provider.dart';
 
 class CustomImageEditor extends StatefulWidget {
   final String imagePath;
@@ -1150,8 +1151,15 @@ class _CustomImageEditorState extends State<CustomImageEditor> {
 
       final pngBytes = img.encodePng(compositeImage, level: 0);
       
-      final dir = Directory.systemTemp;
-      final file = File('${dir.path}/${DateTime.now().millisecondsSinceEpoch}.png');
+      final appDir = await getApplicationDocumentsDirectory();
+      final imagesDir = Directory('${appDir.path}/images');
+      if (!await imagesDir.exists()) {
+        await imagesDir.create(recursive: true);
+      }
+
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final fileName = 'annotated_$timestamp.png';
+      final file = File('${imagesDir.path}/$fileName');
       await file.writeAsBytes(pngBytes);
 
       Navigator.of(context).pop();
@@ -1168,9 +1176,9 @@ class _CustomImageEditorState extends State<CustomImageEditor> {
           duration: Duration(seconds: 2),
         ),
       );
-      
-      widget.onSave(file.path);
-      
+
+      widget.onSave(fileName);
+
     } catch (e) {
       Navigator.of(context).pop();
       ScaffoldMessenger.of(context).showSnackBar(

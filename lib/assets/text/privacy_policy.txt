@@ -1,0 +1,36 @@
+Last Updated: [05/02/2026]
+
+​1. Introduction
+Construction It Is (“CII,” “we,” “our,” “us”) respects your privacy and is committed to protecting your personal information. This Privacy Policy explains how we handle information when you use our application (Construct RenoMate).
+By using our App, you agree to the practices described in this Privacy Policy.
+
+​2. Information We Collect
+We do not collect any personal information from users. All data (e.g., reports, photos, notes) is stored locally on the device and is not transmitted to our servers. 
+The only data collected may be anonymous analytics automatically collected by Apple or Google through their respective app stores and platforms, for the purpose of app performance and crash reporting.
+
+​3. Data Sharing
+We do not share or sell your personal information to third parties.
+
+​4. Data Retention
+All data remains on your device and is not uploaded or stored externally. Users are responsible for backing up their own data.
+
+5. User Rights
+Since we do not collect personal data, you do not need to request access or deletion from us. Any data in the app remains on your device.
+
+6. Analytics (Local Only)
+The app may display minimal analytics about your projects, such as counts of issues, their statuses, and categories. These analytics are computed entirely on your device for display purposes. No data is transmitted, stored externally, or shared with us or any third party. All analytics remain fully local and anonymous.
+
+7. Children’s Privacy
+Our app is not intended for children under 13. We do not knowingly collect personal information from children.
+​
+8. Changes to This Policy​
+
+We may update this Privacy Policy from time to time. Updates will be posted on our website and App with a revised “Last Updated” date.
+​​
+9. Contact Us
+If you have questions or concerns about this Privacy Policy, please contact us at:
+
+    Email: contact@constructionitis.com
+
+
+

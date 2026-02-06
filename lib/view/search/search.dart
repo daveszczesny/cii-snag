@@ -4,6 +4,7 @@ import 'package:cii/models/project.dart';
 import 'package:cii/models/snag.dart';
 import 'package:cii/view/project/project_detail.dart';
 import 'package:cii/view/snag/snag_detail.dart';
+import 'package:cii/view/utils/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:cii/services/search_service.dart';
 import 'package:cii/controllers/project_controller.dart';
@@ -163,7 +164,7 @@ class _SearchState extends State<Search> {
                 TextField(
                   controller: _searchController,
                   decoration: InputDecoration(
-                    hintText: 'Search projects, snags, descriptions...',
+                    hintText: 'Search projects, ${AppStrings.snags()}, descriptions...',
                     prefixIcon: const Icon(Icons.search),
                     suffixIcon: _searchController.text.isNotEmpty
                         ? IconButton(
@@ -242,18 +243,18 @@ class _SearchState extends State<Search> {
   }
 
   Widget _buildEmptyState() {
-    return const Center(
+    return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.search, size: 64, color: Colors.grey),
-          SizedBox(height: 16),
+          const Icon(Icons.search, size: 64, color: Colors.grey),
+          const SizedBox(height: 16),
           Text(
-            'Search across all projects and snags',
-            style: TextStyle(fontSize: 18, color: Colors.grey),
+            'Search across all Projects and ${AppStrings.snags()}',
+            style: const TextStyle(fontSize: 18, color: Colors.grey),
           ),
-          SizedBox(height: 8),
-          Text(
+          const SizedBox(height: 8),
+          const Text(
             'Find anything by name, description, or content',
             style: TextStyle(fontSize: 14, color: Colors.grey),
           ),
@@ -528,7 +529,7 @@ class _FilterModalState extends State<_FilterModal> {
                         },
                       ),
                       FilterChip(
-                        label: const Text('Snags'),
+                        label: Text(AppStrings.snag()),
                         selected: _type == SearchResultType.snag,
                         onSelected: (selected) {
                           setState(() {

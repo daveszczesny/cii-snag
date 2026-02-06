@@ -45,7 +45,7 @@ class TierLimits {
 
   static const TierLimits pro = TierLimits(
     maxProjects: -1, // unlimited
-    maxSnagsPerProject: 1000,
+    maxSnagsPerProject: 3000,
     allowPdfExport: true,
     allowPdfThemeChange: true,
     allowPdfQualityChange: true,

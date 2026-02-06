@@ -54,7 +54,8 @@ Future<void> savePdfFile(
     pw.ImageProvider? projectLogoImage;
     if (controller.getMainImagePath != null && controller.getMainImagePath!.isNotEmpty) {
       try {
-        final projectLogoFile = File(controller.getMainImagePath!);
+        final fullPath = await getImagePath(controller.getMainImagePath!);
+        final projectLogoFile = File(fullPath);
         if (await projectLogoFile.exists()) {
           final projectLogoBytes = await projectLogoFile.readAsBytes();
           final compressedLogoImage = await processImageForQuality(projectLogoBytes, imageQuality);
@@ -88,20 +89,21 @@ Future<void> savePdfFile(
 
     // Process all images in parallel with caching
     final Map<String, pw.MemoryImage> imageCache = {};
-    final allImagePaths = snagList
+    final allImageFilenames = snagList
       .expand((snag) => [...snag.imagePaths, ...snag.annotatedImagePaths.values])
       .where((path) => path.isNotEmpty)
       .toSet();
 
     // Process all unique images in parallel
     await Future.wait(
-      allImagePaths.map((path) async {
+      allImageFilenames.map((filename) async {
         try {
-          final file = File(path);
+          final fullPath = await getImagePath(filename);
+          final file = File(fullPath);
           if (await file.exists()) {
             final imgBytes = await file.readAsBytes();
             final processed = await processImageForQuality(imgBytes, imageQuality);
-            imageCache[path] = pw.MemoryImage(processed);
+            imageCache[filename] = pw.MemoryImage(processed);
           }
         } catch (e) {
           // Skip failed images
@@ -112,14 +114,14 @@ Future<void> savePdfFile(
     for (final snag in snagList) {
       // Use cached processed images
       final processedImages = snag.imagePaths
-        ?.where((path) => imageCache.containsKey(path))
-        .map((path) {
+        ?.where((filename) => imageCache.containsKey(filename))
+        .map((filename) {
           // Check if there's an annotated version of this image
-          final annotatedPath = snag.annotatedImagePaths[path];
-          if (annotatedPath != null && imageCache.containsKey(annotatedPath)) {
-            return imageCache[annotatedPath]!;
+          final annotatedFilename = snag.annotatedImagePaths[filename];
+          if (annotatedFilename != null && imageCache.containsKey(annotatedFilename)) {
+            return imageCache[annotatedFilename]!;
           }
-          return imageCache[path]!;
+          return imageCache[filename]!;
         })
         .toList() ?? <pw.MemoryImage>[];
 
@@ -148,11 +150,10 @@ Future<void> savePdfFile(
     );
 
     controller.addPdfExportRecord(pdfRecord);
-    await Share.shareXFiles([XFile(file.path)]);
+    await Share.shareXFiles([XFile(file.path)], sharePositionOrigin: const Rect.fromLTWH(0, 0, 100, 100));
 
     Navigator.of(context).pop();
   } catch (e) {
-    print(e);
     Navigator.of(context).pop();
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Error generating PDF')),
