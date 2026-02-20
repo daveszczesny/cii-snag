@@ -156,7 +156,7 @@ class SnagController {
   void setName(String v) { 
     snag.name = v; 
     snag.lastModified = DateTime.now();
-    _triggerNotificationCheck();
+    triggerNotificationCheck();
   }
   void setDescription(String v) { 
     snag.description = v; 
@@ -206,7 +206,7 @@ class SnagController {
     snag.lastModified = DateTime.now();
   }
 
-  void _triggerNotificationCheck() {
+  void triggerNotificationCheck() {
     // Trigger notification check when snag is modified
     NotificationController().checkAndCreateNotifications();
   }

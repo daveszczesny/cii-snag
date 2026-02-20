@@ -11,7 +11,6 @@ part 'snag.g.dart';
 @HiveType(typeId: 2)
 class Snag extends HiveObject {
 
-  // Mandatory fields
   @HiveField(0)
   final String uuid;
 

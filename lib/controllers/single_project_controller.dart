@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:developer' as developer;
 
 import 'package:cii/controllers/snag_controller.dart';
 import 'package:cii/models/csvexportrecords.dart';
@@ -367,7 +368,7 @@ class SingleProjectController {
         project.dueDate = parseDate(value);
         break;
       default:
-        print('Unknown key: $key');
+        developer.log('Unknown key: $key', name: 'SingleProjectController');
         return;
     }
     saveProject();

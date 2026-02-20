@@ -16,11 +16,14 @@ class PremiumService {
   bool _isPremium = false;
   bool get isPremium => _isPremium;
 
+  final ValueNotifier<bool> premiumStateNotifier = ValueNotifier<bool>(false);
+
   // initialize the service
   Future<void> init() async {
     // Load premium flag from local storage
     final prefs = await SharedPreferences.getInstance();
     _isPremium = prefs.getBool(_premiumKey) ?? false; // True for premium, false for not
+    premiumStateNotifier.value = _isPremium;
     // listen to purchase updates
     _subscription = _iap.purchaseStream.listen(_onPurchaseUpdated, onDone: () {
       _subscription.cancel();
@@ -34,6 +37,7 @@ class PremiumService {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_premiumKey, value);
     _isPremium = value;
+    premiumStateNotifier.value = value;
   }
 
   // start the purchase flow
