@@ -1,7 +1,8 @@
 # Changelog
 
 ## v1.0.14 - 2024-02-20
-- [128] Add changelog dialogs
+- [134] PDF File name text field
+- [128] Changelog dialogs
 
 ## v1.0.13
 - Bug Fixes

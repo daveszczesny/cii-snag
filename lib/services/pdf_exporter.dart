@@ -23,6 +23,7 @@ Future<void> savePdfFile(
   SingleProjectController controller,
   String imageQuality, // "High", "Medium", "Low",
   Function themeFunction,
+  String pdfFileName,
   List<String>? selectedCategories, // Categories to include in the export
   List<String>? selectedStatuses // Statuses to include in the export
 ) async {
@@ -61,7 +62,9 @@ Future<void> savePdfFile(
           final compressedLogoImage = await processImageForQuality(projectLogoBytes, imageQuality);
           projectLogoImage = pw.MemoryImage(compressedLogoImage);
         }
-      } catch (e) {} // ignore error
+      } catch (e) {
+        // None actionable error
+      }
     }
 
     final snagList = controller.getAllSnags()
@@ -114,7 +117,7 @@ Future<void> savePdfFile(
     for (final snag in snagList) {
       // Use cached processed images
       final processedImages = snag.imagePaths
-        ?.where((filename) => imageCache.containsKey(filename))
+        .where((filename) => imageCache.containsKey(filename))
         .map((filename) {
           // Check if there's an annotated version of this image
           final annotatedFilename = snag.annotatedImagePaths[filename];
@@ -123,7 +126,7 @@ Future<void> savePdfFile(
           }
           return imageCache[filename]!;
         })
-        .toList() ?? <pw.MemoryImage>[];
+        .toList();
 
       final snagPageThemed = themeFunction(projectName, snag, imageQuality, processedImages, logoImage, theme);
       pdf.addPage(snagPageThemed);
@@ -135,16 +138,15 @@ Future<void> savePdfFile(
 
     final bytes = await pdf.save();
     final pdfDirPath = await getPdfDirectory();
-    final timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
-    final fileName = '$projectName-$timestamp.pdf';
-    final file = File('$pdfDirPath/$fileName');
+    final saveFileName = pdfFileName;
+    final file = File('$pdfDirPath/$saveFileName');
     await file.writeAsBytes(bytes);
 
 
     // create a record of the export
     final pdfRecord = PdfExportRecords(
       exportDate: DateTime.now(),
-      fileName: fileName,
+      fileName: saveFileName,
       fileHash: _calculateHash(bytes),
       fileSize: bytes.length,
     );
@@ -554,7 +556,7 @@ pw.MultiPage buildSnagPage(String projectName, SnagController snag, String image
       return [
         // Snag name above everything
         pw.Text(
-          snag.name ?? '-',
+          snag.name,
           style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold),
         ),
         pw.SizedBox(height: 12),

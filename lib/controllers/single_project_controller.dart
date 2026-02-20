@@ -145,8 +145,8 @@ class SingleProjectController {
   String? get getContractor {
     return project.contractor;
   }
-  String? get getProjectRef {
-    return project.projectRef;
+  String get getProjectRef {
+    return project.projectRef!;
   }
 
   String? get getName {

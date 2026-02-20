@@ -4,6 +4,7 @@ import 'package:cii/view/project/export/project_export_customizer_base.dart';
 import 'package:cii/view/utils/text.dart';
 import 'package:flutter/material.dart';
 import 'package:cii/utils/pdf/themes.dart';
+import 'package:intl/intl.dart';
 
 class ProjectExportCustomizer extends ProjectExportCustomizerBase {
   const ProjectExportCustomizer({super.key, required super.projectController});
@@ -22,6 +23,7 @@ class _ProjectExportCustomizerState extends ProjectExportCustomizerBaseState<Pro
     // "Standard II": buildSnagPage_theme1,
   };
   final TextEditingController themeController = TextEditingController();
+  final TextEditingController nameController = TextEditingController();
 
 
   @override
@@ -29,6 +31,7 @@ class _ProjectExportCustomizerState extends ProjectExportCustomizerBaseState<Pro
     super.initState();
     selectedQualityNotifier = ValueNotifier<String>('Low');
     themeController.text = options.keys.first;
+    nameController.text = buildDefaultPdfFileName();
   }
 
   @override
@@ -36,7 +39,12 @@ class _ProjectExportCustomizerState extends ProjectExportCustomizerBaseState<Pro
 
   @override
   List<Widget> buildCustomOptions() {
+    String fileNameHint = buildDefaultPdfFileName();
     return [
+      buildTextInput("File Name", fileNameHint, nameController),
+
+      const SizedBox(height: 24.0),
+
       buildCustomSegmentedControl(
         label: TierService.instance.canPdfQualityChange ? "Image Quality" : "Image Quality (Upgrade to Premium to unlock)",
         options: ["Low", "Medium", "High"],
@@ -63,11 +71,23 @@ class _ProjectExportCustomizerState extends ProjectExportCustomizerBaseState<Pro
           widget.projectController,
           selectedQualityNotifier.value,
           options[themeController.text],
+          nameController.text,
           selectedCategories.toList(),
           selectedStatuses.toList(),
         );
-        Navigator.of(context).pop();
+
+        if (mounted) { // TODO verify if this works?
+          Navigator.of(context).pop();
+        }
       }
     );
+  }
+
+
+  String buildDefaultPdfFileName() {
+    // timestamp yyMMdd_hhMMss
+    final timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
+    String ref = widget.projectController.getProjectRef;
+    return "${ref}_$timestamp";
   }
 }
