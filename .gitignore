@@ -43,5 +43,5 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
-ios/
-ios/build ios/Flutter ios/Podfile ios/Podfile.lock ios/Pods ios/Runner ios/Runner.xcodeproj ios/Runner.xcworkspace ios/RunnerTests
+ios/build
+ios/Flutter

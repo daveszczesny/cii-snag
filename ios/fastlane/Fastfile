@@ -1,0 +1,30 @@
+default_platform(:ios)
+
+platform :ios do
+  lane :dev do
+    api_key = app_store_connect_api_key(
+      key_id: ENV["APP_STORE_CONNECT_API_KEY_ID"],
+      issuer_id: ENV["APP_STORE_CONNECT_ISSUER_ID"],
+      key_content: ENV["APP_STORE_CONNECT_API_KEY"],
+      is_key_content_base64: true
+    )
+
+    increment_build_number(
+      xcodeproj: "Runner.xcodeproj"
+    )
+
+    sh("cd .. && flutter build ios --release")
+
+    build_app(
+      scheme: "Runner",
+      export_method: "app-store"
+    )
+
+
+    upload_to_testflight(
+      groups: ["DEV"],
+      distribute_external: false,
+      skip_waiting_for_build_processing: true
+    )
+  end
+end
