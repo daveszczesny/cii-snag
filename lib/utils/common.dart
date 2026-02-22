@@ -46,6 +46,17 @@ void _generateThumbnailInBackground(String imagePath, String thumbPath) async {
   }
 }
 
+Future<String?> getThumbnailPath(String imagePath) async {
+  final appDir = await getApplicationDocumentsDirectory();
+  final fileName = path.basenameWithoutExtension(imagePath);
+  final thumbPath = "${appDir.path}/thumbnails/thumb_$fileName.jpg";
+
+  if (await File(thumbPath).exists()) {
+    return thumbPath;
+  }
+  return null;
+}
+
 Future<String> compressAndSaveImage(File imageFile, {int quality = 95}) async {
  final appDir = await getApplicationDocumentsDirectory();
  final imagesDir = Directory("${appDir.path}/images");

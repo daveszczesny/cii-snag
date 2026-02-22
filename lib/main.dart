@@ -65,43 +65,29 @@ void main() async {
     }
 
     // migration script
-    print("Migration Starting");
     try {
-      print("Moving snags from projects to snag box");
       final projectBox = Hive.box<Project>("projects");
       final snagBox = Hive.box<Snag>("snags");
 
-      int migratedSnags = 0;
       for (final project in projectBox.values) {
-        print("Project snags ${project.snags.length}");
         if (project.snags.isNotEmpty) {
           // migrate embedded snags to snag provider
           for (final snag in project.snags) {
             final updatedSnag = snag.copyWith(projectId: project.uuid);
             snagBox.put(snag.uuid, updatedSnag);
-            migratedSnags++;
           }
           project.snags.clear();
         }
       }
-
-      print("Migrated $migratedSnags snags");
     } catch (e) {
       debugPrint("Error migrating snags to providers");
     }
 
     try {
-      print("Updating hive key for projects and snags");
       final projectBox = Hive.box<Project>("projects");
       final snagBox = Hive.box<Snag>("snags");
-
-      print("Snag box has ${snagBox.length} snags");
-
-      for(final snag in snagBox.values) {
-        print("Snag: ${snag.name} (${snag.uuid}) (${snag.projectId})");
-      }
-
       final projectsToMigrate = <String, Project>{};
+
       for (final key in projectBox.keys.toList()) {
         final project = projectBox.get(key);
         if (project != null && key.toString() != project.uuid) {
@@ -133,10 +119,6 @@ void main() async {
         final newSnag = snag.copyWith();
         snagBox.delete(int.parse(oldKey));
         snagBox.put(snag.uuid, newSnag);
-      }
-
-      if (projectsToMigrate.isNotEmpty || snagsToMigrate.isNotEmpty) {
-        debugPrint("Migrated ${projectsToMigrate.length} projects and ${snagsToMigrate.length} snags to new keys");
       }
     } catch (e) {
       debugPrint("Error migrating project/snag keys: $e");

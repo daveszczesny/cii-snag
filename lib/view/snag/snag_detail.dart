@@ -407,7 +407,7 @@ class _SnagDetailState extends ConsumerState<SnagDetail> {
 
                 final Snag updatedSnag = snag.copyWith(
                   name: nameController.text != '' ? nameController.text : snag.name,
-                  description: descriptionController.text,
+                  description: descriptionController.text.trim(),
                   assignee: assigneeController.text,
                   location: locationController.text,
                   dueDate: dueDateController.text.isNotEmpty ? parseDate(dueDateController.text) : snag.dueDate,

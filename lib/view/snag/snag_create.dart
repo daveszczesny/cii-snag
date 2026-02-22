@@ -141,7 +141,7 @@ class _SnagCreateState extends ConsumerState<SnagCreate> {
       id: snagId,
       name: name,
       location: location,
-      description: description,
+      description: description.trim(),
       assignee: assignee,
       categories: snagCategory != null ? [snagCategory!] : [],
       tags: snagTags,
