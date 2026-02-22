@@ -170,6 +170,8 @@ class _SnagCreateState extends ConsumerState<SnagCreate> {
         selectedImage = p;
       }
     } else {
+      annotatedImages.removeWhere((k, v) => !imageFilePaths.contains(k));
+
       // Check if current selectedImage still exists in imageFilePaths
       String currentOriginalPath = selectedImage;
       for (var entry in annotatedImages.entries) {
