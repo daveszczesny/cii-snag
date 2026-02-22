@@ -5,6 +5,7 @@ import 'package:cii/view/project/export/project_export_customizer_base.dart';
 import 'package:cii/view/utils/text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 class ProjectCsvExportCustomizer extends ProjectExportCustomizerBase {
   const ProjectCsvExportCustomizer({super.key, required super.projectId});
@@ -18,9 +19,15 @@ class _ProjectCsvExportCustomizerState extends ProjectExportCustomizerBaseState<
   @override
   String get title => "CSV Export Customization";
 
+  final TextEditingController nameController = TextEditingController();
+
   @override
   List<Widget> buildCustomOptions({Project? project}) {
-    return [];
+    String fileNameHint = project != null ? buildDefaultCsvFileName(project.projectRef!) : "File Name";
+    return [
+      buildLimitedTextInput("File Name", fileNameHint, nameController, 50),
+      const SizedBox(height: 24.0),
+    ];
   }
 
   @override
@@ -29,9 +36,16 @@ class _ProjectCsvExportCustomizerState extends ProjectExportCustomizerBaseState<
     return buildTextButton(
       "Export to CSV",
       () async {
-        saveCsvFile(context, widget.projectId, ref);
+        saveCsvFile(context, widget.projectId, ref, nameController.text);
         Navigator.pop(context);
       }
     );
+  }
+
+
+  String buildDefaultCsvFileName(String ref) {
+    // timestamp yyMMdd_hhMMss
+    final timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
+    return "${ref}_$timestamp";
   }
 }

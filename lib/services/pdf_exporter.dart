@@ -42,6 +42,7 @@ Future<void> savePdfFile(
   try {
 
     final Project project = ProjectService.getProject(ref, projectId);
+
     final pdf = pw.Document();
     final projectName = project.name;
 
@@ -58,34 +59,30 @@ Future<void> savePdfFile(
 
     pw.ImageProvider? projectLogoImage;
     if (project.mainImagePath != null && project.mainImagePath!.isNotEmpty) {
-      try {
-        final fullPath = await getImagePath(project.mainImagePath!);
-        final projectLogoFile = File(fullPath);
-        if (await projectLogoFile.exists()) {
-          final projectLogoBytes = await projectLogoFile.readAsBytes();
-          final compressedLogoImage = await processImageForQuality(projectLogoBytes, imageQuality);
-          projectLogoImage = pw.MemoryImage(compressedLogoImage);
-        }
-      } catch (e) {
-        // None actionable error
+      final fullPath = await getImagePath(project.mainImagePath!);
+      final projectLogoFile = File(fullPath);
+      if (await projectLogoFile.exists()) {
+        final projectLogoBytes = await projectLogoFile.readAsBytes();
+        final compressedLogoImage = await processImageForQuality(projectLogoBytes, imageQuality);
+        projectLogoImage = pw.MemoryImage(compressedLogoImage);
       }
     }
-    
+
     final List<Snag> snagList = ProjectService.getSnags(ref, project.uuid)
-      .map((s) => s)
-      .where((s) {
-        final snagCategory = (s.categories != null && s.categories!.isNotEmpty)
-            ? s.categories![0].name
-            : "Uncategorized";
-        final snagStatus = s.status.name;
-        final categoryMatch = selectedCategories == null || selectedCategories.isEmpty
-            ? true
-            : (selectedCategories.contains(snagCategory));
-        final statusMatch = selectedStatuses == null || selectedStatuses.isEmpty
-            ? true
-            : (selectedStatuses.contains(snagStatus));
-        return categoryMatch && statusMatch;
-      }).toList();
+        .map((s) => s)
+        .where((s) {
+          final snagCategory = (s.categories != null && s.categories!.isNotEmpty)
+              ? s.categories![0].name
+              : "Uncategorized";
+          final snagStatus = s.status?.name ?? "Unknown";
+          final categoryMatch = selectedCategories == null || selectedCategories.isEmpty
+              ? true
+              : (selectedCategories.contains(snagCategory));
+          final statusMatch = selectedStatuses == null || selectedStatuses.isEmpty
+              ? true
+              : (selectedStatuses.contains(snagStatus));
+          return categoryMatch && statusMatch;
+        }).toList();
 
     final frontPage = buildFrontPage(projectName, logoImage, projectLogoImage, theme);
     final projectDetailPage = buildProjectDetailsPage(projectName, project, logoImage, theme);
@@ -119,7 +116,8 @@ Future<void> savePdfFile(
       }),
     );
 
-    for (final snag in snagList) {
+    for (int i = 0; i < snagList.length; i++) {
+      final snag = snagList[i];
       // Use cached processed images
       final processedImages = snag.imagePaths
         ?.where((filename) => imageCache.containsKey(filename))
@@ -127,12 +125,11 @@ Future<void> savePdfFile(
           // Check if there's an annotated version of this image
           final annotatedFilename = (snag.annotatedImagePaths ?? {})[filename];
           if (annotatedFilename != null && imageCache.containsKey(annotatedFilename)) {
-            return imageCache[annotatedFilename]!;
+            return imageCache[annotatedFilename] ?? pw.MemoryImage(Uint8List(0));
           }
-          return imageCache[filename]!;
+          return imageCache[filename] ?? pw.MemoryImage(Uint8List(0));
         })
         .toList();
-
       final snagPageThemed = themeFunction(projectName, snag, imageQuality, processedImages, logoImage, theme);
       pdf.addPage(snagPageThemed);
     }
@@ -143,7 +140,7 @@ Future<void> savePdfFile(
 
     final bytes = await pdf.save();
     final pdfDirPath = await getPdfDirectory();
-    final saveFileName = pdfFileName;
+    final saveFileName = "$pdfFileName.pdf";
     final file = File('$pdfDirPath/$saveFileName');
     await file.writeAsBytes(bytes);
 
@@ -162,12 +159,13 @@ Future<void> savePdfFile(
     ProjectService.updateProject(ref, updatedProject);
 
     await SharePlus.instance.share(ShareParams(
-      files: [XFile(file.path)],
+      files: [XFile(file.path, mimeType: "application/pdf")],
       sharePositionOrigin: const Rect.fromLTWH(0, 0, 100, 100)
     ));
 
     Navigator.of(context).pop();
   } catch (e) {
+    // print('$e\n${StackTrace.current}');
     Navigator.of(context).pop();
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Error generating PDF')),
@@ -331,7 +329,7 @@ pw.MultiPage buildProjectDetailsPage(String projectName, Project project, pw.Ima
                       child: pw.Text('Location:', style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
                     ),
                     pw.Expanded(
-                      child: pw.Text(project.location == "" ? '-' : project.location!, style: const pw.TextStyle(fontSize: 14)),
+                      child: pw.Text(isNullorEmpty(project.location) ? '-' : project.location!, style: const pw.TextStyle(fontSize: 14)),
                     ),
                   ],
                 ),
@@ -344,7 +342,7 @@ pw.MultiPage buildProjectDetailsPage(String projectName, Project project, pw.Ima
                       child: pw.Text('Client:', style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
                     ),
                     pw.Expanded(
-                      child: pw.Text(project.client == "" ? '-' : project.client!, style: const pw.TextStyle(fontSize: 14)),
+                      child: pw.Text(isNullorEmpty(project.client) ? '-' : project.client!, style: const pw.TextStyle(fontSize: 14)),
                     ),
                   ],
                 ),
@@ -357,7 +355,7 @@ pw.MultiPage buildProjectDetailsPage(String projectName, Project project, pw.Ima
                       child: pw.Text('Contractor:', style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
                     ),
                     pw.Expanded(
-                      child: pw.Text(project.contractor == "" ? '-' : project.contractor!, style: const pw.TextStyle(fontSize: 14)),
+                      child: pw.Text(isNullorEmpty(project.contractor) ? '-' : project.contractor!, style: const pw.TextStyle(fontSize: 14)),
                     ),
                   ],
                 ),
@@ -370,7 +368,7 @@ pw.MultiPage buildProjectDetailsPage(String projectName, Project project, pw.Ima
                       child: pw.Text('Reference:', style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
                     ),
                     pw.Expanded(
-                      child: pw.Text(project.projectRef!, style: const pw.TextStyle(fontSize: 14)),
+                      child: pw.Text(isNullorEmpty(project.projectRef) ? "-" : project.projectRef!, style: const pw.TextStyle(fontSize: 14)),
                     ),
                   ],
                 ),
@@ -383,7 +381,7 @@ pw.MultiPage buildProjectDetailsPage(String projectName, Project project, pw.Ima
                       child: pw.Text('Status:', style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
                     ),
                     pw.Expanded(
-                      child: pw.Text(project.status.name, style: const pw.TextStyle(fontSize: 14)),
+                      child: pw.Text(isNullorEmpty(project.status.name) ? "-" : project.status.name, style: const pw.TextStyle(fontSize: 14)),
                     ),
                   ],
                 ),
@@ -402,7 +400,7 @@ pw.MultiPage buildProjectDetailsPage(String projectName, Project project, pw.Ima
                 ),
                 pw.SizedBox(height: 12),
                 pw.Text('Description:', style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
-                pw.Text(project.description == "" ? '-' : project.description!, style: const pw.TextStyle(fontSize: 14))
+                pw.Text(isNullorEmpty(project.description) ? '-' : project.description!, style: const pw.TextStyle(fontSize: 14))
               ]
             )
           ),
@@ -615,7 +613,7 @@ pw.MultiPage buildSnagPage(String projectName, Snag snag, String imageQuality, L
               child: pw.Column(
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
-                  pw.Text('Category: ${(snag.categories != null && snag.categories!.isNotEmpty) ? snag.categories![0].name : 'Uncategorized'}'),
+                  pw.Text('Category: ${(snag.categories != null && snag.categories!.isNotEmpty) ? snag.categories![0].name ?? "Uncategorized" : 'Uncategorized'}'),
                   pw.SizedBox(height: 4),
                   pw.Text('Status: ${snag.status.name}'),
                   pw.SizedBox(height: 8),
