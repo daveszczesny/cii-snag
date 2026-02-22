@@ -1,30 +1,28 @@
-import 'package:cii/controllers/project_controller.dart';
-import 'package:cii/controllers/single_project_controller.dart';
 import 'package:cii/models/project.dart';
+import 'package:cii/providers/project_provider.dart';
+import 'package:cii/services/project_service.dart';
 import 'package:cii/view/project/project_card_widget.dart';
 import 'package:cii/view/utils/constants.dart';
+import 'package:cii/view/utils/project/project_utils.dart';
 import 'package:flutter/material.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class ProjectListTabWidget extends StatefulWidget {
+class ProjectListTabWidget extends ConsumerStatefulWidget {
 
   const ProjectListTabWidget({super.key});
 
   @override
-  State<ProjectListTabWidget> createState() => _ProjectListTabWidgetState();
+  ConsumerState<ProjectListTabWidget> createState() => _ProjectListTabWidgetState();
 }
 
-class _ProjectListTabWidgetState extends State<ProjectListTabWidget> with SingleTickerProviderStateMixin {
+class _ProjectListTabWidgetState extends ConsumerState<ProjectListTabWidget> with SingleTickerProviderStateMixin {
 
   late TabController tabController;
-  late ProjectController controller;
 
   @override
   void initState() {
     super.initState();
-    controller = ProjectController(Hive.box<Project>('projects'));
     tabController = TabController(length: 3, vsync: this);
-
   }
 
   @override
@@ -33,57 +31,44 @@ class _ProjectListTabWidgetState extends State<ProjectListTabWidget> with Single
     super.dispose();
   }
 
+  Widget buildProjectList(List<Project> projects, String status) {
+    final filteredProjects = getProjectByStatus(projects, status);
 
-  Widget buildProjectList(String status) {
-    return ValueListenableBuilder(
-        valueListenable: controller.projectBox.listenable(),
-        builder: (context, Box<Project> box, _) {
-          if (box.isEmpty) {
-          return const Center(child: Text(AppStrings.noProjectsFound));
-          }
+    if (projects.isEmpty || filteredProjects.isEmpty) {
+      return const Center(child: Text(AppStrings.noProjectsFound));
+    }
 
-          List<Project>? projects = controller.getProjectsByStatus(status);
-          if (projects == null || projects.isEmpty) {
-            return const Center(child: Text('No projects found.'));
-          }
-          return ListView.builder(
-            itemCount: projects.length,
-            itemBuilder: (context, index) {
-              final projectObject = projects[index];
-              final projectController = SingleProjectController(projectObject);
-              return ProjectCardWidget(projectController: projectController);
-            }
-          );
-        }
-      );
+    return ListView.builder(
+      itemCount: filteredProjects.length,
+      itemBuilder: (context, index) {
+        final projectObject = filteredProjects[index];
+        return ProjectCardWidget(projectId: projectObject.id!);
+      }
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final List<Project> projects = ProjectService.getProjects(ref);
+    final int recentCount = getProjectByStatus(projects, "Recent").length;
+    final int allCount = projects.length;
+    final int closedCount = getProjectByStatus(projects, "Closed").length;
+
+    final tabs = [
+      Tab(text: "Recent ($recentCount)"),
+      Tab(text: "All ($allCount)"),
+      Tab(text: "Closed ($closedCount)"),
+    ];
+
     return Scaffold(
       body: Column(
         children: [
-          ValueListenableBuilder(
-            valueListenable: controller.projectBox.listenable(),
-            builder: (context, Box<Project> box, _) {
-              final recentCount = controller.getProjectsByStatus("Recent")?.length ?? 0;
-              final allCount = controller.getAllProjects().length;
-              final closedCount = controller.getProjectsByStatus("Closed")?.length ?? 0;
-
-              final tabs = [
-                Tab(text: 'Recent ($recentCount)'),
-                Tab(text: 'All ($allCount)'),
-                Tab(text: 'Closed ($closedCount)'),
-              ];
-
-              return TabBar(
-                controller: tabController,
-                indicatorSize: TabBarIndicatorSize.tab,
-                isScrollable: false,
-                labelPadding: const EdgeInsets.symmetric(horizontal: 16.0),
-                tabs: tabs,
-              );
-            }
+          TabBar(
+            controller: tabController,
+            indicatorSize: TabBarIndicatorSize.tab,
+            isScrollable: false,
+            labelPadding: const EdgeInsets.symmetric(horizontal: 16.0),
+            tabs: tabs,
           ),
           ValueListenableBuilder(
             valueListenable: AppTerminology.version,
@@ -92,9 +77,9 @@ class _ProjectListTabWidgetState extends State<ProjectListTabWidget> with Single
                 child: TabBarView(
                   controller: tabController,
                   children: [
-                    buildProjectList('Recent'),
-                    buildProjectList('All'),
-                    buildProjectList('Closed')
+                    buildProjectList(projects, "Recent"),
+                    buildProjectList(projects, "All"),
+                    buildProjectList(projects, "Closed")
                   ]
                 )
               );

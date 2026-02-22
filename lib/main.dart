@@ -1,8 +1,8 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cii/adapters/color_adapter.dart';
 import 'package:cii/adapters/priority_enum_adapter.dart';
 import 'package:cii/models/category.dart';
 import 'package:cii/models/comment.dart';
-import 'package:cii/models/company.dart';
 import 'package:cii/models/csvexportrecords.dart';
 import 'package:cii/models/notification.dart';
 import 'package:cii/models/pdfexportrecords.dart';
@@ -35,7 +35,6 @@ void main() async {
       Hive.registerAdapter(CommentAdapter());
       Hive.registerAdapter(CategoryAdapter());
       Hive.registerAdapter(TagAdapter());
-      Hive.registerAdapter(CompanyAdapter());
       Hive.registerAdapter(ProjectAdapter());
       Hive.registerAdapter(StatusAdapter());
       Hive.registerAdapter(SnagAdapter());
@@ -58,11 +57,13 @@ void main() async {
     }
 
     try {
-      await Hive.openBox<Company>('companies');
       await Hive.openBox<Project>('projects');
       await Hive.openBox<Snag>('snags');
+      await Hive.openBox<Category>('categories');
+      await Hive.openBox<Tag>('tags');
+      await Hive.openBox<AppNotification>('notifications');
     } catch (e) {
-      debugPrint("Error loading preferences $e");
+      debugPrint("Error opening Hive boxes: $e");
     }
     
     try {
@@ -80,6 +81,24 @@ void main() async {
     }
 
     try {
+      final projectBox = Hive.box<Project>("projects");
+      final snagBox = Hive.box<Snag>("snags");
+
+      for (final project in projectBox.values) {
+        if (project.snags.isNotEmpty) {
+          // migrate embedded snags to snag provider
+          for (final snag in project.snags) {
+            snagBox.put(snag.id, snag);
+          }
+          project.snags.clear();
+          projectBox.put(project.id, project);
+        }
+      }
+    } catch (e) {
+      debugPrint("Error migrating snags to providers");
+    }
+
+    try {
       // Create demo data if first launch
       final isFirstLaunch = await DemoService.isFirstLaunch();
       if (isFirstLaunch) {
@@ -91,7 +110,7 @@ void main() async {
     }
 
 
-    runApp(const MainApp());
+    runApp(const ProviderScope(child: MainApp()));
   } catch (e) {
     debugPrint("Error initializing app: $e");
   }

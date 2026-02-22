@@ -1,8 +1,11 @@
 import 'dart:async';
 
-import 'package:cii/controllers/single_project_controller.dart';
+import 'package:cii/models/csvexportrecords.dart';
+import 'package:cii/models/pdfexportrecords.dart';
+import 'package:cii/models/project.dart';
 import 'package:cii/services/csv_exporter.dart';
 import 'package:cii/services/pdf_exporter.dart';
+import 'package:cii/services/project_service.dart';
 import 'package:cii/services/tier_service.dart';
 import 'package:cii/utils/common.dart';
 import 'package:cii/view/project/export/project_csv_export_customizer.dart';
@@ -10,14 +13,15 @@ import 'package:cii/view/project/export/project_export_customizer.dart';
 import 'package:cii/view/utils/constants.dart';
 import 'package:cii/view/utils/text.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
-class ProjectExport extends StatefulWidget {
-  final SingleProjectController projectController;
-  const ProjectExport({super.key, required this.projectController});
+class ProjectExport extends ConsumerStatefulWidget {
+  final String projectId;
+  const ProjectExport({super.key, required this.projectId});
 
   @override
-  State<ProjectExport> createState() => _ProjectExportState();
+  ConsumerState<ProjectExport> createState() => _ProjectExportState();
 }
 
 /*
@@ -29,7 +33,7 @@ allow customization of the export format for pdf and excel.
 
 */
 
-class _ProjectExportState extends State<ProjectExport> with SingleTickerProviderStateMixin {
+class _ProjectExportState extends ConsumerState<ProjectExport> with SingleTickerProviderStateMixin {
 
   late TabController tabController;
 
@@ -59,7 +63,7 @@ class _ProjectExportState extends State<ProjectExport> with SingleTickerProvider
     });
   }
 
-  Widget buildExporterTab(String type) {
+  Widget buildExporterTab(Project project, String type) {
     // Will contain an option to export the project in the specified format
     // this will bring user to further customization options
     // under it will list previous exports of the project
@@ -70,12 +74,13 @@ class _ProjectExportState extends State<ProjectExport> with SingleTickerProvider
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             buildTextButton("Export to $type", () async {
-              _pdfExportsCount = widget.projectController.getPdfExportRecordsListenable().value.length;
+              _pdfExportsCount = project.pdfExportRecords?.length ?? 0;
               await Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => ProjectExportCustomizer(projectController: widget.projectController))
+                MaterialPageRoute(builder: (context) => ProjectExportCustomizer(projectId: project.id!))
               );
-              if (widget.projectController.getPdfExportRecordsListenable().value.length > _pdfExportsCount){
+              final updatedProject = ProjectService.getProject(ref, widget.projectId);
+              if ((updatedProject.pdfExportRecords?.length ?? 0) > _pdfExportsCount) {
                 _checkForNewExport();
               }
             }), const SizedBox(height: 24.0),
@@ -90,9 +95,10 @@ class _ProjectExportState extends State<ProjectExport> with SingleTickerProvider
             ), const SizedBox(height: 24.0),
             // show previous exports as a list
             Expanded(
-              child: ValueListenableBuilder(
-                valueListenable: widget.projectController.getPdfExportRecordsListenable(),
-                builder: (context, pdfExports, _) {
+              child: Consumer(
+                builder: (context, ref, _) {
+                  final currentProject = ProjectService.getProject(ref, widget.projectId);
+                  final pdfExports = currentProject.pdfExportRecords ?? [];
                   if (pdfExports.isEmpty) { return const Center(child: Text('No previous exports found,')); }
                   // Sort by export date, newest first
                   final sortedExports = List.from(pdfExports)..sort((a, b) => b.exportDate.compareTo(a.exportDate));
@@ -126,7 +132,11 @@ class _ProjectExportState extends State<ProjectExport> with SingleTickerProvider
                           );
                         },
                         onDismissed: (direction) {
-                          widget.projectController.deletePdfExportRecord(record);
+                          final updatedRecords = List<PdfExportRecords>.from(currentProject.pdfExportRecords ?? []);
+                          updatedRecords.removeWhere((r) => r.uuid == record.uuid);
+                          final updatedProject = currentProject.copyWith(pdfExportRecords: updatedRecords);
+                          ProjectService.updateProject(ref, updatedProject);
+
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(content: Text('Export deleted'), duration: Duration(seconds: 2))
                           );
@@ -179,13 +189,14 @@ class _ProjectExportState extends State<ProjectExport> with SingleTickerProvider
                 return;
               }
 
-              _csvExportsCount = widget.projectController.getCsvExportRecordsListenable().value.length;
+              _csvExportsCount = project.csvExportRecords?.length ?? 0;
               await Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => ProjectCsvExportCustomizer(projectController: widget.projectController)),
+                MaterialPageRoute(builder: (context) => ProjectCsvExportCustomizer(projectId: widget.projectId)),
               );
 
-              if (widget.projectController.getCsvExportRecordsListenable().value.length > _csvExportsCount){
+              final updatedProject = ProjectService.getProject(ref, widget.projectId);
+              if ((updatedProject.csvExportRecords?.length ?? 0) > _pdfExportsCount) {
                 _checkForNewExport();
               }
             },
@@ -204,9 +215,10 @@ class _ProjectExportState extends State<ProjectExport> with SingleTickerProvider
             ), 
             const SizedBox(height: 24.0),
             Expanded(
-              child: ValueListenableBuilder(
-                valueListenable: widget.projectController.getCsvExportRecordsListenable(),
-                builder: (context, csvExports, _) {
+              child: Consumer(
+                builder: (context, ref, _) {
+                  final currentProject = ProjectService.getProject(ref, widget.projectId);
+                  final csvExports = currentProject.csvExportRecords ?? [];
                   if (csvExports.isEmpty) { 
                     return const Center(child: Text('No previous exports found')); 
                   }
@@ -241,7 +253,11 @@ class _ProjectExportState extends State<ProjectExport> with SingleTickerProvider
                           );
                         },
                         onDismissed: (direction) {
-                          widget.projectController.deleteCsvExportRecord(record);
+                          final updatedRecords = List<CsvExportRecords>.from(currentProject.csvExportRecords ?? []);
+                          updatedRecords.removeWhere((r) => r.uuid == record.uuid);
+                          final updatedProject = currentProject.copyWith(csvExportRecords: updatedRecords);
+                          ProjectService.updateProject(ref, updatedProject);
+
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(content: Text('Export deleted'), duration: Duration(seconds: 2))
                           );
@@ -287,8 +303,7 @@ class _ProjectExportState extends State<ProjectExport> with SingleTickerProvider
 
   @override
   Widget build(BuildContext context) {
-
-
+    final Project project = ProjectService.getProject(ref, widget.projectId);
     final List<Widget> tabs = [
       const Tab(text: 'PDF'),
       Tab(
@@ -307,7 +322,7 @@ class _ProjectExportState extends State<ProjectExport> with SingleTickerProvider
 
     return Scaffold(
       appBar: AppBar(
-        title: Text("Export ${widget.projectController.getName!}"),
+        title: Text("Export ${[project.name]}"),
       ),
       body: Column(
         children: [
@@ -325,8 +340,8 @@ class _ProjectExportState extends State<ProjectExport> with SingleTickerProvider
                 child: TabBarView(
                   controller: tabController,
                   children: [
-                    buildExporterTab('PDF'),
-                    buildExporterTab('CSV'),
+                    buildExporterTab(project, 'PDF'),
+                    buildExporterTab(project, 'CSV'),
                   ]
                 )
               );

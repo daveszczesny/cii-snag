@@ -1,24 +1,26 @@
 import 'dart:io';
-
-import 'package:cii/controllers/single_project_controller.dart';
+import 'package:cii/models/project.dart';
 import 'package:cii/models/status.dart';
+import 'package:cii/providers/providers.dart';
+import 'package:cii/services/project_service.dart';
 import 'package:cii/utils/colors/app_colors.dart';
 import 'package:cii/utils/common.dart';
 import 'package:cii/view/project/export/project_export.dart';
 import 'package:cii/view/project/project_detail.dart';
 import 'package:cii/view/utils/constants.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class ProjectCardWidget extends StatefulWidget {
-  final SingleProjectController projectController;
+class ProjectCardWidget extends ConsumerStatefulWidget {
+  final String projectId;
 
-  const ProjectCardWidget({super.key, required this.projectController});
+  const ProjectCardWidget({super.key, required this.projectId});
 
   @override
-  State<ProjectCardWidget> createState() => _ProjectCardWidgetState();
+  ConsumerState<ProjectCardWidget> createState() => _ProjectCardWidgetState();
 }
 
-class _ProjectCardWidgetState extends State<ProjectCardWidget> {
+class _ProjectCardWidgetState extends ConsumerState<ProjectCardWidget> {
 
   @override
   void initState() {
@@ -29,19 +31,19 @@ class _ProjectCardWidgetState extends State<ProjectCardWidget> {
     switch (value) {
       case 'view':
         Navigator.of(context).push(
-          MaterialPageRoute(builder: (context) => ProjectDetail(projectController: widget.projectController, index: 1))
+          MaterialPageRoute(builder: (context) => ProjectDetail(projectId: widget.projectId, index: 1))
         );
         break;
       case 'add':
         Navigator.of(context).push(
-          MaterialPageRoute(builder: (context) => ProjectDetail(projectController: widget.projectController, index: 2))
+          MaterialPageRoute(builder: (context) => ProjectDetail(projectId: widget.projectId, index: 2))
         );
         break;
       case 'export':
         // implement share functionality
           // savePdfFile(widget.projectController);
           Navigator.of(context).push(
-            MaterialPageRoute(builder: (context) => ProjectExport(projectController: widget.projectController))
+            MaterialPageRoute(builder: (context) => ProjectExport(projectId: widget.projectId))
           );
         break;
       case 'delete':
@@ -61,7 +63,7 @@ class _ProjectCardWidgetState extends State<ProjectCardWidget> {
                 ),
                 TextButton(
                   onPressed: () {
-                    widget.projectController.deleteProject();
+                    ProjectService.deleteProject(ref, widget.projectId);
                     Navigator.of(context).pop();
                   },
                   child: const Text(AppStrings.delete)
@@ -76,12 +78,16 @@ class _ProjectCardWidgetState extends State<ProjectCardWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final snagCount = widget.projectController.getTotalSnags();
-    final completed = widget.projectController.getTotalSnagsByStatus(Status.completed);
-    final inProgress = widget.projectController.getTotalSnagsByStatus(Status.inProgress);
-    final todo = widget.projectController.getTotalSnagsByStatus(Status.todo);
-    final onHold = widget.projectController.getTotalSnagsByStatus(Status.blocked);
-    final status = widget.projectController.getStatus ?? Status.todo.name;
+    final Project project = ProjectService.getProject(ref, widget.projectId);
+
+    ProjectService.getSnags(ref, widget.projectId); // Watches snag changes
+
+    final int snagCount = ProjectService.getSnagCount(ref, widget.projectId);
+    final int completed = ProjectService.getSnagsByStatus(ref, widget.projectId, Status.completed).length;
+    final int inProgress = ProjectService.getSnagsByStatus(ref, widget.projectId, Status.inProgress).length;
+    final int todo = ProjectService.getSnagsByStatus(ref, widget.projectId, Status.todo).length;
+    final int onHold = ProjectService.getSnagsByStatus(ref, widget.projectId, Status.blocked).length;
+    final String status = project.status.name;
 
     final total = completed + inProgress + todo + onHold;
     double percent(int count) => total == 0 ? 0 : count / total;
@@ -93,7 +99,7 @@ class _ProjectCardWidgetState extends State<ProjectCardWidget> {
     return GestureDetector(
       onTap: () {
         Navigator.of(context).push(
-          MaterialPageRoute(builder: (context) => ProjectDetail(projectController: widget.projectController))
+          MaterialPageRoute(builder: (context) => ProjectDetail(projectId: project.id!))
         );
       },
       child: Container(
@@ -116,7 +122,7 @@ class _ProjectCardWidgetState extends State<ProjectCardWidget> {
                   ClipRRect(
                     borderRadius: BorderRadius.circular(15),
                     child: (() {
-                      final path = widget.projectController.getMainImagePath;
+                      final path = project.mainImagePath;
                       if (path != null && path.isNotEmpty) {
                         return FutureBuilder<String>(
                           future: getImagePath(path),
@@ -143,7 +149,7 @@ class _ProjectCardWidgetState extends State<ProjectCardWidget> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          widget.projectController.getName ?? '',
+                          project.name,
                           style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w400, color: Colors.black, fontFamily: 'Roboto'),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,

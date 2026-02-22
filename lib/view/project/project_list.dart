@@ -1,14 +1,15 @@
 import 'package:cii/view/project/project_list_tab.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class ProjectListView extends StatefulWidget {
+class ProjectListView extends ConsumerStatefulWidget {
   const ProjectListView({super.key});
 
   @override
-  State<ProjectListView> createState() => _ProjectListViewState();
+  ConsumerState<ProjectListView> createState() => _ProjectListViewState();
 }
 
-class _ProjectListViewState extends State<ProjectListView> {
+class _ProjectListViewState extends ConsumerState<ProjectListView> {
 
   @override
   void initState() {
