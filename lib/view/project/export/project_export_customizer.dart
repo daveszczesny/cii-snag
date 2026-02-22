@@ -51,7 +51,7 @@ class _ProjectExportCustomizerState extends ProjectExportCustomizerBaseState<Pro
   List<Widget> buildCustomOptions({Project? project}) {
     String fileNameHint = project != null ? buildDefaultPdfFileName(project.projectRef!) : "File Name";
     return [
-      buildTextInput("File Name", fileNameHint, nameController),
+      buildLimitedTextInput("File Name", fileNameHint, nameController, 50),
 
       const SizedBox(height: 24.0),
 

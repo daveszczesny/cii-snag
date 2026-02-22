@@ -110,7 +110,7 @@ class _ChangelogDialogState extends State<ChangelogDialog> {
       actions: [
         TextButton(
           onPressed: () {
-            //ChangelogService.markChangelogSeen();
+            ChangelogService.markChangelogSeen();
             Navigator.of(context).pop();
           },
           child: const Text("Got it", style: TextStyle(fontSize: 16)),
