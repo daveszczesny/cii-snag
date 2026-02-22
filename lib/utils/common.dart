@@ -1,16 +1,73 @@
 import 'dart:io';
 import 'package:cii/models/snag.dart';
 import 'package:cii/services/snag_service.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
-import 'package:cii/providers/providers.dart';
 import 'package:cii/view/utils/constants.dart';
 import 'package:cii/view/utils/image.dart';
 import 'package:cii/view/utils/text.dart';
 import 'package:cii/models/status.dart';
+
+Future<String> generateThumnbnail(String imagePath) async {
+  final appDir = await getApplicationDocumentsDirectory();
+  final thumbDir = Directory("${appDir.path}/thumbnails");
+  if (!await thumbDir.exists()){
+    thumbDir.create(recursive: true);
+  }
+
+  final fileName = path.basenameWithoutExtension(imagePath);
+  final thumbPath = "${thumbDir.path}/thumb_$fileName.jpg";
+
+  if (await File(thumbPath).exists()) {
+    return thumbPath;
+  }
+
+  _generateThumbnailInBackground(imagePath, thumbPath);
+  return await getImagePath(imagePath);
+}
+
+void _generateThumbnailInBackground(String imagePath, String thumbPath) async {
+  try {
+    final sourceImagePath = await getImagePath(imagePath);
+    await FlutterImageCompress.compressAndGetFile(
+      sourceImagePath,
+      thumbPath,
+      quality: 70,
+      minWidth: 200,
+      minHeight: 200,
+      format: CompressFormat.jpeg,
+    );
+  } catch (e) {
+    print("Background thumbnail generation failed: $e");
+  }
+}
+
+Future<String> compressAndSaveImage(File imageFile, {int quality = 95}) async {
+ final appDir = await getApplicationDocumentsDirectory();
+ final imagesDir = Directory("${appDir.path}/images");
+ if (!await imagesDir.exists()) {
+  await imagesDir.create(recursive: true);
+ }
+
+ final timestamp = DateTime.now().millisecondsSinceEpoch;
+ final compressedPath = "${imagesDir.path}/compressed_$timestamp.jpg";
+
+ final compressedFile = await FlutterImageCompress.compressAndGetFile(
+  imageFile.absolute.path,
+  compressedPath,
+  quality: quality,
+  minWidth: 1200, // TODO: Move to constants
+  minHeight: 1200, // TODO: Move to constants
+  format: CompressFormat.jpeg
+ );
+
+ return path.basename(compressedFile?.path ?? imageFile.path);
+}
+
 
 Future<String> saveImageToAppDir(File imageFile) async {
   final appDir = await getApplicationDocumentsDirectory();

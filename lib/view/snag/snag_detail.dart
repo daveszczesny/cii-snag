@@ -63,6 +63,8 @@ class _SnagDetailState extends ConsumerState<SnagDetail> {
 
   void _setupStatusListener() {
     final Snag snag = SnagService.getSnag(ref, widget.snagId);
+    setState(() {imageFilePaths = List<String>.from(snag.imagePaths ?? []);});
+
     selectedStatusOption.addListener(() async {
       final newStatus = Status.values.firstWhere(
         (s) => s.name == selectedStatusOption.value,
@@ -143,6 +145,10 @@ class _SnagDetailState extends ConsumerState<SnagDetail> {
         selectedImage = p;
       }
     } else {
+      // Update snag object
+      final updatedSnag = snag.copyWith(imagePaths: imageFilePaths);
+      SnagService.updateSnag(ref, updatedSnag);
+
       // check if current selectedImage still exists
       String originalPath = selectedImage;
       for (var entry in (annotatedImages ?? {}).entries) {

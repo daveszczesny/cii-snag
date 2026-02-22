@@ -251,7 +251,7 @@ Widget buildImageShowcase(BuildContext context, onChange, onSave, List<String> i
       runSpacing: spacing,
       children: imageFilePaths.map((fileName) {
         return FutureBuilder<String>(
-          future: getImagePath(fileName),
+          future: generateThumnbnail(fileName),
           builder: (context, snapshot) {
             if (!snapshot.hasData || fileName.isEmpty) {
               return const SizedBox.shrink();
@@ -296,6 +296,8 @@ Widget buildImageShowcase(BuildContext context, onChange, onSave, List<String> i
                       child: Image.file(
                         File(fullPath),
                         fit: BoxFit.cover,
+                        cacheWidth: 200,
+                        cacheHeight: 200,
                       ),
                     ),
                   ),
@@ -865,12 +867,21 @@ Future<void> pickImageFromSource(
   }
 
   if (image != null) {
-    String imagePath = await saveImageToAppDir(File(image.path));
+    if (rootContext.mounted) {
+      showDialog(
+        context: rootContext,
+        barrierDismissible: false,
+        builder: (_) => const Center(child: CircularProgressIndicator()),
+      );
+    }
+    String imagePath = await compressAndSaveImage(File(image.path));
 
+    if(rootContext.mounted) Navigator.of(rootContext).pop();
     var hasGoodAspectRatio = await _checkAspectRatio(imagePath);
     if (ignoreAspectRatio) {
       hasGoodAspectRatio = true;
     }
+
     if (!hasGoodAspectRatio) {
       if (rootContext.mounted) {
         // navigate to cropping tool
@@ -904,7 +915,7 @@ Future<void> pickImagesFromSource(
       // Only add up to availableSlots images
       final imagesToAdd = images.take(availableSlots);
       for (final image in imagesToAdd) {
-        String imagePath = await saveImageToAppDir(File(image.path));
+        String imagePath = await compressAndSaveImage(File(image.path));
         imageFilePaths.add(imagePath);
       }
       onChange();

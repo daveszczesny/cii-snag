@@ -4,7 +4,6 @@ import 'package:cii/models/category.dart';
 import 'package:cii/models/project.dart';
 import 'package:cii/models/snag.dart';
 import 'package:cii/models/status.dart';
-import 'package:cii/providers/providers.dart';
 import 'package:cii/services/project_service.dart';
 import 'package:cii/services/snag_service.dart';
 import 'package:cii/utils/colors/app_colors.dart';
@@ -281,7 +280,7 @@ class _SnagCardWidgetState extends ConsumerState<SnagCardWidget> {
                       if (imagePaths != null && imagePaths.isNotEmpty) {
                         final firstImageFileName = imagePaths[0];
                         return FutureBuilder<String>(
-                          future: getImagePath(firstImageFileName),
+                          future: generateThumnbnail(firstImageFileName),
                           builder: (context, snapshot) {
                             if (!snapshot.hasData || !File(snapshot.data!).existsSync()) {
                               return Container(

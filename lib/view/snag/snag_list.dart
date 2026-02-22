@@ -102,19 +102,26 @@ class _SnagListState extends ConsumerState<SnagList> with SingleTickerProviderSt
   }
 
   Widget buildSnagList(String status) {
-    final List<Snag> snags = filterSnags(status);
-    if (snags.isEmpty) {
-      return Center(child: Text(AppStrings.noSnagsFound()));
-    }
+    return Consumer(
+      builder: (context, ref, child) {
+        final List<Snag> snags = filterSnags(status);
 
-    return ListView.builder(
-      itemCount: snags.length,
-      itemBuilder: (context, index) {
-        final Snag snag = snags[index];
-        return SnagCardWidget(
-          projectId: widget.projectId,
-          snagId: snag.uuid,
-          onStatusChanged: _onStatusChanged,
+        if (snags.isEmpty) {
+          return Center(child: Text(AppStrings.noSnagsFound()));
+        }
+
+        return ListView.builder(
+          itemCount: snags.length,
+          cacheExtent: 200, // cache 200px worth of items
+          itemBuilder: (context, index) {
+            final Snag snag = snags[index];
+            return SnagCardWidget(
+              key: ValueKey(snag.uuid),
+              projectId: widget.projectId,
+              snagId: snag.uuid,
+              onStatusChanged: _onStatusChanged,
+            );
+          }
         );
       }
     );
