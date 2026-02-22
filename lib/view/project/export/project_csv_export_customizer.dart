@@ -1,6 +1,7 @@
 
 import 'package:cii/models/project.dart';
 import 'package:cii/services/csv_exporter.dart';
+import 'package:cii/services/project_service.dart';
 import 'package:cii/view/project/export/project_export_customizer_base.dart';
 import 'package:cii/view/utils/text.dart';
 import 'package:flutter/material.dart';
@@ -20,6 +21,13 @@ class _ProjectCsvExportCustomizerState extends ProjectExportCustomizerBaseState<
   String get title => "CSV Export Customization";
 
   final TextEditingController nameController = TextEditingController();
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final Project project = ProjectService.getProject(ref, widget.projectId);
+    nameController.text = buildDefaultCsvFileName(project.projectRef!);
+  }
 
   @override
   List<Widget> buildCustomOptions({Project? project}) {
