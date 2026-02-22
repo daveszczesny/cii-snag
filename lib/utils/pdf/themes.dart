@@ -1,12 +1,13 @@
-import 'package:cii/controllers/snag_controller.dart';
+import 'package:cii/models/snag.dart';
 import 'package:cii/models/status.dart';
 import 'package:cii/services/pdf_exporter.dart';
+import 'package:cii/utils/common.dart';
 import 'package:cii/view/utils/constants.dart';
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
-pw.MultiPage buildSnagPage_theme1(String projectName, SnagController snag, String imageQuality, List processedImages, pw.ImageProvider logoImage, [pw.ThemeData? theme]) {
+pw.MultiPage buildSnagPage_theme1(String projectName, Snag snag, String imageQuality, List processedImages, pw.ImageProvider logoImage, [pw.ThemeData? theme]) {
   return pw.MultiPage(
     pageFormat: PdfPageFormat.a4,
     theme: theme,
@@ -34,20 +35,20 @@ pw.MultiPage buildSnagPage_theme1(String projectName, SnagController snag, Strin
                 children: [
                   ...() {
                     final Map<String, String> snagAttributes = {
-                      "ID": snag.getId,
+                      "ID": snag.id,
                       "Created": DateFormat(AppDateTimeFormat.dateTimeFormatPattern).format(snag.dateCreated),
-                      "Assignee": snag.assignee == "" ? '-' : snag.assignee,
-                      "Due Date": snag.getDueDate != null ? snag.getDueDateString! : '-',
-                      "Location": snag.location == "" ? '-' : snag.location,
+                      "Assignee": !isNullorEmpty(snag.assignee) ? '-' : snag.assignee!,
+                      "Due Date": snag.dueDate != null ? DateFormat(AppDateTimeFormat.dateTimeFormatPattern).format(snag.dueDate!) : '-',
+                      "Location": !isNullorEmpty(snag.location) ? '-' : snag.location!,
                       'Category': (snag.categories != null && snag.categories!.isNotEmpty) ? snag.categories![0].name ?? 'Uncategorized' : 'Uncategorized',
-                      'Status': snag.status?.name ?? '-',
+                      'Status': snag.status.name,
                     };
 
                     if (snag.status.name == Status.completed.name) {
                       snagAttributes.addEntries(
                         [
-                          MapEntry('Final Remarks', snag.finalRemarks == "" ? '-' : snag.finalRemarks),
-                          MapEntry('Reviewed By', snag.reviewedBy == "" ? '-' :snag.reviewedBy),
+                          MapEntry('Final Remarks', !isNullorEmpty(snag.finalRemarks) ? '-' : snag.finalRemarks!),
+                          MapEntry('Reviewed By', !isNullorEmpty(snag.reviewedBy) ? '-' :snag.reviewedBy!),
                         ]
                       );
                     }

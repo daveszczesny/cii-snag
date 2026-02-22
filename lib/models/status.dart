@@ -26,6 +26,12 @@ class Status extends HiveObject {
   })
   : uuid = uuid ?? const Uuid().v4();
 
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is Status && other.name == name;
+  }
+
   // Create Statues
   static final Status todo = Status(
     name: AppStrings.statusTodo,

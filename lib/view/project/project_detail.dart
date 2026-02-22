@@ -1,22 +1,25 @@
-import 'package:cii/controllers/single_project_controller.dart';
+import 'package:cii/models/project.dart';
+import 'package:cii/services/project_service.dart';
+import 'package:cii/utils/common.dart';
 import 'package:cii/view/project/export/project_export.dart';
 import 'package:cii/view/project/project_detail_page.dart';
 import 'package:cii/view/snag/snag_create.dart';
 import 'package:cii/view/snag/snag_list.dart';
 import 'package:cii/view/utils/constants.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class ProjectDetail extends StatefulWidget {
-  final SingleProjectController projectController;
+class ProjectDetail extends ConsumerStatefulWidget {
+  final String projectId;
   final int? index;
 
-  const ProjectDetail({super.key, required this.projectController, this.index});
+  const ProjectDetail({super.key, required this.projectId, this.index});
 
   @override
-  State<ProjectDetail> createState() => _ProjectDetailState();
+  ConsumerState<ProjectDetail> createState() => _ProjectDetailState();
 }
 
-class _ProjectDetailState extends State<ProjectDetail> {
+class _ProjectDetailState extends ConsumerState<ProjectDetail> {
 
   final GlobalKey<ProjectDetailPageState> _detailKey = GlobalKey<ProjectDetailPageState>();
 
@@ -29,27 +32,32 @@ class _ProjectDetailState extends State<ProjectDetail> {
   void initState() {
     super.initState();
     isInEditMode = false;
+    selectedIndex = widget.index ?? 0;
+  }
+
+  void buildPages(Project project) {
     pages = [
       // page for snag list
-      SnagList(projectController: widget.projectController),
+      SnagList(projectId: widget.projectId),
       // page for project details
-      ProjectDetailPage(key: _detailKey, projectController: widget.projectController, isInEditMode: isInEditMode),
+      ProjectDetailPage(key: _detailKey, projectId: project.id!, isInEditMode: isInEditMode),
       // page to create snag
-      SnagCreate(projectController: widget.projectController),
+      SnagCreate(projectId: widget.projectId),
     ];
 
-    final projectName = widget.projectController.getName!;
+    final projectName = project.name;
     titles = [
       AppStrings.snagsInProject(projectName),
       projectName,
       AppStrings.createInProject(projectName)
     ];
-
-    selectedIndex = widget.index ?? 0;
   }
 
   @override
   Widget build(BuildContext context) {
+    final Project project = ProjectService.getProject(ref, widget.projectId);
+    buildPages(project);
+
     return Scaffold(
       appBar: AppBar(
         title: Text(titles[selectedIndex]),
@@ -80,8 +88,8 @@ class _ProjectDetailState extends State<ProjectDetail> {
                                   setState(() {
                                     isInEditMode = false;
                                     pages[1] = ProjectDetailPage(
-                                      key: _detailKey,
-                                      projectController: widget.projectController,
+                                      // key: _detailKey,
+                                      projectId: project.id!,
                                       isInEditMode: isInEditMode
                                     );
                                     selectedIndex = 1;
@@ -96,8 +104,8 @@ class _ProjectDetailState extends State<ProjectDetail> {
                     } else {
                       isInEditMode = false;
                       pages[1] = ProjectDetailPage(
-                        key: _detailKey,
-                        projectController: widget.projectController,
+                        // key: _detailKey,
+                        projectId: project.id!,
                         isInEditMode: isInEditMode
                       );
                       selectedIndex = 1;
@@ -121,8 +129,8 @@ class _ProjectDetailState extends State<ProjectDetail> {
                         setState(() {
                           isInEditMode = !isInEditMode;
                           pages[1] = ProjectDetailPage(
-                            key: _detailKey,
-                            projectController: widget.projectController,
+                            // key: _detailKey,
+                            projectId: project.id!,
                             isInEditMode: isInEditMode
                           );
                           selectedIndex = 1;
@@ -130,7 +138,7 @@ class _ProjectDetailState extends State<ProjectDetail> {
                         break;
                       case 'export':
                         Navigator.of(context).push(
-                          MaterialPageRoute(builder: (context) => ProjectExport(projectController: widget.projectController))
+                          MaterialPageRoute(builder: (context) => ProjectExport(projectId: project.id!))
                         );
                         break;
                     }
@@ -158,15 +166,23 @@ class _ProjectDetailState extends State<ProjectDetail> {
                       // apply changes
                       final changes = _detailKey.currentState?.getChanges();
                       if (changes != null && changes.isNotEmpty) {
-                        changes.forEach((k, v) {
-                          widget.projectController.updateDetail(k, v);
-                        });
+
+                        final updatedProject = project.copyWith(
+                          name: changes["name"] ?? project.name,
+                          description: changes["description"] ?? project.description,
+                          location: changes["location"] ?? project.location,
+                          client: changes["client"] ?? project.client,
+                          contractor: changes["contractor"] ?? project.contractor,
+                          projectRef: changes["projectRef"] ?? project.projectRef,
+                          dueDate: parseDate(changes["dueDate"] ?? project.dueDate.toString()),
+                        );
+                        ProjectService.updateProject(ref, updatedProject);
                       }
 
                       isInEditMode = !isInEditMode;
                       pages[1] = ProjectDetailPage(
-                        key: _detailKey,
-                        projectController: widget.projectController,
+                        // key: _detailKey,
+                        projectId: project.id!,
                         isInEditMode: isInEditMode
                       );
                       selectedIndex = 1;

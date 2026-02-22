@@ -1,8 +1,7 @@
 import 'package:cii/models/tier_limits.dart';
 import 'package:cii/services/premium_service.dart';
-import 'package:cii/controllers/project_controller.dart';
 import 'package:cii/view/utils/constants.dart';
-import 'package:path/path.dart';
+import 'package:cii/models/project.dart';
 
 class TierLimitException implements Exception {
   final String message;
@@ -22,19 +21,11 @@ class TierService {
   TierLimits get currentLimits => PremiumService.instance.isPremium ? TierLimits.pro : TierLimits.free;
 
   // Project limits
-  bool canCreateProject(ProjectController projectController) {
+
+  bool canCreateProjectFromList(List<Project> projects) {
     final limits = currentLimits;
     if (limits.maxProjects == -1) return true;
-    return projectController.getAllProjects().length < limits.maxProjects;
-  }
-
-  void canProjectLimit(ProjectController projectController) {
-    if (!canCreateProject(projectController)) {
-      throw TierLimitException(
-        'project_create',
-        'Max number of projects reached (${currentLimits.maxProjects})')
-      ;
-    }
+    return projects.length < limits.maxProjects;
   }
 
   // Snag limits

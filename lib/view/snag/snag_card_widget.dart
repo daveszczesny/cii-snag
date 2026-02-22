@@ -1,36 +1,42 @@
 import 'dart:io';
 
-import 'package:cii/controllers/single_project_controller.dart';
-import 'package:cii/controllers/snag_controller.dart';
+import 'package:cii/models/category.dart';
+import 'package:cii/models/project.dart';
+import 'package:cii/models/snag.dart';
 import 'package:cii/models/status.dart';
+import 'package:cii/providers/providers.dart';
+import 'package:cii/services/project_service.dart';
+import 'package:cii/services/snag_service.dart';
 import 'package:cii/utils/colors/app_colors.dart';
 import 'package:cii/utils/common.dart';
 import 'package:cii/view/snag/snag_detail.dart';
 import 'package:cii/view/utils/constants.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class SnagCardWidget extends StatefulWidget {
-  final SingleProjectController projectController;
-  final SnagController snagController;
+class SnagCardWidget extends ConsumerStatefulWidget {
+  final String projectId;
+  final String snagId;
   final VoidCallback onStatusChanged;
 
   const SnagCardWidget({
     super.key,
-    required this.projectController,
-    required this.snagController,
+    required this.projectId,
+    required this.snagId,
     required this.onStatusChanged,
   });
 
   @override
-  State<SnagCardWidget> createState() => _SnagCardWidgetState();
+  ConsumerState<SnagCardWidget> createState() => _SnagCardWidgetState();
 }
 
-class _SnagCardWidgetState extends State<SnagCardWidget> {
+class _SnagCardWidgetState extends ConsumerState<SnagCardWidget> {
 
   List<String> finalImagePaths = [];
 
   void _showStatusModal(BuildContext parentContext) {
+    final Snag snag = SnagService.getSnag(ref, widget.snagId);
+
     showModalBottomSheet(
       context: parentContext,
       builder: (BuildContext context) {
@@ -51,19 +57,22 @@ class _SnagCardWidgetState extends State<SnagCardWidget> {
                       final height = MediaQuery.of(parentContext).size.height * 0.8;
                       await buildFinalRemarksWidget(
                         parentContext,
-                        widget.snagController,
-                        widget.projectController,
+                        snag,
                         widget.onStatusChanged,
                         List<String>.from(finalImagePaths),
+                        ref,
                         width: width,
                         height: height
                       );
-                      widget.snagController.setDateClosed(DateFormat(AppDateTimeFormat.dateTimeFormatPattern).format(DateTime.now()));
-
+                      final Snag updatedSnag = snag.copyWith(
+                        dateClosed: DateTime.now()
+                      );
+                      ProjectService.updateSnag(ref, widget.projectId, updatedSnag);
                     } else {
-                      setState(() {
-                        widget.snagController.status = status;
-                      });
+                      final Snag updatedSnag = snag.copyWith(
+                        status: status
+                      );
+                      ProjectService.updateSnag(ref, widget.projectId, updatedSnag);
                       widget.onStatusChanged();
                     }
                   },
@@ -77,11 +86,14 @@ class _SnagCardWidgetState extends State<SnagCardWidget> {
   }
 
   void _showCategoryModal(BuildContext context) {
+    final Project project = ProjectService.getProject(ref, widget.projectId);
+    final Snag snag = SnagService.getSnag(ref, widget.snagId);
+
     showModalBottomSheet(
       context: context, 
       builder: (BuildContext context) {
-        widget.projectController.sortCategories();
-        final categories = widget.projectController.getCategories!;
+        List<Category> categories = project.createdCategories ?? [];
+        Category.sortCategories(categories);
         return Padding(
           padding: const EdgeInsets.all(16.0),
           child: FractionallySizedBox(
@@ -93,9 +105,10 @@ class _SnagCardWidgetState extends State<SnagCardWidget> {
                 return ListTile(
                   title: Text(cat.name),
                   onTap: () {
-                    setState(() {
-                      widget.snagController.setCategory(cat);
-                    });
+                    final Snag updatedSnag = snag.copyWith(
+                      categories: [cat]
+                    );
+                    SnagService.updateSnag(ref, updatedSnag);
                     Navigator.pop(context);
                   },
                 );
@@ -109,12 +122,13 @@ class _SnagCardWidgetState extends State<SnagCardWidget> {
 
   // Handles popup menu selection
   void onSelect(String value) {
+    final Snag snag = SnagService.getSnag(ref, widget.snagId);
     switch (value) {
       case 'view':
         Navigator.of(context).push(
           MaterialPageRoute(builder: (context) => SnagDetail(
-            projectController: widget.projectController,
-            snag: widget.snagController,
+            projectId: widget.projectId,
+            snagId: widget.snagId,
             onStatusChanged: widget.onStatusChanged
           ))
         );
@@ -135,7 +149,7 @@ class _SnagCardWidgetState extends State<SnagCardWidget> {
                 ),
                 TextButton(
                   onPressed: () {
-                    widget.projectController.deleteSnag(widget.snagController.snag);
+                    ProjectService.deleteSnag(ref, widget.projectId, widget.snagId);
                     widget.onStatusChanged();
                     Navigator.of(context).pop();
                   },
@@ -200,11 +214,11 @@ class _SnagCardWidgetState extends State<SnagCardWidget> {
   }
 
   Widget? _buildDueDateIcon() {
-
+    final Snag snag = SnagService.getSnag(ref, widget.snagId);
     // If snag is complete do not show icon
-    if (widget.snagController.status.name == Status.completed.name) return null;
+    if (snag.status == Status.completed) return null;
 
-    final dueDate = widget.snagController.getDueDate;
+    final dueDate = snag.dueDate;
     if (dueDate == null) return null;
     
     final now = DateTime.now();
@@ -222,8 +236,11 @@ class _SnagCardWidgetState extends State<SnagCardWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final status = widget.snagController.status;
-    final assignee = widget.snagController.assignee != '' ? widget.snagController.assignee : 'Unassigned';
+    final Snag snag = SnagService.getSnag(ref, widget.snagId);
+
+    final status = snag.status;
+    final assignee = !isNullorEmpty(snag.assignee)
+      ? snag.assignee! : 'Unassigned';
 
     const unassignedIcon = 'lib/assets/icons/png/assignee_unassigned.png';
     const assignedIcon = 'lib/assets/icons/png/assignee_assigned.png';
@@ -236,8 +253,8 @@ class _SnagCardWidgetState extends State<SnagCardWidget> {
         Navigator.of(context).push(
           MaterialPageRoute(
             builder: (context) => SnagDetail(
-              projectController: widget.projectController,
-              snag: widget.snagController,
+              projectId: widget.projectId,
+              snagId: widget.snagId,
               onStatusChanged: widget.onStatusChanged,
             ),
           ),
@@ -264,7 +281,7 @@ class _SnagCardWidgetState extends State<SnagCardWidget> {
                   ClipRRect(
                     borderRadius: BorderRadius.circular(15),
                     child: (() {
-                      final imagePaths = widget.snagController.imagePaths;
+                      final imagePaths = snag.imagePaths;
                       if (imagePaths != null && imagePaths.isNotEmpty) {
                         final firstImageFileName = imagePaths[0];
                         return FutureBuilder<String>(
@@ -303,11 +320,11 @@ class _SnagCardWidgetState extends State<SnagCardWidget> {
                       children: [
                         Row(
                           children: [
-                            Image.asset(widget.snagController.priority.icon, width: 16, height: 16),
+                            Image.asset(snag.priority.icon, width: 16, height: 16),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
-                                widget.snagController.name,
+                                snag.name,
                                 style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w400, color: Colors.black, fontFamily: 'Roboto'),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
@@ -332,8 +349,8 @@ class _SnagCardWidgetState extends State<SnagCardWidget> {
                             gesturePill(() => _showStatusModal(context), (status.color ?? Colors.blue).withOpacity(0.5), status.name),
                             const SizedBox(width: 8),
                             // Category pill
-                            if (widget.snagController.categories.isNotEmpty) ...[
-                              gesturePill(() => _showCategoryModal(context), Colors.black, widget.snagController.categories[0].name, borderOnly: true),
+                            if (!isListNullorEmpty(snag.categories)) ... [
+                              gesturePill(() => _showCategoryModal(context), Colors.black, snag.categories![0].name, borderOnly: true),
                             ],
                             if (_buildDueDateIcon() != null) ... [
                               const SizedBox(width: 8),

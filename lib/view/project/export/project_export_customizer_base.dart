@@ -1,18 +1,18 @@
-
-import 'package:cii/controllers/single_project_controller.dart';
 import 'package:cii/models/category.dart';
 import 'package:cii/models/status.dart';
+import 'package:cii/services/project_service.dart';
 import 'package:cii/services/tier_service.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-abstract class ProjectExportCustomizerBase extends StatefulWidget {
-  final SingleProjectController projectController;
+abstract class ProjectExportCustomizerBase extends ConsumerStatefulWidget {
+  final String projectId;
 
-  const ProjectExportCustomizerBase({super.key, required this.projectController});
+  const ProjectExportCustomizerBase({super.key, required this.projectId});
 }
 
 
-abstract class ProjectExportCustomizerBaseState<T extends ProjectExportCustomizerBase> extends State<T> {
+abstract class ProjectExportCustomizerBaseState<T extends ProjectExportCustomizerBase> extends ConsumerState<T> {
 
   late List<Category> categories;
   late Set<String> selectedCategories;
@@ -30,16 +30,24 @@ abstract class ProjectExportCustomizerBaseState<T extends ProjectExportCustomize
   @override
   void initState() {
     super.initState();
+  }
+
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    final project = ProjectService.getProject(ref, widget.projectId);
 
     // initialize the categories
-    categories = widget.projectController.getCategories ?? [];
+    categories = project.createdCategories ?? [];
     allCategories = categories.map((c) => c.name).toSet();
     allCategories.add(uncategorizedLabel);
 
-    // populate selectedCategories with the names of all categories
+    // populate selected categories with the names of all categories
     selectedCategories = allCategories.toSet();
 
-    // populate selectedStatuses with the names of all statuses
+    // populated selected statuses with the names of all statuses
     selectedStatuses = statuses.map((s) => s.name).toSet();
   }
 

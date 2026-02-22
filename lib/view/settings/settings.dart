@@ -1,7 +1,5 @@
 import 'package:cii/utils/colors/app_colors.dart';
 import 'package:cii/view/settings/app_settings.dart';
-import 'package:cii/view/settings/company_settings.dart';
-import 'package:cii/view/settings/feedback.dart';
 import 'package:cii/view/settings/naming_settings.dart';
 import 'package:cii/view/settings/premium_upgrade.dart';
 import 'package:cii/view/settings/privacy_policy.dart';

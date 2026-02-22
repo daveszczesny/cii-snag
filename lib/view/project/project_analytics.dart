@@ -1,31 +1,33 @@
-import 'package:cii/controllers/single_project_controller.dart';
 import 'package:cii/models/category.dart';
+import 'package:cii/models/project.dart';
 import 'package:cii/models/status.dart';
+import 'package:cii/services/project_service.dart';
 import 'package:cii/view/utils/constants.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pie_chart/pie_chart.dart';
 
-class ProjectAnalytics extends StatefulWidget {
-  final SingleProjectController projectController;
+class ProjectAnalytics extends ConsumerStatefulWidget {
+  final String projectId;
 
-  const ProjectAnalytics({super.key, required this.projectController});
+  const ProjectAnalytics({super.key, required this.projectId});
 
   @override
-  State<ProjectAnalytics> createState() => _ProjectAnalyticsState();
+  ConsumerState<ProjectAnalytics> createState() => _ProjectAnalyticsState();
 }
 
 
-class _ProjectAnalyticsState extends State<ProjectAnalytics> {
+class _ProjectAnalyticsState extends ConsumerState<ProjectAnalytics> {
 
   Widget statusAnalyticsWidget(BuildContext context, totalSnags) {
     if (totalSnags == 0) {
       return const SizedBox.shrink();
     }
-    final totalCompleted = widget.projectController.getTotalSnagsByStatus(Status.completed);
-    final totalNew = widget.projectController.getTotalSnagsByStatus(Status.todo);
-    final totalOnHold = widget.projectController.getTotalSnagsByStatus(Status.blocked);
-    final totalInProgress = widget.projectController.getTotalSnagsByStatus(Status.inProgress);
 
+    final totalCompleted = ProjectService.getSnagsByStatus(ref, widget.projectId, Status.completed).length;
+    final totalNew = ProjectService.getSnagsByStatus(ref, widget.projectId, Status.todo).length;
+    final totalOnHold = ProjectService.getSnagsByStatus(ref, widget.projectId, Status.blocked).length;
+    final totalInProgress = ProjectService.getSnagsByStatus(ref, widget.projectId, Status.inProgress).length;
     final totalSections = totalCompleted + totalNew + totalOnHold + totalInProgress;
     if (totalSections == 0) {
       return const SizedBox.shrink();
@@ -96,21 +98,29 @@ class _ProjectAnalyticsState extends State<ProjectAnalytics> {
   }
 
   Widget categoryAnalyticsWidget(BuildContext context, totalSnags) {
+
+    final Project project = ProjectService.getProject(ref, widget.projectId);
+
     if (totalSnags == 0) {
       return const SizedBox.shrink();
     }
-    final categories = (widget.projectController.getCategories ?? []).toList();
+    final categories = project.createdCategories ?? [];
     if (categories.isEmpty) { 
       return const SizedBox.shrink();
     }
     final Map<String, double> categoryCounts = {};
     for (var cat in categories) {
-      final snagList = widget.projectController.getSnagsByCategory(cat.name).toList();;
+      final snagList = ProjectService.getSnags(ref, widget.projectId)
+        .where((s) => s.categories!.any((c) => c.name == cat.name))
+        .toList();
       final count = snagList.length;
       categoryCounts[cat.name] = count.toDouble();
     }
 
-    final noCategorySnags = widget.projectController.getSnagsWithNoCategory().toList();
+    final noCategorySnags = ProjectService.getSnags(ref, widget.projectId)
+      .where((s) => s.categories == null || s.categories!.isEmpty)
+      .toList();
+
     if (noCategorySnags.isNotEmpty) {
       categoryCounts['No Category'] = noCategorySnags.length.toDouble();
       categories.add(
@@ -146,7 +156,9 @@ class _ProjectAnalyticsState extends State<ProjectAnalytics> {
         if (categoryName == 'No Category') {
           snagsInCategory = noCategorySnags;
         } else {
-          snagsInCategory = widget.projectController.getSnagsByCategory(categoryName);
+          snagsInCategory = ProjectService.getSnags(ref, widget.projectId)
+            .where((s) => s.categories != null && s.categories!.any((c) => c.name == categoryName))
+            .toList();
         }
         final statusCounts = {
           'todo': snagsInCategory.where((snag) => snag.status.name == Status.todo.name).length,
@@ -269,10 +281,12 @@ class _ProjectAnalyticsState extends State<ProjectAnalytics> {
 
   @override
   Widget build(BuildContext context) {
-    final totalSnags = widget.projectController.getTotalSnags();
+    final Project project = ProjectService.getProject(ref, widget.projectId);
 
-    final DateTime createdDate = widget.projectController.getDateCreated!;
-    final DateTime? dueDate = widget.projectController.getDueDate;
+    final totalSnags = ProjectService.getSnagCount(ref, widget.projectId);
+
+    final DateTime createdDate = project.dateCreated!;
+    final DateTime? dueDate = project.dueDate;
     final DateTime today = DateTime.now();
 
     final int daysSinceCreated = today.difference(createdDate).inDays;

@@ -1,33 +1,30 @@
-import 'package:cii/controllers/single_project_controller.dart';
-import 'package:cii/controllers/snag_controller.dart';
-import 'package:cii/models/project.dart';
-import 'package:cii/models/snag.dart';
+import 'dart:async';
+
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/material.dart';
+import 'package:cii/services/project_service.dart';
 import 'package:cii/view/project/project_detail.dart';
 import 'package:cii/view/snag/snag_detail.dart';
 import 'package:cii/view/utils/constants.dart';
-import 'package:flutter/material.dart';
 import 'package:cii/services/search_service.dart';
-import 'package:cii/controllers/project_controller.dart';
+import 'package:cii/models/project.dart';
+import 'package:cii/models/snag.dart';
 import 'package:cii/models/category.dart';
 import 'package:cii/models/status.dart';
 import 'package:cii/models/tag.dart';
 import 'package:cii/utils/colors/app_colors.dart';
-import 'dart:async';
 
-class Search extends StatefulWidget {
-  final ProjectController projectController;
-  
-  const Search({super.key, required this.projectController});
+class Search extends ConsumerStatefulWidget{
+  const Search({super.key});
 
   @override
-  State<Search> createState() => _SearchState(); 
+  ConsumerState<Search> createState() => _SearchState(); 
 }
 
-class _SearchState extends State<Search> {
+class _SearchState extends ConsumerState<Search> {
   late SearchService _searchService;
   final TextEditingController _searchController = TextEditingController();
   List<SearchResult> _results = [];
-  List<SearchResult> _recentSearches = [];
   bool _isLoading = false;
   Timer? _debounceTimer;
   
@@ -46,8 +43,14 @@ class _SearchState extends State<Search> {
   @override
   void initState() {
     super.initState();
-    _searchService = SearchService(widget.projectController);
     _searchController.addListener(_onSearchChanged);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final List<Project> projects = ProjectService.getProjects(ref);
+    _searchService = SearchService.fromProjects(projects);
   }
 
   @override
@@ -84,7 +87,7 @@ class _SearchState extends State<Search> {
       type: _selectedType,
     );
 
-    final results = _searchService.search(_searchController.text, filters: filters);
+    final results = _searchService.search(_searchController.text, ref, filters: filters);
     
     setState(() {
       _results = results;
@@ -289,39 +292,35 @@ class _SearchState extends State<Search> {
       itemCount: _results.length,
       itemBuilder: (context, index) {
         final result = _results[index];
-        return _SearchResultCard(result: result, projectController: widget.projectController);
+        return _SearchResultCard(result: result);
       },
     );
   }
 }
 
-class _SearchResultCard extends StatelessWidget {
+class _SearchResultCard extends ConsumerWidget {
   final SearchResult result;
-  final ProjectController projectController;
   
-  const _SearchResultCard({required this.result, required this.projectController});
+  const _SearchResultCard({required this.result});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return GestureDetector(
       onTap: () {
         // Navigate to detail page based on type
         if (result.type == SearchResultType.project) {
           // navigate to project detail
           final project = result.data as Project;
-          final singleProjectController = SingleProjectController(project);
           Navigator.push(context, MaterialPageRoute(
-            builder: (context) => ProjectDetail(projectController: singleProjectController)));
+            builder: (context) => ProjectDetail(projectId: project.id!)));
         } else if (result.type == SearchResultType.snag) {
           final snag = result.data as Snag;
-          final snagController = SnagController(snag);
-
           // find the parent project
-          final project = projectController.getProjectById(snag.projectId!);
-          final SingleProjectController singleProjectController = SingleProjectController(project);
+          final List<Project> projects = ProjectService.getProjects(ref);
+          final Project project = projects.firstWhere((p) => p.id == snag.projectId);
           Navigator.push(context, MaterialPageRoute(
-            builder: (context) => SnagDetail(projectController: singleProjectController, snag: snagController, onStatusChanged: () {
-              singleProjectController.saveProject();
+            builder: (context) => SnagDetail(projectId: project.id!, snagId: snag.id, onStatusChanged: () {
+              ProjectService.updateProject(ref, project);
             },)));
         }
       },
@@ -439,7 +438,7 @@ class _SearchResultCard extends StatelessWidget {
   }
 }
 
-class _FilterModal extends StatefulWidget {
+class _FilterModal extends ConsumerStatefulWidget {
   final SearchService searchService;
   final List<Category> selectedCategories;
   final List<Status> selectedStatuses;
@@ -461,10 +460,10 @@ class _FilterModal extends StatefulWidget {
   });
 
   @override
-  State<_FilterModal> createState() => _FilterModalState();
+  ConsumerState<_FilterModal> createState() => _FilterModalState();
 }
 
-class _FilterModalState extends State<_FilterModal> {
+class _FilterModalState extends ConsumerState<_FilterModal> {
   late List<Category> _categories;
   late List<Status> _statuses;
   late List<Tag> _tags;
@@ -567,7 +566,7 @@ class _FilterModalState extends State<_FilterModal> {
                   const SizedBox(height: 8),
                   Wrap(
                     spacing: 8,
-                    children: widget.searchService.getAllCategories().map((category) {
+                    children: widget.searchService.getAllCategories(ref).map((category) {
                       return FilterChip(
                         label: Text(category.name),
                         selected: _categories.any((c) => c.name == category.name),
@@ -589,7 +588,7 @@ class _FilterModalState extends State<_FilterModal> {
                   const SizedBox(height: 8),
                   Wrap(
                     spacing: 8,
-                    children: widget.searchService.getAllTags().map((tag) {
+                    children: widget.searchService.getAllTags(ref).map((tag) {
                       return FilterChip(
                         label: Text(tag.name),
                         selected: _tags.any((t) => t.name == tag.name),
@@ -623,7 +622,7 @@ class _FilterModalState extends State<_FilterModal> {
                   // Assignee chips
                   Wrap(
                     spacing: 8,
-                    children: widget.searchService.getAllAssignees().map((assignee) {
+                    children: widget.searchService.getAllAssignees(ref).map((assignee) {
                       return FilterChip(
                         label: Text(assignee),
                         selected: _assignees.contains(assignee),

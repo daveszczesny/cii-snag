@@ -4,12 +4,13 @@ import 'package:cii/view/project/export/project_export_customizer_base.dart';
 import 'package:cii/view/utils/text.dart';
 import 'package:flutter/material.dart';
 import 'package:cii/utils/pdf/themes.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class ProjectExportCustomizer extends ProjectExportCustomizerBase {
-  const ProjectExportCustomizer({super.key, required super.projectController});
+  const ProjectExportCustomizer({super.key, required super.projectId});
 
   @override
-  State<ProjectExportCustomizer> createState() => _ProjectExportCustomizerState();
+  ConsumerState<ProjectExportCustomizer> createState() => _ProjectExportCustomizerState();
 }
 
 class _ProjectExportCustomizerState extends ProjectExportCustomizerBaseState<ProjectExportCustomizer> {
@@ -60,9 +61,10 @@ class _ProjectExportCustomizerState extends ProjectExportCustomizerBaseState<Pro
       () async {
         await savePdfFile(
           context,
-          widget.projectController,
+          widget.projectId,
           selectedQualityNotifier.value,
           options[themeController.text],
+          ref,
           selectedCategories.toList(),
           selectedStatuses.toList(),
         );

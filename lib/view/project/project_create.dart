@@ -1,25 +1,24 @@
-import 'dart:io';
-
-import 'package:cii/controllers/project_controller.dart';
 import 'package:cii/models/project.dart';
 import 'package:cii/models/category.dart' as cii;
 import 'package:cii/models/tag.dart';
+import 'package:cii/providers/project_provider.dart';
+import 'package:cii/services/project_service.dart';
 import 'package:cii/utils/common.dart';
 import 'package:cii/view/utils/constants.dart';
 import 'package:cii/view/utils/image.dart';
 import 'package:cii/view/utils/selector.dart';
 import 'package:cii/view/utils/text.dart';
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class ProjectCreate extends StatefulWidget {
+class ProjectCreate extends ConsumerStatefulWidget{
   const ProjectCreate({super.key});
 
   @override
-  State<ProjectCreate> createState() => _ProjectCreateState();
+  ConsumerState<ProjectCreate> createState() => _ProjectCreateState();
 }
 
-class _ProjectCreateState extends State<ProjectCreate> {
+class _ProjectCreateState extends ConsumerState<ProjectCreate> {
 
   // controllers
   final TextEditingController _nameController = TextEditingController();
@@ -34,12 +33,9 @@ class _ProjectCreateState extends State<ProjectCreate> {
 
   String imagePath = '';
 
-  late ProjectController projectController;
-
   @override
   void initState() {
     super.initState();
-    projectController = ProjectController(Hive.box<Project>('projects'));
   }
 
   void createProject() {
@@ -62,7 +58,12 @@ class _ProjectCreateState extends State<ProjectCreate> {
         )
       );
       return;
-    } else if (projectController.isUniqueProjectRef(projectRef) == false) {
+    }
+    
+    final List<Project> projects = ProjectService.getProjects(ref);
+    final isDuplicateRef = projects.any((p) => p.projectRef == projectRef);
+    
+    if (isDuplicateRef) {
       // do not allow duplicate project ref
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -73,9 +74,10 @@ class _ProjectCreateState extends State<ProjectCreate> {
       return;
     }
 
+    // TODO - move to utility
     if (name.isEmpty) {
       // if the name is empty, create a default name 'Project #$no' and also show a snackbar
-      int no = projectController.getAllProjects().length + 1;
+      int no = projects.length + 1;
       name = '${AppStrings.project} #$no';
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -85,19 +87,20 @@ class _ProjectCreateState extends State<ProjectCreate> {
       );
     }
 
-    projectController.createProject(
+    final project = Project(
       name: name,
       description: description,
       location: location,
       projectRef: projectRef,
       client: client,
       contractor: contractor,
-      categories: _categories,
-      tags: _tags,
-      imagePath: imagePath,
+      createdCategories: _categories,
+      createdTags: _tags,
+      mainImagePath: imagePath,
       dueDate: dueDateTime,
     );
 
+    ProjectService.addProject(ref, project);
     // navigate back
     Navigator.pop(context);
   }
