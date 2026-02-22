@@ -131,11 +131,11 @@ class _SnagDetailState extends ConsumerState<SnagDetail> {
   }
 
   // image related methods
-  void onChange({String p = ''}) {
+  void onChange({String p = ""}) {
     final Snag snag = SnagService.getSnag(ref, widget.snagId);
     final annotatedImages = snag.annotatedImagePaths;
-    
-    if (p != '') {
+
+    if (p != "") {
       // User clicked on a specific image - set it as selected
       if ((annotatedImages ?? {}).containsKey(p)) {
         selectedImage = annotatedImages![p]!;
@@ -143,21 +143,30 @@ class _SnagDetailState extends ConsumerState<SnagDetail> {
         selectedImage = p;
       }
     } else {
-      // No specific image provided - set default
-      if (selectedImage == '') {
+      // check if current selectedImage still exists
+      String originalPath = selectedImage;
+      for (var entry in (annotatedImages ?? {}).entries) {
+        if (entry.value == selectedImage) {
+          originalPath = entry.key;
+          break;
+        }
+      }
+
+      // clear selectedimage if it no longer exists
+      if (selectedImage != "" && !imageFilePaths.contains(originalPath)) {
+        selectedImage = "";
+      }
+
+      if (selectedImage == "" && imageFilePaths.isNotEmpty) {
         final annotatedMap = annotatedImages ?? {};
-        if (
-            imageFilePaths.isNotEmpty &&
-            annotatedMap.isNotEmpty &&
-            annotatedMap.containsKey(imageFilePaths[0])
-          ) {
+        if (annotatedMap.containsKey(imageFilePaths[0])) {
           selectedImage = annotatedMap[imageFilePaths[0]]!;
         } else {
-          selectedImage = imageFilePaths.isNotEmpty ? imageFilePaths[0] : '';
+          selectedImage = imageFilePaths[0];
         }
       }
     }
-    
+
     setState(() {});
     widget.onStatusChanged?.call();
   }
