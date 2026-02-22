@@ -1,4 +1,5 @@
 
+import 'package:cii/models/project.dart';
 import 'package:cii/services/csv_exporter.dart';
 import 'package:cii/view/project/export/project_export_customizer_base.dart';
 import 'package:cii/view/utils/text.dart';
@@ -18,7 +19,7 @@ class _ProjectCsvExportCustomizerState extends ProjectExportCustomizerBaseState<
   String get title => "CSV Export Customization";
 
   @override
-  List<Widget> buildCustomOptions() {
+  List<Widget> buildCustomOptions({Project? project}) {
     return [];
   }
 

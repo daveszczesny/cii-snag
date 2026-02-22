@@ -173,7 +173,7 @@ class NotificationService {
     );
   }
 
-  Future<void> checkDueDateReminders(WidgetRef ref) async {
+  Future<void> checkDueDateReminders() async {
     final projectBox = Hive.box<Project>('projects');
     final snagBox = Hive.box<Snag>('snags');
     final projects = projectBox.values.toList();

@@ -26,6 +26,7 @@ Future<void> savePdfFile(
   String imageQuality, // "High", "Medium", "Low",
   Function themeFunction,
   WidgetRef ref,
+  String pdfFileName,
   List<String>? selectedCategories, // Categories to include in the export
   List<String>? selectedStatuses // Statuses to include in the export
 ) async {
@@ -65,7 +66,9 @@ Future<void> savePdfFile(
           final compressedLogoImage = await processImageForQuality(projectLogoBytes, imageQuality);
           projectLogoImage = pw.MemoryImage(compressedLogoImage);
         }
-      } catch (e) {} // ignore error
+      } catch (e) {
+        // None actionable error
+      }
     }
     
     final List<Snag> snagList = ProjectService.getSnags(ref, project.id!)
@@ -128,7 +131,7 @@ Future<void> savePdfFile(
           }
           return imageCache[filename]!;
         })
-        .toList() ?? <pw.MemoryImage>[];
+        .toList();
 
       final snagPageThemed = themeFunction(projectName, snag, imageQuality, processedImages, logoImage, theme);
       pdf.addPage(snagPageThemed);
@@ -140,16 +143,15 @@ Future<void> savePdfFile(
 
     final bytes = await pdf.save();
     final pdfDirPath = await getPdfDirectory();
-    final timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
-    final fileName = '$projectName-$timestamp.pdf';
-    final file = File('$pdfDirPath/$fileName');
+    final saveFileName = pdfFileName;
+    final file = File('$pdfDirPath/$saveFileName');
     await file.writeAsBytes(bytes);
 
 
     // create a record of the export
     final pdfRecord = PdfExportRecords(
       exportDate: DateTime.now(),
-      fileName: fileName,
+      fileName: saveFileName,
       fileHash: _calculateHash(bytes),
       fileSize: bytes.length,
     );
@@ -663,3 +665,4 @@ Future<Uint8List> processImageForQuality(Uint8List originalBytes, String imageQu
 
   return result;
 }
+

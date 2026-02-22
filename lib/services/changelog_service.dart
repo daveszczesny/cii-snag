@@ -3,7 +3,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ChangelogService {
-  static const bool _debugAlwaysShow = true;
+  static const bool _debugAlwaysShow = false;
 
   static const String _lastVersionKey = 'last_seen_version';
 

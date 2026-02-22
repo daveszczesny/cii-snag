@@ -1,4 +1,5 @@
 import 'package:cii/models/category.dart';
+import 'package:cii/models/project.dart';
 import 'package:cii/models/status.dart';
 import 'package:cii/services/project_service.dart';
 import 'package:cii/services/tier_service.dart';
@@ -53,11 +54,12 @@ abstract class ProjectExportCustomizerBaseState<T extends ProjectExportCustomize
 
   // Abstracts
   String get title;
-  List<Widget> buildCustomOptions();
+  List<Widget> buildCustomOptions({Project? project});
   Widget buildExportButton();
 
   @override
   Widget build(BuildContext context) {
+    final Project project = ProjectService.getProject(ref, widget.projectId);
     return Scaffold(
       appBar: AppBar(title: Text(title)),
       body: SafeArea(
@@ -68,7 +70,7 @@ abstract class ProjectExportCustomizerBaseState<T extends ProjectExportCustomize
             children: [
               const Text("Customize your export settings"),
               const SizedBox(height: 24.0),
-              ...buildCustomOptions(),
+              ...buildCustomOptions(project: project),
 
               if (TierService.instance.canPdfCustomizer) ... [
                 if (categories.isNotEmpty) ... buildCategorySection(),
