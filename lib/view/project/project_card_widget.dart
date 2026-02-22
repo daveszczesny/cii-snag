@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:cii/models/project.dart';
 import 'package:cii/models/status.dart';
-import 'package:cii/providers/providers.dart';
 import 'package:cii/services/project_service.dart';
 import 'package:cii/utils/colors/app_colors.dart';
 import 'package:cii/utils/common.dart';
@@ -99,7 +98,7 @@ class _ProjectCardWidgetState extends ConsumerState<ProjectCardWidget> {
     return GestureDetector(
       onTap: () {
         Navigator.of(context).push(
-          MaterialPageRoute(builder: (context) => ProjectDetail(projectId: project.id!))
+          MaterialPageRoute(builder: (context) => ProjectDetail(projectId: project.uuid))
         );
       },
       child: Container(

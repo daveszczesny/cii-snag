@@ -45,7 +45,7 @@ class DemoService {
 
     Snag snag1 = Snag(
         id: 'DEMO-0001',
-        projectId: project.id,
+        projectId: project.uuid,
         name: 'Dripping paint',
         description: 'There is paint drip marks on the wall beside the light switch',
         status: Status.inProgress,
@@ -58,7 +58,7 @@ class DemoService {
       );
       Snag snag2 = Snag(
         id: 'DEMO-0002',
-        projectId: project.id,
+        projectId: project.uuid,
         name: 'Spot not painted',
         description: 'There is a bit of the wall not painted',
         status: Status.blocked,
@@ -74,7 +74,7 @@ class DemoService {
 
       final projectBox = Hive.box<Project>("projects");
       final snagBox = Hive.box<Snag>("snags");
-      await projectBox.put(project.id, project);
+      await projectBox.put(project.uuid, project);
       await snagBox.put(snag1.uuid, snag1);
       await snagBox.put(snag2.uuid, snag2);
   }

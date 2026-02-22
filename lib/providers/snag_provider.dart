@@ -14,21 +14,21 @@ class SnagNotifier extends StateNotifier<List<Snag>> {
   }
 
   void addSnag(Snag snag) {
-    _box.put(snag.id, snag);
+    _box.put(snag.uuid, snag);
     state = [...state, snag];
   }
 
   void updateSnag(Snag snag) {
-    _box.put(snag.id, snag);
+    _box.put(snag.uuid, snag);
     state = [
       for (final s in state)
-        if (s.id == snag.id) snag else s
+        if (s.uuid == snag.uuid) snag else s
     ];
   }
 
   void deleteSnag(String snagId) {
     _box.delete(snagId);
-    state = state.where((s) => s.id != snagId).toList();
+    state = state.where((s) => s.uuid != snagId).toList();
   }
 
   List<Snag> getSnagsByProject(String projectId) {
@@ -49,7 +49,7 @@ final snagsByProjectProvider = Provider.family<List<Snag>, String>((ref, project
 final singleSnagProvider = Provider.family<Snag?, String>((ref, snagId) {
   final snags = ref.watch(snagProvider);
   try {
-    return snags.firstWhere((s) => s.id == snagId);
+    return snags.firstWhere((s) => s.uuid == snagId);
   } catch (e) {
     return null;
   }

@@ -65,7 +65,69 @@ void main() async {
     } catch (e) {
       debugPrint("Error opening Hive boxes: $e");
     }
-    
+
+    // migration script
+    try {
+      final projectBox = Hive.box<Project>("projects");
+      final snagBox = Hive.box<Snag>("snags");
+
+      final projectsToMigrate = <String, Project>{};
+      for (final key in projectBox.keys.toList()) {
+        final project = projectBox.get(key);
+        if (project != null && key != project.uuid) {
+          projectsToMigrate[key] = project;
+        }
+      }
+
+      for (final entry in projectsToMigrate.entries) {
+        final oldKey = entry.key;
+        final project = entry.value;
+        projectBox.put(project.uuid, project);
+        projectBox.delete(oldKey);
+      }
+
+
+      // migrate snags
+      final snagsToMigrate = <String, Snag>{};
+      for (final key in snagBox.keys.toList()) {
+        final snag = snagBox.get(key);
+        if (snag != null && key != snag.uuid) {
+          snagsToMigrate[key] = snag;
+        }
+      }
+
+      for (final entry in snagsToMigrate.entries) {
+        final oldKey = entry.key;
+        final snag = entry.value;
+        snagBox.put(snag.uuid, snag);
+        snagBox.delete(oldKey);
+      }
+
+      if (projectsToMigrate.isNotEmpty || snagsToMigrate.isNotEmpty) {
+        debugPrint("Migrated ${projectsToMigrate.length} projects and ${snagsToMigrate.length} snags to new keys");
+      }
+    } catch (e) {
+      debugPrint("Error migrating project/snag keys: $e");
+    }
+
+    try {
+      final projectBox = Hive.box<Project>("projects");
+      final snagBox = Hive.box<Snag>("snags");
+
+      for (final project in projectBox.values) {
+        if (project.snags.isNotEmpty) {
+          // migrate embedded snags to snag provider
+          for (final snag in project.snags) {
+            snagBox.put(snag.uuid, snag);
+          }
+          project.snags.clear();
+          projectBox.put(project.uuid, project);
+        }
+      }
+    } catch (e) {
+      debugPrint("Error migrating snags to providers");
+    }
+
     try {
       // Initialize notification service
       await NotificationService().initialize();
@@ -78,25 +140,7 @@ void main() async {
       await BackgroundNotificationService.initialize();
     } catch (e) {
       debugPrint("Error initializing notifications: $e"); 
-    }
-
-    try {
-      final projectBox = Hive.box<Project>("projects");
-      final snagBox = Hive.box<Snag>("snags");
-
-      for (final project in projectBox.values) {
-        if (project.snags.isNotEmpty) {
-          // migrate embedded snags to snag provider
-          for (final snag in project.snags) {
-            snagBox.put(snag.id, snag);
-          }
-          project.snags.clear();
-          projectBox.put(project.id, project);
-        }
-      }
-    } catch (e) {
-      debugPrint("Error migrating snags to providers");
-    }
+    } 
 
     try {
       // Create demo data if first launch

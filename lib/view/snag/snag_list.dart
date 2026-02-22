@@ -113,7 +113,7 @@ class _SnagListState extends ConsumerState<SnagList> with SingleTickerProviderSt
         final Snag snag = snags[index];
         return SnagCardWidget(
           projectId: widget.projectId,
-          snagId: snag.id,
+          snagId: snag.uuid,
           onStatusChanged: _onStatusChanged,
         );
       }

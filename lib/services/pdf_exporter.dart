@@ -71,7 +71,7 @@ Future<void> savePdfFile(
       }
     }
     
-    final List<Snag> snagList = ProjectService.getSnags(ref, project.id!)
+    final List<Snag> snagList = ProjectService.getSnags(ref, project.uuid)
       .map((s) => s)
       .where((s) {
         final snagCategory = (s.categories != null && s.categories!.isNotEmpty)

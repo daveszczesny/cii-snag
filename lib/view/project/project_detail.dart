@@ -40,7 +40,7 @@ class _ProjectDetailState extends ConsumerState<ProjectDetail> {
       // page for snag list
       SnagList(projectId: widget.projectId),
       // page for project details
-      ProjectDetailPage(key: _detailKey, projectId: project.id!, isInEditMode: isInEditMode),
+      ProjectDetailPage(key: _detailKey, projectId: project.uuid, isInEditMode: isInEditMode),
       // page to create snag
       SnagCreate(projectId: widget.projectId),
     ];
@@ -89,7 +89,7 @@ class _ProjectDetailState extends ConsumerState<ProjectDetail> {
                                     isInEditMode = false;
                                     pages[1] = ProjectDetailPage(
                                       // key: _detailKey,
-                                      projectId: project.id!,
+                                      projectId: project.uuid,
                                       isInEditMode: isInEditMode
                                     );
                                     selectedIndex = 1;
@@ -105,7 +105,7 @@ class _ProjectDetailState extends ConsumerState<ProjectDetail> {
                       isInEditMode = false;
                       pages[1] = ProjectDetailPage(
                         // key: _detailKey,
-                        projectId: project.id!,
+                        projectId: project.uuid,
                         isInEditMode: isInEditMode
                       );
                       selectedIndex = 1;
@@ -130,7 +130,7 @@ class _ProjectDetailState extends ConsumerState<ProjectDetail> {
                           isInEditMode = !isInEditMode;
                           pages[1] = ProjectDetailPage(
                             // key: _detailKey,
-                            projectId: project.id!,
+                            projectId: project.uuid,
                             isInEditMode: isInEditMode
                           );
                           selectedIndex = 1;
@@ -138,7 +138,7 @@ class _ProjectDetailState extends ConsumerState<ProjectDetail> {
                         break;
                       case 'export':
                         Navigator.of(context).push(
-                          MaterialPageRoute(builder: (context) => ProjectExport(projectId: project.id!))
+                          MaterialPageRoute(builder: (context) => ProjectExport(projectId: project.uuid))
                         );
                         break;
                     }
@@ -182,7 +182,7 @@ class _ProjectDetailState extends ConsumerState<ProjectDetail> {
                       isInEditMode = !isInEditMode;
                       pages[1] = ProjectDetailPage(
                         // key: _detailKey,
-                        projectId: project.id!,
+                        projectId: project.uuid,
                         isInEditMode: isInEditMode
                       );
                       selectedIndex = 1;

@@ -7,7 +7,7 @@ import 'package:cii/providers/project_provider.dart';
 final singleProjectProvider = Provider.family<Project?, String>((ref, projectId) {
   final projects = ref.watch(projectProvider);
   try {
-    return projects.firstWhere((p) => p.id.toString() == projectId);
+    return projects.firstWhere((p) => p.uuid == projectId);
   } catch (e) {
     // TODO: Add warning / error log that project could not be found
     return null;

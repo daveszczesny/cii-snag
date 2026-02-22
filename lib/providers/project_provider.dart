@@ -14,13 +14,13 @@ class ProjectNotifier extends StateNotifier<List<Project>> {
   }
 
   void addProject(Project project) {
-    _box.put(project.id, project);
+    _box.put(project.uuid, project);
     state = [...state, project];
   }
 
   void updateProject(Project project) {
-    _box.put(project.id, project);
-    final index = state.indexWhere((p) => p.id == project.id);
+    _box.put(project.uuid, project);
+    final index = state.indexWhere((p) => p.uuid == project.uuid);
     if (index != -1) {
       state = [
         ...state.sublist(0, index),
@@ -32,11 +32,11 @@ class ProjectNotifier extends StateNotifier<List<Project>> {
 
   void deleteProject(String projectId) {
     _box.delete(projectId);
-    state = state.where((p) => p.id.toString() != projectId).toList();
+    state = state.where((p) => p.uuid.toString() != projectId).toList();
   }
 
   void incrementSnagCount(String projectId) {
-    final index = state.indexWhere((p) => p.id == projectId);
+    final index = state.indexWhere((p) => p.uuid == projectId);
     if (index != -1) {
       final project = state[index];
       final updatedProject = project.copyWith(

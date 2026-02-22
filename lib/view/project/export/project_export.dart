@@ -77,7 +77,7 @@ class _ProjectExportState extends ConsumerState<ProjectExport> with SingleTicker
               _pdfExportsCount = project.pdfExportRecords?.length ?? 0;
               await Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => ProjectExportCustomizer(projectId: project.id!))
+                MaterialPageRoute(builder: (context) => ProjectExportCustomizer(projectId: project.uuid))
               );
               final updatedProject = ProjectService.getProject(ref, widget.projectId);
               if ((updatedProject.pdfExportRecords?.length ?? 0) > _pdfExportsCount) {

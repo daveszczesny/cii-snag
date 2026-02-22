@@ -59,7 +59,7 @@ class _ProjectCreateState extends ConsumerState<ProjectCreate> {
       );
       return;
     }
-    
+
     final List<Project> projects = ProjectService.getProjects(ref);
     final isDuplicateRef = projects.any((p) => p.projectRef == projectRef);
     

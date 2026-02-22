@@ -109,7 +109,7 @@ class Snag extends HiveObject {
     this.categories,
     this.reviewedBy,
     this.finalImagePaths,
-    DateTime? dateClosed,
+    this.dateClosed,
   }):
     uuid = uuid ?? const Uuid().v4(),
     id = id ?? 'PID',

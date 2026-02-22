@@ -1,5 +1,4 @@
 import 'package:cii/models/project.dart';
-import 'package:cii/providers/project_provider.dart';
 import 'package:cii/services/project_service.dart';
 import 'package:cii/view/project/project_card_widget.dart';
 import 'package:cii/view/utils/constants.dart';
@@ -42,7 +41,7 @@ class _ProjectListTabWidgetState extends ConsumerState<ProjectListTabWidget> wit
       itemCount: filteredProjects.length,
       itemBuilder: (context, index) {
         final projectObject = filteredProjects[index];
-        return ProjectCardWidget(projectId: projectObject.id!);
+        return ProjectCardWidget(projectId: projectObject.uuid);
       }
     );
   }

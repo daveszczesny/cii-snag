@@ -1,6 +1,7 @@
 import 'package:cii/models/category.dart';
 import 'package:cii/models/project.dart';
 import 'package:cii/models/status.dart';
+import 'package:cii/providers/providers.dart';
 import 'package:cii/services/project_service.dart';
 import 'package:cii/view/utils/constants.dart';
 import 'package:flutter/material.dart';
@@ -98,7 +99,6 @@ class _ProjectAnalyticsState extends ConsumerState<ProjectAnalytics> {
   }
 
   Widget categoryAnalyticsWidget(BuildContext context, totalSnags) {
-
     final Project project = ProjectService.getProject(ref, widget.projectId);
 
     if (totalSnags == 0) {
@@ -111,7 +111,7 @@ class _ProjectAnalyticsState extends ConsumerState<ProjectAnalytics> {
     final Map<String, double> categoryCounts = {};
     for (var cat in categories) {
       final snagList = ProjectService.getSnags(ref, widget.projectId)
-        .where((s) => s.categories!.any((c) => c.name == cat.name))
+        .where((s) => s.categories != null && s.categories!.any((c) => c.name == cat.name))
         .toList();
       final count = snagList.length;
       categoryCounts[cat.name] = count.toDouble();

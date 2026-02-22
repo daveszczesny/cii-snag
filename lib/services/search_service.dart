@@ -77,7 +77,7 @@ class SearchService {
       }
 
       // Search snags within projects
-      for (final snag in ProjectService.getSnags(ref, project.id!)) {
+      for (final snag in ProjectService.getSnags(ref, project.uuid)) {
         if (_matchesFilters(project, snag, filters) && _matchesQuery(project, snag, query)) {
           results.add(_createSnagResult(snag, project));
         }
@@ -242,7 +242,7 @@ class SearchService {
     
     for (final project in projects) {
       project.createdCategories?.forEach((cat) => categories[cat.name] = cat);
-      for (final snag in ProjectService.getSnags(ref, project.id!)) {
+      for (final snag in ProjectService.getSnags(ref, project.uuid)) {
         snag.categories?.forEach((cat) => categories[cat.name] = cat);
       }
     }
@@ -257,7 +257,7 @@ class SearchService {
     
     for (final project in projects) {
       project.createdTags?.forEach((tag) => tags[tag.name] = tag);
-      for (final snag in ProjectService.getSnags(ref, project.id!)) {
+      for (final snag in ProjectService.getSnags(ref, project.uuid)) {
         snag.tags?.forEach((tag) => tags[tag.name] = tag);
       }
     }
@@ -276,7 +276,7 @@ class SearchService {
     final projects = _projects;
     
     for (final project in projects) {
-      for (final snag in ProjectService.getSnags(ref, project.id!)) {
+      for (final snag in ProjectService.getSnags(ref, project.uuid)) {
         if (snag.assignee != null && snag.assignee!.isNotEmpty) {
           assignees.add(snag.assignee!);
         }
