@@ -178,6 +178,7 @@ class Project extends HiveObject {
     List<PdfExportRecords>? pdfExportRecords,
     List<CsvExportRecords>? csvExportRecords,
     List<Snag>? snags,
+    List<Comment>? comments,
   }) {
     return Project(
       uuid: uuid,
@@ -185,9 +186,9 @@ class Project extends HiveObject {
       name: name ?? this.name,
       description: description ?? this.description,
       mainImagePath: mainImagePath ?? this.mainImagePath,
-      dateCreated: dateCreated,
-      dateModified: DateTime.now(),
-      dateCompleted: dateCompleted,
+      dateCreated: dateCreated ?? this.dateCreated,
+      dateModified: dateModified ?? DateTime.now(),
+      dateCompleted: dateCompleted ?? this.dateCompleted,
       projectRef: projectRef ?? this.projectRef,
       client: client ?? this.client,
       contractor: contractor ?? this.contractor,
@@ -196,11 +197,12 @@ class Project extends HiveObject {
       status: status ?? this.status,
       createdCategories: createdCategories ?? this.createdCategories,
       createdTags: createdTags ?? this.createdTags,
-      snagsCreatedCount: snagsCreatedCount,
+      snagsCreatedCount: snagsCreatedCount ?? this.snagsCreatedCount,
       dueDate: dueDate ?? this.dueDate,
       pdfExportRecords: pdfExportRecords ?? this.pdfExportRecords,
       csvExportRecords: csvExportRecords ?? this.csvExportRecords,
       snags: snags ?? this.snags,
+      comments: comments ?? this.comments,
     );
   }
 
