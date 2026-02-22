@@ -1,8 +1,7 @@
 # Changelog
 
 ## v1.0.14 - 2024-02-20
-- [134] PDF File name text field
-- [128] Changelog dialogs
+- You can now customize export file names for better organization
 
 ## v1.0.13
 - Bug Fixes

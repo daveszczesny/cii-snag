@@ -1,0 +1,35 @@
+name: iOS DEV Build
+
+on:
+  push:
+    branches:
+      - dev
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Flutter
+        run: subosito/flutter-action@v2
+        with:
+          flutter-version: stable
+
+      - name: Install dependecies
+        run: flutter pub get
+
+      - name: Install Fastlane
+        run: gem install fastlane
+
+      - name: Run Fastlane DEV
+        env:
+          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
+        run:
+          cd iod
+          fastlane dev
+
+
