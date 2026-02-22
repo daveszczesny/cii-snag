@@ -21,7 +21,7 @@
 - Bug Fixes
 
 
-## v1.0.10
+## v1.0.10 2025-01-01
 - Improvements to Report a Bug feature
 - Added validation to text field inputs
 - Bug Fixes
