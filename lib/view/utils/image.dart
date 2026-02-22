@@ -192,6 +192,7 @@ class _SimpleCropperState extends State<SimpleCropper> {
       }
 
       await tempFile.writeAsBytes(img.encodePng(cropped));
+
       Navigator.pop(context, fileName);
     } catch (e) {
       Navigator.pop(context, widget.imageFileName);
@@ -308,8 +309,24 @@ Widget buildImageShowcase(BuildContext context, onChange, onSave, List<String> i
                   right: 4,
                   child: GestureDetector(
                     onTap: () {
+                      // remove from the UI
                       imageFilePaths.remove(fileName);
                       onChange();
+
+                      /* Clean up images */
+                      getImagePath(fileName).then((fullPath) {
+                        final file = File(fullPath);
+                        if (file.existsSync()) file.delete();
+                      });
+
+                      getThumbnailPath(fileName).then((thumbPath) {
+                        if (thumbPath != null) {
+                          final thumbFile = File(thumbPath);
+                          if (thumbFile.existsSync()) thumbFile.delete();
+                        }
+                      });
+
+                      // TODO - verify that annotated images are also cleaned up
                     },
                     child: Container(
                       decoration: const BoxDecoration(
