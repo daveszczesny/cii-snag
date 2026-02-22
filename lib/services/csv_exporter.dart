@@ -34,7 +34,8 @@ The SaveCsvFile function will do the following
 Future<void> saveCsvFile(
   BuildContext context,
   String projectId,
-  WidgetRef ref
+  WidgetRef ref,
+  String csvFileName,
 ) async {
 
   TierService.instance.checkCsvExport();
@@ -94,8 +95,8 @@ Future<void> saveCsvFile(
 
   final bytes = utf8.encode(csv);
   final csvDirPath = await getCsvDirectory();
-  final timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
-  final fileName = '${project.name}_export_$timestamp.csv';
+  // final timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
+  final fileName = "$csvFileName.csv";
   final file = File('$csvDirPath/$fileName');
   await file.writeAsString(csv);
 
@@ -122,8 +123,8 @@ Future<void> saveCsvFile(
 Map<String, String> getProjectDetails(Project project) {
   return {
     'Project Name': project.name,
-    'Client': !isNullorEmpty(project.client) ? '-' : project.client!,
-    'Location': !isNullorEmpty(project.location) ? '-' : project.location!,
+    'Client': isNullorEmpty(project.client) ? '-' : project.client!,
+    'Location': isNullorEmpty(project.location) ? '-' : project.location!,
     'Reference': project.projectRef!,
     'Status': project.status.name,
   };
@@ -131,23 +132,21 @@ Map<String, String> getProjectDetails(Project project) {
 
 // get list of snags and their details
 List<Map<String, String>> getSnagList(String projectId, WidgetRef ref) {
-  final List<Snag> snags = ProjectService.getSnags(ref, projectId)
-    .map((s) => s)
-    .toList();
+  final List<Snag> snags = ProjectService.getSnags(ref, projectId);
 
   return snags.map((Snag snag) {
     return {
       "ID": snag.id,
       "Name": snag.name,
-      "Created": DateFormat(AppDateTimeFormat.dateTimeFormatPattern).format(snag.dateCreated),
+      "Created": snag.dateClosed != null ? DateFormat(AppDateTimeFormat.dateTimeFormatPattern).format(snag.dateCreated) : "-",
       "Due Date": snag.dueDate != null ? DateFormat(AppDateTimeFormat.dateTimeFormatPattern).format(snag.dueDate!) : "-",
       "Date Completed": snag.dateCompleted != null ? DateFormat(AppDateTimeFormat.dateTimeFormatPattern).format(snag.dateCompleted!) : '-',
       "Priority": snag.priority.name,
       "Status": snag.status.name,
-      "Location": snag.location == "" ? '-' : snag.location!,
-      "Assignee": snag.assignee == "" ? '-' : snag.assignee!,
-      "Category": (snag.categories != null && snag.categories!.isNotEmpty) ? snag.categories![0]!.name : "-",
-      "Description": snag.description == "" ? '-' : snag.description!,
+      "Location": isNullorEmpty(snag.location) ? '-' : snag.location!,
+      "Assignee": isNullorEmpty(snag.assignee) ? '-' : snag.assignee!,
+      "Category": (snag.categories != null && snag.categories!.isNotEmpty) ? snag.categories![0].name : "-",
+      "Description": isNullorEmpty(snag.description) ? '-' : snag.description!,
     };
   }).toList();
 }

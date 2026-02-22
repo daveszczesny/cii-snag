@@ -159,7 +159,7 @@ class _ProjectExportState extends ConsumerState<ProjectExport> with SingleTicker
                                 await openPdfFromRecord(record);
                               } catch (e) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text('Could not open PDF. ${e.toString()}'))
+                                  const SnackBar(content: Text("Could not open PDF."))
                                 );
                               }
                             }
@@ -322,7 +322,7 @@ class _ProjectExportState extends ConsumerState<ProjectExport> with SingleTicker
 
     return Scaffold(
       appBar: AppBar(
-        title: Text("Export ${[project.name]}"),
+        title: Text("Export ${project.name}"),
       ),
       body: Column(
         children: [

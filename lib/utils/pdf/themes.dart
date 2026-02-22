@@ -37,9 +37,9 @@ pw.MultiPage buildSnagPage_theme1(String projectName, Snag snag, String imageQua
                     final Map<String, String> snagAttributes = {
                       "ID": snag.id,
                       "Created": DateFormat(AppDateTimeFormat.dateTimeFormatPattern).format(snag.dateCreated),
-                      "Assignee": !isNullorEmpty(snag.assignee) ? '-' : snag.assignee!,
+                      "Assignee": isNullorEmpty(snag.assignee) ? '-' : snag.assignee!,
                       "Due Date": snag.dueDate != null ? DateFormat(AppDateTimeFormat.dateTimeFormatPattern).format(snag.dueDate!) : '-',
-                      "Location": !isNullorEmpty(snag.location) ? '-' : snag.location!,
+                      "Location": isNullorEmpty(snag.location) ? '-' : snag.location!,
                       'Category': (snag.categories != null && snag.categories!.isNotEmpty) ? snag.categories![0].name ?? 'Uncategorized' : 'Uncategorized',
                       'Status': snag.status.name,
                     };
@@ -47,8 +47,8 @@ pw.MultiPage buildSnagPage_theme1(String projectName, Snag snag, String imageQua
                     if (snag.status.name == Status.completed.name) {
                       snagAttributes.addEntries(
                         [
-                          MapEntry('Final Remarks', !isNullorEmpty(snag.finalRemarks) ? '-' : snag.finalRemarks!),
-                          MapEntry('Reviewed By', !isNullorEmpty(snag.reviewedBy) ? '-' :snag.reviewedBy!),
+                          MapEntry('Final Remarks', isNullorEmpty(snag.finalRemarks) ? '-' : snag.finalRemarks!),
+                          MapEntry('Reviewed By', isNullorEmpty(snag.reviewedBy) ? '-' :snag.reviewedBy!),
                         ]
                       );
                     }
