@@ -312,14 +312,14 @@ class _SearchResultCard extends ConsumerWidget {
           // navigate to project detail
           final project = result.data as Project;
           Navigator.push(context, MaterialPageRoute(
-            builder: (context) => ProjectDetail(projectId: project.id!)));
+            builder: (context) => ProjectDetail(projectId: project.uuid)));
         } else if (result.type == SearchResultType.snag) {
           final snag = result.data as Snag;
           // find the parent project
           final List<Project> projects = ProjectService.getProjects(ref);
-          final Project project = projects.firstWhere((p) => p.id == snag.projectId);
+          final Project project = projects.firstWhere((p) => p.uuid == snag.projectId);
           Navigator.push(context, MaterialPageRoute(
-            builder: (context) => SnagDetail(projectId: project.id!, snagId: snag.id, onStatusChanged: () {
+            builder: (context) => SnagDetail(projectId: project.uuid, snagId: snag.uuid, onStatusChanged: () {
               ProjectService.updateProject(ref, project);
             },)));
         }

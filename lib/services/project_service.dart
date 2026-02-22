@@ -17,7 +17,7 @@ class ProjectService {
   static void deleteProject(WidgetRef ref, String projectId) {
     final snags = ref.read(snagsByProjectProvider(projectId));
     for (final snag in snags) {
-      SnagService.deleteSnag(ref, snag.id);
+      SnagService.deleteSnag(ref, snag.uuid);
     }
     ref.read(projectProvider.notifier).deleteProject(projectId);
   }

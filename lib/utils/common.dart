@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:cii/models/snag.dart';
+import 'package:cii/services/snag_service.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -162,9 +163,10 @@ Future<void> buildFinalRemarksWidget(
                               finalRemarks: remarksController.text,
                               reviewedBy: reviewedByController.text,
                               finalImagePaths: finalImagePaths,
-                              status: Status.completed
+                              status: Status.completed,
+                              dateClosed: DateTime.now()
                             );
-                            ref.read(snagProvider.notifier).updateSnag(updatedSnag);
+                            SnagService.updateSnag(ref, updatedSnag); // TODO - does this work?
                             onChange();
                             Navigator.pop(context);
                           },

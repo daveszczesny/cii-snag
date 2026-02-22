@@ -64,10 +64,6 @@ class _SnagCardWidgetState extends ConsumerState<SnagCardWidget> {
                         width: width,
                         height: height
                       );
-                      final Snag updatedSnag = snag.copyWith(
-                        dateClosed: DateTime.now()
-                      );
-                      ProjectService.updateSnag(ref, widget.projectId, updatedSnag);
                     } else {
                       final Snag updatedSnag = snag.copyWith(
                         status: status

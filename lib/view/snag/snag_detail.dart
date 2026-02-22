@@ -253,6 +253,7 @@ class _SnagDetailState extends ConsumerState<SnagDetail> {
 
   Widget snagDetailNoEdit() {
     final Snag snag = SnagService.getSnag(ref, widget.snagId);
+
     final name = snag.name; 
     final description = !isNullorEmpty(snag.description) ? snag.description! : 'No Description';
     final id = snag.id; // not nullable

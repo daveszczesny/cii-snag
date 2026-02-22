@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 final singleSnagProvider = Provider.family<Snag?, String>((ref, snagId) {
   final snags = ref.watch(snagProvider);
   try {
-    return snags.firstWhere((s) => s.id.toString() == snagId);
+    return snags.firstWhere((s) => s.uuid == snagId);
   } catch (e) {
     return null;
   }

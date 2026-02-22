@@ -185,7 +185,7 @@ class NotificationService {
     for (final project in projects) {
       final approachingSnags = <Snag>[];
       
-      for (final snag in snagBox.values.where((s) => s.projectId == project.id!).toList()) {
+      for (final snag in snagBox.values.where((s) => s.projectId == project.uuid).toList()) {
         if (snag.dueDate != null) {
           final daysUntilDue = snag.dueDate!.difference(now).inDays;
           

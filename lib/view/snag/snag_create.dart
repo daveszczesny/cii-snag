@@ -73,7 +73,7 @@ class _SnagCreateState extends ConsumerState<SnagCreate> {
       filteredProjects = getProjectByStatus(projects, "recent");
 
       if (filteredProjects.isNotEmpty) {
-        selectedProjectId = projects.first.id!; 
+        selectedProjectId = projects.first.uuid; 
         setState(() {}); // TODO - is this needed?
       }
 
@@ -108,7 +108,7 @@ class _SnagCreateState extends ConsumerState<SnagCreate> {
     final dueDateTime = parseDate(dueDate);
 
     if (name.isEmpty) {
-      int no = ProjectService.getSnagCount(ref, project.id!) + 1;
+      int no = ProjectService.getSnagCount(ref, project.uuid) + 1;
       // if the name is empty, create a default name 'Snag #$no' and also show a snackbar
       name = '${AppStrings.snag()} #$no';
       
@@ -316,7 +316,7 @@ class _SnagCreateState extends ConsumerState<SnagCreate> {
                         selectedProject: null,
                         onChanged: (Project? value) {
                           setState(() {
-                            selectedProjectId = value!.id;
+                            selectedProjectId = value!.uuid;
                           });
                         clearInputs();
                         }
@@ -426,7 +426,7 @@ class _SnagCreateState extends ConsumerState<SnagCreate> {
                     const SizedBox(height: 35.0),
 
                     buildTextButton(AppStrings.snagCreate(), () {
-                      if (currentProject == null || !TierService.instance.canCreateSnag(ProjectService.getSnagCount(ref, currentProject.id!))) {
+                      if (currentProject == null || !TierService.instance.canCreateSnag(ProjectService.getSnagCount(ref, currentProject.uuid))) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(content: Text('Max number of ${AppStrings.snags()} per project reached (${TierLimits.free.maxSnagsPerProject})'))
                         );
