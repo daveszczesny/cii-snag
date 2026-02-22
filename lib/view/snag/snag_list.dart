@@ -1,22 +1,24 @@
-import 'package:cii/controllers/single_project_controller.dart';
-import 'package:cii/controllers/snag_controller.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:cii/models/snag.dart';
 import 'package:cii/models/status.dart';
+import 'package:cii/services/project_service.dart';
 import 'package:cii/view/snag/snag_card_widget.dart';
 import 'package:cii/view/utils/constants.dart';
-import 'package:flutter/material.dart';
 
-class SnagList extends StatefulWidget {
-  final SingleProjectController projectController;
+class SnagList extends ConsumerStatefulWidget {
+  final String projectId;
 
-  const SnagList({super.key, required this.projectController});
+  const SnagList({super.key, required this.projectId});
 
   @override
-  State<SnagList> createState() => _SnagListState();
+  ConsumerState<SnagList> createState() => _SnagListState();
 }
 
-class _SnagListState extends State<SnagList> with SingleTickerProviderStateMixin{
+class _SnagListState extends ConsumerState<SnagList> with SingleTickerProviderStateMixin{
 
   late TabController _tabController;
+  final Map<String, List<Snag>> _cachedSnagOrder = {};
 
   @override
   void initState() {
@@ -30,10 +32,17 @@ class _SnagListState extends State<SnagList> with SingleTickerProviderStateMixin
     super.dispose();
   }
 
-  List<SnagController> sorted(List<SnagController> snagList) {
+  void _cacheInitialOrder() {
+    final List<Snag> snags = ProjectService.getSnags(ref, widget.projectId)
+      .map((s) => s)
+      .toList();
+    _cachedSnagOrder["all"] = sorted(snags);
+  }
+
+  List<Snag> sorted(List<Snag> snagList) {
     snagList.sort((a, b) {
-      String aCat = (a.categories.isNotEmpty) ? a.categories[0].name : '-';
-      String bCat = (b.categories.isNotEmpty) ? b.categories[0].name : '-';
+      String aCat = (a.categories != null && a.categories!.isNotEmpty) ? a.categories![0].name : '-';
+      String bCat = (b.categories != null && b.categories!.isNotEmpty) ? b.categories![0].name : '-';
 
       // Put uncategorized last
       if (aCat == '-' && bCat != '-') return 1;
@@ -56,29 +65,44 @@ class _SnagListState extends State<SnagList> with SingleTickerProviderStateMixin
     return snagList;
   }
 
-  List<SnagController> filterSnags(String status) {
-    switch (status.toLowerCase()) {
-      case 'open':
-        return sorted(widget.projectController.getSnagsByStatus(Status.todo));
-      case 'in progress':
-        return sorted(widget.projectController.getSnagsByStatus(Status.inProgress));
-      case 'closed':
-        return sorted(widget.projectController.getSnagsByStatus(Status.completed));
-      case 'blocked':
-      case 'on hold':
-        return sorted(widget.projectController.getSnagsByStatus(Status.blocked));
-      default:
-        return sorted(widget.projectController.getAllSnags());
+  List<Snag> filterSnags(String status) {
+    final List<Snag> snags = ProjectService.getSnags(ref, widget.projectId);
+
+    if (status.toLowerCase() != "all") {
+      return sorted(snags.where((s) => s.status.name == status)
+        .map((s) => s)
+        .toList());
     }
+
+    List<Snag> orderedSnags = [];
+    List<Snag> allSnags = snags.map((s) => s).toList();
+
+    if (_cachedSnagOrder["all"] != null) {
+      for (Snag cachedSnag in _cachedSnagOrder["all"]!) {
+        final matchingSnags = allSnags.where((s) => s.uuid == cachedSnag.uuid);
+        if (matchingSnags.isNotEmpty) {
+          orderedSnags.add(matchingSnags.first);
+        }
+      }
+    }
+
+    for (Snag snag in allSnags) {
+      if (!orderedSnags.any((s) => s.uuid == snag.uuid)) {
+        orderedSnags.add(snag);
+      }
+    }
+    return orderedSnags;
   }
 
   void _onStatusChanged() {
     setState(() {});
-    widget.projectController.saveProject();
+    // TODO - Is this correct to just not save here?
+    // this will probably break even more things
+    //widget.projectController.saveProject();
   }
 
   Widget buildSnagList(String status) {
-    final List<SnagController> snags = filterSnags(status);
+    final List<Snag> snags = filterSnags(status);
     if (snags.isEmpty) {
       return Center(child: Text(AppStrings.noSnagsFound()));
     }
@@ -86,10 +110,10 @@ class _SnagListState extends State<SnagList> with SingleTickerProviderStateMixin
     return ListView.builder(
       itemCount: snags.length,
       itemBuilder: (context, index) {
-        final SnagController snag = snags[index];
+        final Snag snag = snags[index];
         return SnagCardWidget(
-          projectController: widget.projectController,
-          snagController: snag,
+          projectId: widget.projectId,
+          snagId: snag.id,
           onStatusChanged: _onStatusChanged,
         );
       }
@@ -99,6 +123,8 @@ class _SnagListState extends State<SnagList> with SingleTickerProviderStateMixin
   // bar at the top
   @override
   Widget build(BuildContext context){
+    _cacheInitialOrder();
+
     return Scaffold(
       body: Column(
         children: [

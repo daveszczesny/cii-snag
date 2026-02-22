@@ -1,14 +1,15 @@
 import 'dart:io';
-import 'package:cii/controllers/single_project_controller.dart';
-import 'package:cii/controllers/snag_controller.dart';
-import 'package:cii/models/status.dart';
+import 'package:cii/models/snag.dart';
+import 'package:intl/intl.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as path;
+import 'package:cii/providers/providers.dart';
 import 'package:cii/view/utils/constants.dart';
 import 'package:cii/view/utils/image.dart';
 import 'package:cii/view/utils/text.dart';
-import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:path/path.dart' as path;
+import 'package:cii/models/status.dart';
 
 Future<String> saveImageToAppDir(File imageFile) async {
   final appDir = await getApplicationDocumentsDirectory();
@@ -85,10 +86,10 @@ String formatDate(DateTime date) {
 
 Future<void> buildFinalRemarksWidget(
   BuildContext parentContext, 
-  SnagController snagController,
-  SingleProjectController projectController,
+  Snag snag,
   Function onChange,
   List<String> finalImagePaths,
+  WidgetRef ref,
   {double width = 0, double height = 0}) async{
   return await showDialog(
     context: parentContext,
@@ -157,11 +158,13 @@ Future<void> buildFinalRemarksWidget(
                         const SizedBox(width: 8),
                         ElevatedButton(
                           onPressed: () {
-                            snagController.setFinalRemarks(remarksController.text);
-                            snagController.setReviewedBy(reviewedByController.text);
-                            snagController.setFinalImagePaths(finalImagePaths);
-                            snagController.status = Status.completed;
-                            projectController.updateSnag(snagController.snag);
+                            final updatedSnag = snag.copyWith(
+                              finalRemarks: remarksController.text,
+                              reviewedBy: reviewedByController.text,
+                              finalImagePaths: finalImagePaths,
+                              status: Status.completed
+                            );
+                            ref.read(snagProvider.notifier).updateSnag(updatedSnag);
                             onChange();
                             Navigator.pop(context);
                           },
@@ -203,4 +206,13 @@ Future<String> getCsvDirectory() async {
     await csvDir.create();
   }
   return csvDir.path;
+}
+
+
+bool isNullorEmpty(String? s) {
+  return s == null || s.isEmpty;
+}
+
+bool isListNullorEmpty(List? l) {
+  return l == null || l.isEmpty;
 }

@@ -1,16 +1,19 @@
+import 'package:cii/models/project.dart';
 import 'package:cii/services/pdf_exporter.dart';
+import 'package:cii/services/project_service.dart';
 import 'package:cii/services/tier_service.dart';
 import 'package:cii/view/project/export/project_export_customizer_base.dart';
 import 'package:cii/view/utils/text.dart';
 import 'package:flutter/material.dart';
 import 'package:cii/utils/pdf/themes.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 class ProjectExportCustomizer extends ProjectExportCustomizerBase {
-  const ProjectExportCustomizer({super.key, required super.projectController});
+  const ProjectExportCustomizer({super.key, required super.projectId});
 
   @override
-  State<ProjectExportCustomizer> createState() => _ProjectExportCustomizerState();
+  ConsumerState<ProjectExportCustomizer> createState() => _ProjectExportCustomizerState();
 }
 
 class _ProjectExportCustomizerState extends ProjectExportCustomizerBaseState<ProjectExportCustomizer> {
@@ -31,15 +34,22 @@ class _ProjectExportCustomizerState extends ProjectExportCustomizerBaseState<Pro
     super.initState();
     selectedQualityNotifier = ValueNotifier<String>('Low');
     themeController.text = options.keys.first;
-    nameController.text = buildDefaultPdfFileName();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    
+    final Project project = ProjectService.getProject(ref, widget.projectId);
+    nameController.text = buildDefaultPdfFileName(project.projectRef!);
   }
 
   @override
   String get title => "PDF Export Customization";
 
   @override
-  List<Widget> buildCustomOptions() {
-    String fileNameHint = buildDefaultPdfFileName();
+  List<Widget> buildCustomOptions({Project? project}) {
+    String fileNameHint = project != null ? buildDefaultPdfFileName(project.projectRef!) : "File Name";
     return [
       buildTextInput("File Name", fileNameHint, nameController),
 
@@ -68,9 +78,10 @@ class _ProjectExportCustomizerState extends ProjectExportCustomizerBaseState<Pro
       () async {
         await savePdfFile(
           context,
-          widget.projectController,
+          widget.projectId,
           selectedQualityNotifier.value,
           options[themeController.text],
+          ref,
           nameController.text,
           selectedCategories.toList(),
           selectedStatuses.toList(),
@@ -84,10 +95,9 @@ class _ProjectExportCustomizerState extends ProjectExportCustomizerBaseState<Pro
   }
 
 
-  String buildDefaultPdfFileName() {
+  String buildDefaultPdfFileName(String ref) {
     // timestamp yyMMdd_hhMMss
     final timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
-    String ref = widget.projectController.getProjectRef;
     return "${ref}_$timestamp";
   }
 }

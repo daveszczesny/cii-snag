@@ -3,7 +3,8 @@ import 'package:cii/models/snag.dart';
 import 'package:cii/models/category.dart';
 import 'package:cii/models/tag.dart';
 import 'package:cii/models/status.dart';
-import 'package:cii/controllers/project_controller.dart';
+import 'package:cii/services/project_service.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 enum SearchResultType { project, snag }
 
@@ -60,22 +61,23 @@ class SearchFilters {
 }
 
 class SearchService {
-  final ProjectController projectController;
+  final List<Project> projects;
+  SearchService.fromProjects(this.projects);
 
-  SearchService(this.projectController);
+  List<Project> get _projects => projects;
 
-  List<SearchResult> search(String query, {SearchFilters? filters}) {
+  List<SearchResult> search(String query, WidgetRef ref, {SearchFilters? filters}) {
     final results = <SearchResult>[];
-    final projects = projectController.getAllProjects();
-    
+    final projectList = _projects;
+
     // Search projects
-    for (final project in projects) {
+    for (final project in projectList) {
       if (_matchesFilters(project, null, filters) && _matchesQuery(project, null, query)) {
         results.add(_createProjectResult(project));
       }
-      
+
       // Search snags within projects
-      for (final snag in project.snags) {
+      for (final snag in ProjectService.getSnags(ref, project.id!)) {
         if (_matchesFilters(project, snag, filters) && _matchesQuery(project, snag, query)) {
           results.add(_createSnagResult(snag, project));
         }
@@ -234,13 +236,13 @@ class SearchService {
   }
 
   // Get all unique categories from projects and snags
-  List<Category> getAllCategories() {
+  List<Category> getAllCategories(WidgetRef ref) {
     final categories = <String, Category>{};
-    final projects = projectController.getAllProjects();
+    final projects = _projects;
     
     for (final project in projects) {
       project.createdCategories?.forEach((cat) => categories[cat.name] = cat);
-      for (final snag in project.snags) {
+      for (final snag in ProjectService.getSnags(ref, project.id!)) {
         snag.categories?.forEach((cat) => categories[cat.name] = cat);
       }
     }
@@ -249,13 +251,13 @@ class SearchService {
   }
 
   // Get all unique tags from projects and snags
-  List<Tag> getAllTags() {
+  List<Tag> getAllTags(WidgetRef ref) {
     final tags = <String, Tag>{};
-    final projects = projectController.getAllProjects();
+    final projects = _projects;
     
     for (final project in projects) {
       project.createdTags?.forEach((tag) => tags[tag.name] = tag);
-      for (final snag in project.snags) {
+      for (final snag in ProjectService.getSnags(ref, project.id!)) {
         snag.tags?.forEach((tag) => tags[tag.name] = tag);
       }
     }
@@ -269,12 +271,12 @@ class SearchService {
   }
 
   // Get all unique assignees from snags
-  List<String> getAllAssignees() {
+  List<String> getAllAssignees(WidgetRef ref) {
     final assignees = <String>{};
-    final projects = projectController.getAllProjects();
+    final projects = _projects;
     
     for (final project in projects) {
-      for (final snag in project.snags) {
+      for (final snag in ProjectService.getSnags(ref, project.id!)) {
         if (snag.assignee != null && snag.assignee!.isNotEmpty) {
           assignees.add(snag.assignee!);
         }

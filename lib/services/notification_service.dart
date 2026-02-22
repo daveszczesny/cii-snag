@@ -1,7 +1,8 @@
 import 'package:cii/models/project.dart';
-import 'package:cii/utils/common.dart';
+import 'package:cii/services/project_service.dart';
 import 'package:cii/view/utils/constants.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:hive/hive.dart';
 import 'package:cii/models/notification.dart';
@@ -174,6 +175,7 @@ class NotificationService {
 
   Future<void> checkDueDateReminders() async {
     final projectBox = Hive.box<Project>('projects');
+    final snagBox = Hive.box<Snag>('snags');
     final projects = projectBox.values.toList();
     final now = DateTime.now();
     
@@ -183,7 +185,7 @@ class NotificationService {
     for (final project in projects) {
       final approachingSnags = <Snag>[];
       
-      for (final snag in project.snags) {
+      for (final snag in snagBox.values.where((s) => s.projectId == project.id!).toList()) {
         if (snag.dueDate != null) {
           final daysUntilDue = snag.dueDate!.difference(now).inDays;
           

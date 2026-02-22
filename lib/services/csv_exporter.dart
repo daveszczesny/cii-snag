@@ -3,16 +3,17 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:cii/controllers/single_project_controller.dart';
-import 'package:cii/controllers/snag_controller.dart';
 import 'package:cii/models/csvexportrecords.dart';
+import 'package:cii/models/project.dart';
+import 'package:cii/models/snag.dart';
+import 'package:cii/services/project_service.dart';
 import 'package:cii/services/tier_service.dart';
 import 'package:cii/utils/common.dart';
 import 'package:cii/view/utils/constants.dart';
 import 'package:crypto/crypto.dart';
 import 'package:csv/csv.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:open_file/open_file.dart';
 import 'package:share_plus/share_plus.dart';
@@ -32,7 +33,8 @@ The SaveCsvFile function will do the following
 
 Future<void> saveCsvFile(
   BuildContext context,
-  SingleProjectController projectController,
+  String projectId,
+  WidgetRef ref
 ) async {
 
   TierService.instance.checkCsvExport();
@@ -45,8 +47,9 @@ Future<void> saveCsvFile(
 
   List<List<dynamic>> csvData = [];
 
-  final projectDetails = getProjectDetails(projectController);
-  final snagList = getSnagList(projectController);
+  final Project project = ProjectService.getProject(ref, projectId);
+  final Map<String, String> projectDetails = getProjectDetails(project);
+  final List<Map<String, String>> snagList = getSnagList(projectId, ref);
 
   projectDetails.forEach((k, v) {
     csvData.add([k, v]);
@@ -92,7 +95,7 @@ Future<void> saveCsvFile(
   final bytes = utf8.encode(csv);
   final csvDirPath = await getCsvDirectory();
   final timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
-  final fileName = '${projectController.getName}_export_$timestamp.csv';
+  final fileName = '${project.name}_export_$timestamp.csv';
   final file = File('$csvDirPath/$fileName');
   await file.writeAsString(csv);
 
@@ -103,40 +106,48 @@ Future<void> saveCsvFile(
     fileSize: bytes.length,
   );
 
-  projectController.addCsvExportRecord(csvRecord);
-  await Share.shareXFiles([XFile(file.path)]);
+  final updatedProject = project.copyWith(
+    csvExportRecords: [...(project.csvExportRecords ?? []), csvRecord]
+  );
+  ProjectService.updateProject(ref, updatedProject);
+  await SharePlus.instance.share(ShareParams(
+    files: [XFile(file.path)],
+    sharePositionOrigin: const Rect.fromLTWH(0, 0, 100, 100)
+  ));
   Navigator.of(context).pop(); // Remove loading indicator
 
 }
 
 // Get project details
-Map<String, String> getProjectDetails(SingleProjectController controller) {
+Map<String, String> getProjectDetails(Project project) {
   return {
-    'Project Name': controller.getName ?? '-',
-    'Client': controller.getClient == "" ? '-' : controller.getClient!,
-    'Location': controller.getLocation == "" ? '-' : controller.getLocation!,
-    'Reference': controller.getProjectRef!,
-    'Status': controller.getStatus!,
+    'Project Name': project.name,
+    'Client': !isNullorEmpty(project.client) ? '-' : project.client!,
+    'Location': !isNullorEmpty(project.location) ? '-' : project.location!,
+    'Reference': project.projectRef!,
+    'Status': project.status.name,
   };
 }
 
 // get list of snags and their details
-List<Map<String, String>> getSnagList(SingleProjectController controller) {
-  final snags = controller.getAllSnags();
-  
-  return snags.map((SnagController snag) {
+List<Map<String, String>> getSnagList(String projectId, WidgetRef ref) {
+  final List<Snag> snags = ProjectService.getSnags(ref, projectId)
+    .map((s) => s)
+    .toList();
+
+  return snags.map((Snag snag) {
     return {
-      "ID": snag.getId,
+      "ID": snag.id,
       "Name": snag.name,
       "Created": DateFormat(AppDateTimeFormat.dateTimeFormatPattern).format(snag.dateCreated),
-      "Due Date": snag.getDueDate != null ? snag.getDueDateString! : "-",
+      "Due Date": snag.dueDate != null ? DateFormat(AppDateTimeFormat.dateTimeFormatPattern).format(snag.dueDate!) : "-",
       "Date Completed": snag.dateCompleted != null ? DateFormat(AppDateTimeFormat.dateTimeFormatPattern).format(snag.dateCompleted!) : '-',
       "Priority": snag.priority.name,
       "Status": snag.status.name,
-      "Location": snag.location == "" ? '-' : snag.location,
-      "Assignee": snag.assignee == "" ? '-' : snag.assignee,
-      "Category": snag.categories.isNotEmpty ? snag.categories[0].name : "-",
-      "Description": snag.description == "" ? '-' : snag.description,
+      "Location": snag.location == "" ? '-' : snag.location!,
+      "Assignee": snag.assignee == "" ? '-' : snag.assignee!,
+      "Category": (snag.categories != null && snag.categories!.isNotEmpty) ? snag.categories![0]!.name : "-",
+      "Description": snag.description == "" ? '-' : snag.description!,
     };
   }).toList();
 }

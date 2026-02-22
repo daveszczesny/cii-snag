@@ -1,27 +1,31 @@
-import 'dart:io';
-
-import 'package:cii/controllers/single_project_controller.dart';
-import 'package:cii/controllers/snag_controller.dart';
+import 'package:cii/models/category.dart';
+import 'package:cii/models/project.dart';
+import 'package:cii/models/snag.dart';
 import 'package:cii/models/status.dart';
+import 'package:cii/models/tag.dart';
+import 'package:cii/services/project_service.dart';
+import 'package:cii/services/snag_service.dart';
 import 'package:cii/utils/common.dart';
 import 'package:cii/view/utils/constants.dart';
 import 'package:cii/view/utils/image.dart';
 import 'package:cii/view/utils/selector.dart';
 import 'package:cii/view/utils/text.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
-class SnagDetail extends StatefulWidget {
-  final SingleProjectController projectController;
-  final SnagController snag;
+class SnagDetail extends ConsumerStatefulWidget {
+  final String projectId;
+  final String snagId;
   final VoidCallback? onStatusChanged;
 
-  const SnagDetail({super.key, required this.projectController, required this.snag, this.onStatusChanged});
+  const SnagDetail({super.key, required this.projectId, required this.snagId, this.onStatusChanged});
 
   @override
-  State<SnagDetail> createState() => _SnagDetailState();
+  ConsumerState<SnagDetail> createState() => _SnagDetailState();
 }
 
-class _SnagDetailState extends State<SnagDetail> {
+class _SnagDetailState extends ConsumerState<SnagDetail> {
 
   // Text editing controllers
   final TextEditingController nameController = TextEditingController();
@@ -35,7 +39,7 @@ class _SnagDetailState extends State<SnagDetail> {
   late ValueNotifier<String> selectedStatusOption;
   final List<String> statusOptions = Status.values.map((e) => e.name).toList(); // get the name of each status
 
-  late List<String> imageFilePaths;
+  List<String> imageFilePaths = [];
   String selectedImage = '';
 
   bool isEditable = false;
@@ -43,16 +47,22 @@ class _SnagDetailState extends State<SnagDetail> {
   @override
   void initState() {
     super.initState();
-    imageFilePaths = widget.snag.imagePaths;
 
-    final currentStatus = widget.snag.status.name;
+    // final currentStatus = widget.snag.status.name;
+    // final initialStatus = statusOptions.firstWhere(
+      // (s) => s.toLowerCase() == currentStatus.toLowerCase(),
+      // orElse: () => statusOptions.first
+    // );
+    // Changed from initialStatus
+    selectedStatusOption = ValueNotifier<String>(statusOptions.first);
 
-    final initialStatus = statusOptions.firstWhere(
-      (s) => s.toLowerCase() == currentStatus.toLowerCase(),
-      orElse: () => statusOptions.first
-    );
-    selectedStatusOption = ValueNotifier<String>(initialStatus);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _setupStatusListener();
+    });
+  }
 
+  void _setupStatusListener() {
+    final Snag snag = SnagService.getSnag(ref, widget.snagId);
     selectedStatusOption.addListener(() async {
       final newStatus = Status.values.firstWhere(
         (s) => s.name == selectedStatusOption.value,
@@ -61,74 +71,87 @@ class _SnagDetailState extends State<SnagDetail> {
 
       // If status is completed, show the remarks dialog
       if (newStatus == Status.completed) {
-        final previousStatus = widget.snag.status.name;
+        final previousStatus = snag.status.name;
 
         await buildFinalRemarksWidget(
           context,
-          widget.snag,
-          widget.projectController,
+          snag,
           () {
-            widget.snag.status = newStatus;
-            widget.projectController.saveProject();
-            widget.onStatusChanged!();
+            snag.status = newStatus;
+            // TODO: What is this?
+            final Project project = ProjectService.getProject(ref, widget.projectId);
+            ProjectService.updateProject(ref, project);
+            widget.onStatusChanged?.call();
             setState(() {});
           },
-          List<String>.from(widget.snag.finalImagePaths),
+          List<String>.from(snag.finalImagePaths ?? []),
+          ref,
           width: MediaQuery.of(context).size.width * 0.95,
           height: MediaQuery.of(context).size.height * 0.8,
         );
 
-        if (widget.snag.status.name != Status.completed.name) {
+        if (snag.status != Status.completed) {
           // User cancelled the completion, revert the selected status
           selectedStatusOption.value = previousStatus;
         }
       } else {
+        final Snag updatedSnag = snag.copyWith(
+          status: newStatus
+        );
+        SnagService.updateSnag(ref, updatedSnag);
         setState(() {
-          widget.snag.status = newStatus;
-          widget.projectController.saveProject();
-          widget.onStatusChanged!();
+          widget.onStatusChanged?.call();
         });
       }
     });
   }
 
   void setAsMainImage(String selectedImagePath) {
+    final Snag snag = SnagService.getSnag(ref, widget.snagId);
     String originalPath = selectedImagePath;
-    for (var entry in widget.snag.annotatedImagePaths.entries) {
+    for (var entry in (snag.annotatedImagePaths ?? {}).entries) {
       if (entry.value == selectedImagePath) {
         originalPath = entry.key;
         break;
       }
     }
 
-    if (widget.snag.imagePaths.contains(originalPath)) {
-      widget.snag.imagePaths.remove(originalPath);
-      widget.snag.imagePaths.insert(0, originalPath);
-      widget.projectController.saveProject();
+    if ((snag.imagePaths ?? []).contains(originalPath)) {
+      var imagePaths = snag.imagePaths!;
+      imagePaths.remove(originalPath);
+      imagePaths.insert(0, originalPath);
+      final updatedSnag = snag.copyWith(imagePaths: imagePaths);
+      SnagService.updateSnag(ref, updatedSnag);
       setState(() {
-        imageFilePaths = widget.snag.imagePaths;
+        imageFilePaths = snag.imagePaths ?? [];
         selectedImage = '';
-        widget.onStatusChanged!();
+        widget.onStatusChanged?.call();
       });
     }
   }
 
   // image related methods
   void onChange({String p = ''}) {
-    final annotatedImages = widget.snag.annotatedImagePaths;
+    final Snag snag = SnagService.getSnag(ref, widget.snagId);
+    final annotatedImages = snag.annotatedImagePaths;
     
     if (p != '') {
       // User clicked on a specific image - set it as selected
-      if (annotatedImages.containsKey(p)) {
-        selectedImage = annotatedImages[p]!;
+      if ((annotatedImages ?? {}).containsKey(p)) {
+        selectedImage = annotatedImages![p]!;
       } else {
         selectedImage = p;
       }
     } else {
       // No specific image provided - set default
       if (selectedImage == '') {
-        if (annotatedImages.isNotEmpty && annotatedImages.containsKey(imageFilePaths[0])) {
-          selectedImage = annotatedImages[imageFilePaths[0]]!;
+        final annotatedMap = annotatedImages ?? {};
+        if (
+            imageFilePaths.isNotEmpty &&
+            annotatedMap.isNotEmpty &&
+            annotatedMap.containsKey(imageFilePaths[0])
+          ) {
+          selectedImage = annotatedMap[imageFilePaths[0]]!;
         } else {
           selectedImage = imageFilePaths.isNotEmpty ? imageFilePaths[0] : '';
         }
@@ -136,67 +159,59 @@ class _SnagDetailState extends State<SnagDetail> {
     }
     
     setState(() {});
-    widget.onStatusChanged!();
+    widget.onStatusChanged?.call();
   }
 
   void saveAnnotatedImage(String originalPath, String path) {
+    final Snag snag = SnagService.getSnag(ref, widget.snagId);
+    var annotedPaths = Map<String, String>.from(snag.annotatedImagePaths ?? {});
+    annotedPaths[originalPath] = path;
+    final updatedSnag = snag.copyWith(
+      annotatedImagePaths: annotedPaths
+    );
+    SnagService.updateSnag(ref, updatedSnag);
     setState(() {
-      widget.snag.annotatedImagePaths[originalPath] = path;
       onChange(p: originalPath);
     });
   }
 
   String getAnnotatedImage(String path) {
-    final annotatedImages = widget.snag.annotatedImagePaths;
-    if (annotatedImages.isNotEmpty) {
-      if (annotatedImages.containsKey(path)) {
-        return annotatedImages[path]!;
+    final Snag snag = SnagService.getSnag(ref, widget.snagId);
+    final annotatedImages = snag.annotatedImagePaths;
+    final annotatedMap = annotatedImages ?? {};
+    if (annotatedMap.isNotEmpty) {
+      if (annotatedMap.containsKey(path)) {
+        return annotatedMap[path]!;
       }
     }
     return path;
   }
 // -----------------------------------------------
 
-  void _showCategoryModal(BuildContext context) {
-    showModalBottomSheet(
-      context: context, 
-      builder: (BuildContext context) {
-        final categories = widget.projectController.getCategories!;
-        return Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: FractionallySizedBox(
-            heightFactor: 0.7,
-            child: ListView.builder(
-              itemCount: categories.length,
-              itemBuilder: (context, index) {
-                final cat = categories[index];
-                return ListTile(
-                  title: Text(cat.name),
-                  onTap: () {
-                    setState(() {
-                      widget.snag.setCategory(cat);
-                    });
-                    Navigator.pop(context);
-                  },
-                );
-              },
-            ),
-          ),
-        );
-      }
-    );
-  }
 
   Widget snagDetailEditable(BuildContext context) {
-    final name = widget.snag.name; 
-    final description = widget.snag.description != '' ? widget.snag.description : 'No Description';
-    final id = widget.snag.getId; // not nullable
-    final dateCreated = formatDate(widget.snag.dateCreated);
-    final assignee = widget.snag.assignee != '' ? widget.snag.assignee : 'Unassigned';
-    final location = widget.snag.location != '' ? widget.snag.location : 'No Location';
-    final dueDate = widget.snag.getDueDate != null ? widget.snag.getDueDateString! : 'No Due Date';
-    final reviewedBy = widget.snag.reviewedBy != '' ? widget.snag.reviewedBy : 'No Reviewer';
-    final finalRemarks = widget.snag.finalRemarks != '' ? widget.snag.finalRemarks : 'No Final Remarks';
+    final Snag snag = SnagService.getSnag(ref, widget.snagId);
+    final name = snag.name; 
+    final description = !isNullorEmpty(snag.description)
+      ? snag.description
+      : 'No Description';
+    final id = snag.id; // not nullable
+    final dateCreated = formatDate(snag.dateCreated);
+    final assignee = !isNullorEmpty(snag.assignee)
+    ? snag.assignee!
+    : 'Unassigned';
+    final location = !isNullorEmpty(snag.location)
+      ? snag.location!
+      : 'No Location';
+    final dueDate = snag.dueDate != null
+      ? DateFormat(AppDateTimeFormat.dateTimeFormatPattern).format(snag.dueDate!)
+      : 'No Due Date';
+    final reviewedBy = !isNullorEmpty(snag.reviewedBy)
+      ? snag.reviewedBy!
+      : 'No Reviewer';
+    final finalRemarks = !isNullorEmpty(snag.finalRemarks)
+      ? snag.finalRemarks!
+      : 'No Final Remarks';
 
     const double gap = 16;
 
@@ -217,7 +232,7 @@ class _SnagDetailState extends State<SnagDetail> {
         const SizedBox(height: gap),
         buildDatePickerInput(context, 'Due Date', dueDate, dueDateController),
         const SizedBox(height: gap),
-        if (widget.snag.status.name == Status.completed.name) ... [
+        if (snag.status.name == Status.completed.name) ... [
           const SizedBox(height: gap),
           buildTextInput("Reviewed By", reviewedBy, reviewedByController),
           const SizedBox(height: gap),
@@ -228,22 +243,27 @@ class _SnagDetailState extends State<SnagDetail> {
   }
 
   Widget snagDetailNoEdit() {
-    final name = widget.snag.name; 
-    final description = widget.snag.description != '' ? widget.snag.description : 'No Description';
-    final id = widget.snag.getId; // not nullable
-    final dateCreated = formatDate(widget.snag.dateCreated);
-    final assignee = widget.snag.assignee != '' ? widget.snag.assignee : 'Unassigned';
-    final location = widget.snag.location != '' ? widget.snag.location : 'No Location';
-    final dueDate = widget.snag.getDueDate != null ? widget.snag.getDueDateString! : 'No Due Date';
-    final reviewedBy = widget.snag.reviewedBy != '' ? widget.snag.reviewedBy : 'No Reviewer';
-    final finalRemarks = widget.snag.finalRemarks != '' ? widget.snag.finalRemarks : 'No Final Remarks';
-    final dateClosed = widget.snag.getDateClosed != null ? widget.snag.getDateClosedString! : '-';
+    final Snag snag = SnagService.getSnag(ref, widget.snagId);
+    final name = snag.name; 
+    final description = !isNullorEmpty(snag.description) ? snag.description! : 'No Description';
+    final id = snag.id; // not nullable
+    final dateCreated = formatDate(snag.dateCreated);
+    final assignee = !isNullorEmpty(snag.assignee) ? snag.assignee! : 'Unassigned';
+    final location = !isNullorEmpty(snag.location) ? snag.location! : 'No Location';
+    final dueDate = snag.dueDate != null
+      ? DateFormat(AppDateTimeFormat.dateTimeFormatPattern).format(snag.dueDate!)
+      : 'No Due Date';
+    final reviewedBy = !isNullorEmpty(snag.reviewedBy) ? snag.reviewedBy! : 'No Reviewer';
+    final finalRemarks = !isNullorEmpty(snag.finalRemarks) ? snag.finalRemarks! : 'No Final Remarks';
+    final dateClosed = snag.dateClosed != null
+      ? DateFormat(AppDateTimeFormat.dateTimeFormatPattern).format(snag.dateClosed!)
+      : '-';
     var dueDateSubtext = '';
     var dueDateIcon;
 
 
-    if (widget.snag.getDueDate != null && widget.snag.status.name != Status.completed.name) {
-      final dueDateTime = widget.snag.getDueDate!;
+    if (snag.dueDate != null && snag.status.name != Status.completed.name) {
+      final dueDateTime = snag.dueDate!;
       final now = DateTime.now();
       final diff = dueDateTime.difference(now).inDays;
       const iconSize = 16.0;
@@ -284,7 +304,7 @@ class _SnagDetailState extends State<SnagDetail> {
         buildTextDetail('Location', location),
         const SizedBox(height: gap),
         buildTextDetailWithIcon('Due Date', dueDate, dueDateIcon, subtext: dueDateSubtext),
-        if (widget.snag.status.name == Status.completed.name) ... [
+        if (snag.status.name == Status.completed.name) ... [
           const SizedBox(height: gap),
           buildTextDetail('Date Closed', dateClosed),
           const SizedBox(height: gap),
@@ -298,9 +318,21 @@ class _SnagDetailState extends State<SnagDetail> {
 
   @override
   Widget build(BuildContext context) {
+
+    final snag = SnagService.getSnag(ref, widget.snagId);
+
+    if (imageFilePaths.isEmpty) {
+      imageFilePaths = snag.imagePaths ?? [];
+    }
+
+    if (selectedStatusOption.value != snag.status.name) {
+      selectedStatusOption.value = snag.status.name;
+    }
+
+    final Project project = ProjectService.getProject(ref, widget.projectId);
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.snag.name),
+        title: Text(snag.name),
         leading: isEditable == false ? IconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: () {
@@ -311,11 +343,11 @@ class _SnagDetailState extends State<SnagDetail> {
               // cancel the edit
               // check if anything has changed
               if (
-                (nameController.text != '' && nameController.text != widget.snag.name) ||
-                (descriptionController.text != '' && descriptionController.text != widget.snag.description) ||
-                (assigneeController.text != '' && assigneeController.text != widget.snag.assignee) ||
-                (locationController.text != '' && locationController.text != widget.snag.location) ||
-                (dueDateController.text != '' && dueDateController.text != widget.snag.getDueDateString)
+                (nameController.text != '' && nameController.text != snag.name) ||
+                (descriptionController.text != '' && descriptionController.text != snag.description) ||
+                (assigneeController.text != '' && assigneeController.text != snag.assignee) ||
+                (locationController.text != '' && locationController.text != snag.location) ||
+                (dueDateController.text != '' && snag.dueDate != null && dueDateController.text != DateFormat(AppDateTimeFormat.dateTimeFormatPattern).format(snag.dueDate!))
               ) {
                 // show a dialog to confirm
                 showDialog(
@@ -356,40 +388,33 @@ class _SnagDetailState extends State<SnagDetail> {
             padding: const EdgeInsets.only(right: 15),
             child: GestureDetector(
               onTap: () {
+
+                final Snag updatedSnag = snag.copyWith(
+                  name: nameController.text != '' ? nameController.text : snag.name,
+                  description: descriptionController.text,
+                  assignee: assigneeController.text,
+                  location: locationController.text,
+                  dueDate: dueDateController.text.isNotEmpty ? parseDate(dueDateController.text) : snag.dueDate,
+                  reviewedBy: reviewedByController.text,
+                  finalRemarks: finalremarksController.text,
+                );
+
+                SnagService.updateSnag(ref, updatedSnag);
+
                 setState(() {
                   if (isEditable) {
-                       // set snag details
-                    final newName = nameController.text;
-                    // name isn't nullable
-                    if (newName != '') {
-                      widget.snag.setName(newName);
-                    }
-                    final newDescription = descriptionController.text;
-                    widget.snag.setDescription(newDescription);
-                    final newAssignee = assigneeController.text;
-                    widget.snag.setAssignee(newAssignee);
-                    final newLocation = locationController.text;
-                    widget.snag.setLocation(newLocation);
-                    final newDueDate = dueDateController.text;
-                    if (newDueDate.isNotEmpty) {
-                      widget.snag.setDueDate(newDueDate);
-                    }
-
-                    if (widget.snag.status.name == Status.completed.name) {
-                      final newReviewedBy = reviewedByController.text;
-                      final newFinalRemarks = finalremarksController.text;
-                      widget.snag.setReviewedBy(newReviewedBy);
-                      widget.snag.setFinalRemarks(newFinalRemarks);
-                    }
+                     // set snag details
                     isEditable = !isEditable;
-                    widget.projectController.saveProject();
-                    widget.onStatusChanged!();
+                    widget.onStatusChanged?.call();
                   } else {
-                    nameController.text = widget.snag.name;
-                    descriptionController.text = widget.snag.description;
-                    assigneeController.text = widget.snag.assignee;
-                    locationController.text = widget.snag.location;
-                    dueDateController.text = widget.snag.getDueDateString ?? '';
+                    nameController.text = snag.name;
+                    // TODO: Is ?? "" a problem?
+                    descriptionController.text = snag.description ?? "";
+                    assigneeController.text = snag.assignee ?? "";
+                    locationController.text = snag.location ?? "";
+                    dueDateController.text = snag.dueDate != null
+                      ? DateFormat(AppDateTimeFormat.dateTimeFormatPattern).format(snag.dueDate!)
+                      : "";
                     isEditable = !isEditable;
                   }
                 });
@@ -436,8 +461,8 @@ class _SnagDetailState extends State<SnagDetail> {
                   ValueListenableBuilder(
                     valueListenable: AppDueDateReminder.version,
                     builder: (context, _, __) {
-                      if (widget.snag.getDueDate != null) {
-                        final dueDateTime = widget.snag.getDueDate!;
+                      if (snag.dueDate != null) {
+                        final dueDateTime = snag.dueDate!;
                         final now = DateTime.now();
                         final diff = dueDateTime.difference(now).inDays;
                         
@@ -487,7 +512,7 @@ class _SnagDetailState extends State<SnagDetail> {
                     )
                   ),
 
-                  if (widget.snag.finalImagePaths.isNotEmpty) ... [
+                  if ((snag.finalImagePaths ?? []).isNotEmpty) ... [
                     const SizedBox(height: 16.0),
                     const Text('Final Images', style: TextStyle(color: Color(0xFF333333), fontSize: 14, fontWeight: FontWeight.w300, fontFamily: 'Roboto')),
                     const SizedBox(height: 8.0),
@@ -495,7 +520,7 @@ class _SnagDetailState extends State<SnagDetail> {
                       context,
                       ({String p = ''}) {setState(() {});},
                       () {},
-                      widget.snag.finalImagePaths
+                      snag.finalImagePaths ?? []
                     ),
                   ],
 
@@ -508,32 +533,42 @@ class _SnagDetailState extends State<SnagDetail> {
                     label: AppStrings.category,
                     pluralLabel: AppStrings.categories,
                     hint: AppStrings.categoryHint(),
-                    options: widget.projectController.getCategories ?? [],
+                    options: project.createdCategories ?? [],
                     getName: (cat) => cat.name,
                     getColor: (cat) => cat.color,
                     allowMultiple: false,
                     onCreate: (name, color) {
                       setState(() {
-                        widget.projectController.addCategory(capitilize(name), color);
+                        final updatedProject = project.copyWith(
+                          createdCategories: [
+                            Category(name: capitilize(name), color: color),
+                            ...project.createdCategories ?? []
+                          ]
+                        );
+                        ProjectService.updateProject(ref, updatedProject);
                       });
                     },
                     onSelect: (cat) {
-                      if (widget.snag.getCategoryByName(cat.name) != null) {
+                      if (!isListNullorEmpty(snag.categories) && snag.categories!.where((c) => c.name == cat.name).toList().isNotEmpty) {
+                        final Snag updatedSnag = snag.copyWith(
+                          categories: []
+                        );
+                        SnagService.updateSnag(ref, updatedSnag);
                         setState(() {
-                          widget.snag.categories.clear();
-                          widget.projectController.saveProject();
-                          widget.onStatusChanged!();
+                          widget.onStatusChanged?.call();
                         });
                       } else {
+                        final Snag updatedSnag = snag.copyWith(
+                          categories: [cat]
+                        );
+                        SnagService.updateSnag(ref, updatedSnag);
                         setState(() {
-                          widget.snag.setCategory(cat);
-                          widget.projectController.saveProject();
-                          widget.onStatusChanged!();
+                          widget.onStatusChanged?.call();
                         });
                       }
                     },
                     hasColorSelector: true,
-                    selectedItems: widget.snag.categories,
+                    selectedItems: snag.categories,
                   ),
 
                   const SizedBox(height: 24.0),
@@ -543,31 +578,42 @@ class _SnagDetailState extends State<SnagDetail> {
                     label: AppStrings.tag,
                     pluralLabel: AppStrings.tags,
                     hint: AppStrings.tagHint(),
-                    options: widget.projectController.getTags ?? [],
+                    options: project.createdTags ?? [],
                     getName: (tag) => tag.name,
                     getColor: (tag) => tag.color,
                     allowMultiple: true, // Enable multi-select
                     onCreate: (name, color) {
                       setState(() {
-                        widget.projectController.addTag(capitilize(name), color);
+                        final updatedProject = project.copyWith(
+                          createdTags: [
+                            Tag(name: capitilize(name), color: color),
+                            ...project.createdTags ?? []
+                          ]
+                        );
+                        ProjectService.updateProject(ref, updatedProject);
                       });
                     },
                     onSelect: (tag) {
                       setState(() {
                         // Check if tag is already in snag
-                        if (widget.snag.getTagByName(tag.name) != null) {
+                        if (!isListNullorEmpty(snag.tags) && snag.tags!.where((t) => t.name == tag.name).toList().isNotEmpty) {
                           // Remove tag from snag
-                          widget.snag.removeTagByName(tag.name);
+                          final Snag updatedSnag = snag.copyWith(
+                            tags: snag.tags!.where((t) => t.name != tag.name).toList()
+                          );
+                          SnagService.updateSnag(ref, updatedSnag);
                         } else {
                           // Add tag to snag
-                          widget.snag.setTag(tag);
-                          widget.projectController.saveProject();
-                          widget.onStatusChanged!();
+                          final Snag updatedSnag = snag.copyWith(
+                            tags: [...snag.tags!, tag]
+                          );
+                          SnagService.updateSnag(ref, updatedSnag);
+                          widget.onStatusChanged?.call();
                         }
                       });
                     },
                     hasColorSelector: true,
-                    selectedItems: widget.snag.tags,
+                    selectedItems: snag.tags,
                   ),
                 ],
               ),

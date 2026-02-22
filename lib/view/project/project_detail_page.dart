@@ -1,7 +1,7 @@
-import 'dart:io';
-
-import 'package:cii/controllers/single_project_controller.dart';
+import 'package:cii/models/project.dart';
 import 'package:cii/models/status.dart';
+import 'package:cii/models/tag.dart';
+import 'package:cii/services/project_service.dart';
 import 'package:cii/utils/common.dart';
 import 'package:cii/view/project/project_analytics.dart';
 import 'package:cii/view/utils/constants.dart';
@@ -9,21 +9,25 @@ import 'package:cii/view/utils/image.dart';
 import 'package:cii/view/utils/selector.dart';
 import 'package:cii/view/utils/text.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:cii/providers/providers.dart';
+import 'package:cii/models/category.dart';
 
-class ProjectDetailPage extends StatefulWidget {
-  final SingleProjectController projectController;
+class ProjectDetailPage extends ConsumerStatefulWidget {
+  final String projectId;
+
   final bool isInEditMode;
   const ProjectDetailPage({
     Key? key,
-    required this.projectController,
+    required this.projectId,
     required this.isInEditMode,
     }) : super(key: key);
 
   @override
-  State<ProjectDetailPage> createState() => ProjectDetailPageState();
+  ConsumerState<ProjectDetailPage> createState() => ProjectDetailPageState();
 }
 
-class ProjectDetailPageState extends State<ProjectDetailPage> {
+class ProjectDetailPageState extends ConsumerState<ProjectDetailPage> {
 
   final TextEditingController nameController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
@@ -41,21 +45,33 @@ class ProjectDetailPageState extends State<ProjectDetailPage> {
   @override
   void initState() {
     super.initState();
+    selectedStatusOption = ValueNotifier<String>(statusOptions.first);
 
-    final currentStatus = widget.projectController.getStatus ?? statusOptions.first;
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    final Project project = ProjectService.getProject(ref, widget.projectId);
+    final currentStatus = project.status.name;
 
     final initialStatus = statusOptions.firstWhere(
       (s) => s.toLowerCase() == currentStatus.toLowerCase(),
       orElse: () => statusOptions.first
     );
-    selectedStatusOption = ValueNotifier<String>(initialStatus);
+    selectedStatusOption.value = initialStatus;
 
     selectedStatusOption.addListener(() async {
 
       // Check if all snags in project are marked complete
       if (selectedStatusOption.value == Status.completed.name) {
-        final int totalCompleteSnags = widget.projectController.getTotalSnagsByStatus(Status.completed);
-        final int totalSnags = widget.projectController.getTotalSnags();
+
+        final int totalCompleteSnags = ProjectService.getSnagsByStatus(ref, widget.projectId, Status.completed).length;
+
+        // Updated via project provider
+        final int totalSnags = ProjectService.getSnagCount(ref, widget.projectId);
+
         if (totalSnags > totalCompleteSnags) { // some snags are not yet closed
           // show a dialog asking the user if they 
           final confirmed = await showDialog<bool>(
@@ -76,13 +92,16 @@ class ProjectDetailPageState extends State<ProjectDetailPage> {
             )
           );
           if (confirmed != true) {
-            selectedStatusOption.value = widget.projectController.getStatus!;
+            selectedStatusOption.value = project.status.name;
             return;
           }
         }
       }
 
-      widget.projectController.setStatus(selectedStatusOption.value);
+      Status newStatus = Status.getStatus(selectedStatusOption.value)!;
+      final updatedProject = project.copyWith(status: newStatus);
+      ProjectService.updateProject(ref, updatedProject);
+
       setState(() {});
     });
   }
@@ -95,22 +114,25 @@ class ProjectDetailPageState extends State<ProjectDetailPage> {
 
   Map<String, String> getChanges() {
     final changes = <String, String>{};
-    if (widget.projectController.getName != nameController.text) {
+    final Project project = ProjectService.getProject(ref, widget.projectId);
+
+
+    if (project.name != nameController.text) {
       changes['name'] = nameController.text;
     }
-    if (widget.projectController.getDescription != descriptionController.text) {
+    if (project.description != descriptionController.text) {
       changes['description'] = descriptionController.text;
     }
-    if (widget.projectController.getLocation != locationController.text) {
+    if (project.location != locationController.text) {
       changes['location'] = locationController.text;
     }
-    if (widget.projectController.getClient != clientController.text) {
+    if (project.client != clientController.text) {
       changes['client'] = clientController.text;
     }
-    if (widget.projectController.getContractor != contractorController.text) {
+    if (project.contractor != contractorController.text) {
       changes['contractor'] = contractorController.text;
     }
-    if (widget.projectController.getDueDateString != dueDateController.text && dueDateController.text.isNotEmpty) {
+    if (project.dueDate.toString() != dueDateController.text && dueDateController.text.isNotEmpty) {
       changes['dueDate'] = dueDateController.text;
     }
     return changes;
@@ -118,6 +140,7 @@ class ProjectDetailPageState extends State<ProjectDetailPage> {
 
 
   Widget onDelete(BuildContext context) {
+    final Project project = ProjectService.getProject(ref, widget.projectId);
     return AlertDialog(
       title: const Text('Delete Image'),
       content: const Text('Are you sure you want to delete this image?'),
@@ -134,7 +157,10 @@ class ProjectDetailPageState extends State<ProjectDetailPage> {
           onPressed: () {
             Navigator.of(context).pop();
             // delete the image
-            widget.projectController.setMainImagePath('');
+            final updatedProject = project!.copyWith(
+              mainImagePath: ''
+            );
+            ProjectService.updateProject(ref, updatedProject);
             setState(() {});
           },
           child: const Text('Delete')
@@ -146,13 +172,25 @@ class ProjectDetailPageState extends State<ProjectDetailPage> {
   Widget projectDetailEditable(BuildContext context) {
     const double gap = 16;
 
-    final projectName = widget.projectController.getName != '' ? widget.projectController.getName! : 'No Name';
-    final projectDescription = widget.projectController.getDescription != '' ? widget.projectController.getDescription! : 'No Description';
-    final projectLocation = widget.projectController.getLocation != '' ? widget.projectController.getLocation! :  'No Location';
-    final projectClient = widget.projectController.getClient != '' ? widget.projectController.getClient! : 'No Client';
-    final projectContractor = widget.projectController.getContractor != '' ? widget.projectController.getContractor! : 'No Contractor';
-    final dueDate = widget.projectController.getDueDate != null ? widget.projectController.getDueDateString! : 'No Due Date';
-
+    final Project project = ProjectService.getProject(ref, widget.projectId);
+    final String projectName = project.name != ""
+      ? project.name
+      : "No Name";
+    final String projectDescription = project?.description != ""
+      ? project!.description!
+      : "No Description";
+    final String projectLocation = project?.location != ""
+      ? project!.location!
+      : "No Location";
+    final String projectClient = project?.client != ""
+      ? project!.client!
+      : "No Client";
+    final String projectContractor = project?.contractor != ""
+      ? project!.contractor!
+      : "No Contractor";
+    final dueDate = project?.dueDate.toString() ?? "No Due Date";
+    final DateTime dateCreated = project!.dateCreated!;
+    final String projectRef = project.projectRef!;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -167,35 +205,45 @@ class ProjectDetailPageState extends State<ProjectDetailPage> {
         const SizedBox(height: gap),
         buildTextInput(AppStrings.projectContractor, projectContractor, contractorController),
         const SizedBox(height: gap),
-        buildTextDetail('Date Created', formatDate(widget.projectController.getDateCreated!)), // date created is not editable
+        buildTextDetail('Date Created', formatDate(dateCreated)), // date created is not editable
         const SizedBox(height: gap),
         buildDatePickerInput(context, 'Due Date', dueDate, dueDateController),
         const SizedBox(height: gap),
-        buildTextDetail(AppStrings.projectRef, widget.projectController.getProjectRef!),
+        buildTextDetail(AppStrings.projectRef, projectRef),
       ],
     );
   }
 
   Widget projectDetailNoEdit() {
-    final projectDescription = widget.projectController.getDescription != '' ? widget.projectController.getDescription! : 'No Description';
-    final projectLocation = widget.projectController.getLocation != '' ? widget.projectController.getLocation! : 'No Location';
-    final projectClient = widget.projectController.getClient != '' ? widget.projectController.getClient! : 'No Client';
-    final projectContractor = widget.projectController.getContractor != '' ? widget.projectController.getContractor! : 'No Contractor';
-    final projectRef = widget.projectController.getProjectRef != '' ? widget.projectController.getProjectRef! : 'No Project Reference';
-    final dueDate = widget.projectController.getDueDate != null ? widget.projectController.getDueDateString! : 'No Due Date';
+    final Project project = ProjectService.getProject(ref, widget.projectId);
 
-    nameController.text = widget.projectController.getName ?? '';
-    descriptionController.text = widget.projectController.getDescription ?? '';
-    locationController.text = widget.projectController.getLocation ?? '';
-    clientController.text = widget.projectController.getClient ?? '';
-    contractorController.text = widget.projectController.getContractor ?? '';
+    final projectDescription = project?.description != ""
+      ? project!.description!
+      : "No Description";
+    final projectLocation = project?.location != ""
+      ? project!.location!
+      : "No Location";
+    final projectClient = project?.client != ""
+      ? project!.client!
+      : "No Client";
+    final projectContractor = project?.contractor != ""
+      ? project!.contractor!
+      : "No Contractor";
+    final projectRef = project!.projectRef!;
+    final dueDate = project?.dueDate.toString() ?? "No Due Date";
+
+    nameController.text = project.name;
+    descriptionController.text = project.description ?? "";
+    locationController.text = project.location ?? "";
+    clientController.text = project.client ?? "";
+    contractorController.text = project.contractor ?? "";
 
     const double gap = 16;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        buildTextDetail('Project Name', widget.projectController.getName!),
+        buildTextDetail('Project Name', project.name),
         const SizedBox(height: gap),
         buildJustifiedTextDetail(AppStrings.projectDescription, projectDescription),
         const SizedBox(height: gap),
@@ -205,7 +253,7 @@ class ProjectDetailPageState extends State<ProjectDetailPage> {
         const SizedBox(height: gap),
         buildTextDetail(AppStrings.projectContractor, projectContractor),
         const SizedBox(height: gap),
-        buildTextDetail('Date Created', formatDate(widget.projectController.getDateCreated!)),
+        buildTextDetail('Date Created', formatDate(project.dateCreated!)),
         const SizedBox(height: gap),
         buildTextDetail('Due Date', dueDate),
         const SizedBox(height: gap),
@@ -216,7 +264,8 @@ class ProjectDetailPageState extends State<ProjectDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    final imagePath = widget.projectController.getMainImagePath;
+    final Project project = ProjectService.getProject(ref, widget.projectId);
+    final imagePath = project.mainImagePath;
     return SingleChildScrollView(
       child: Column(
         children: [
@@ -232,7 +281,17 @@ class ProjectDetailPageState extends State<ProjectDetailPage> {
                   const SizedBox(height: 24.0),
                 ] else ... [
                   // if there is no project image allow the user to add one
-                  buildImageInput_V2(context, (v) => setState(() {widget.projectController.setMainImagePath(v);}), ignoreAspectRatio: true),
+                  buildImageInput_V2(
+                    context,
+                    (v) => setState(
+                      () {
+                          final updatedProject = project.copyWith(
+                            mainImagePath: v
+                          );
+                          ProjectService.updateProject(ref, updatedProject);
+                         }
+                      ),
+                      ignoreAspectRatio: true),
                   const SizedBox(height: 24.0),
                 ],
 
@@ -257,17 +316,33 @@ class ProjectDetailPageState extends State<ProjectDetailPage> {
                     label: AppStrings.category,
                     pluralLabel: AppStrings.categories,
                     hint: AppStrings.categoryHint(),
-                    options: widget.projectController.getCategories ?? [],
+                    options: project.createdCategories ?? [],
                     getName: (cat) => cat.name,
                     getColor: (cat) => cat.color,
                     onCreate: (name, color) {
                       setState(() {
-                        widget.projectController.addCategory(name, color);
+                        final updatedProject = project.copyWith(
+                          createdCategories: [
+                            Category(name: name, color: color),
+                            ... project.createdCategories ?? []
+                          ]
+                        );
+                        ProjectService.updateProject(ref, updatedProject);
                       });
                     },
                     onDelete: (cat) {
                       // Check if any snag is using this category
-                      if (widget.projectController.getSnagsByCategory(cat.name).isNotEmpty) {
+                      
+                      bool categoryInUse = ProjectService.getSnags(ref, widget.projectId)
+                        .where((s) =>
+                          s.categories != null &&
+                          s.categories!.isNotEmpty &&
+                          s.categories!.first.name.toLowerCase() == cat.name.toLowerCase()
+                        )
+                        .toList()
+                        .isNotEmpty;
+
+                      if (categoryInUse) {
                         // block user from deleting category
                         showDialog(
                           context: context,
@@ -285,8 +360,16 @@ class ProjectDetailPageState extends State<ProjectDetailPage> {
                       } else {
                         // delete the category
                         setState(() {
-                          widget.projectController.removeCategory(cat.name);
-                          widget.projectController.saveProject();
+                          
+                          final updatedProject = project.copyWith(
+                            createdCategories: [
+                              ...project.createdCategories!
+                                .where((c) =>
+                                  c.name.toLowerCase() != cat.name.toLowerCase()
+                                )
+                            ]
+                          );
+                          ProjectService.updateProject(ref, updatedProject);
                         });
                       }
                     },
@@ -296,16 +379,32 @@ class ProjectDetailPageState extends State<ProjectDetailPage> {
                     label: AppStrings.tag,
                     pluralLabel: AppStrings.tags,
                     hint: AppStrings.tagHint(),
-                    options: widget.projectController.getTags ?? [],
+                    options: project.createdTags ?? [],
                     getName: (tag) => tag.name,
                     getColor: (tag) => tag.color,
                     onCreate: (name, color) {
                       setState(() {
-                        widget.projectController.addTag(name, color);
+                        final updatedProject = project.copyWith(
+                          createdTags: [
+                            Tag(name: name, color: color),
+                            ...project.createdTags ?? []
+                          ]
+                        );
+                        ProjectService.updateProject(ref, updatedProject);
                       });
                     },
                     onDelete: (tag) {
-                      if (widget.projectController.getSnagsByTag(tag.name).isNotEmpty) {
+
+                      bool tagInUse = ProjectService.getSnags(ref, widget.projectId)
+                        .where((s) =>
+                          s.tags != null &&
+                          s.tags!.isNotEmpty &&
+                          s.tags!.first.name.toLowerCase() == tag.name.toLowerCase()
+                        )
+                        .toList()
+                        .isNotEmpty;
+
+                      if (tagInUse) {
                         // block user from deleting tag
                         showDialog(
                           context: context,
@@ -323,7 +422,15 @@ class ProjectDetailPageState extends State<ProjectDetailPage> {
                       } else {
                         // delete the tag
                         setState(() {
-                          widget.projectController.removeTag(tag.name);
+                          final updatedProject = project.copyWith(
+                            createdTags: [
+                              ...project.createdTags!
+                                .where((t) =>
+                                  t.name.toLowerCase() != tag.name.toLowerCase()
+                                )
+                            ]
+                          );
+                          ProjectService.updateProject(ref, updatedProject);
                         });
                       }
                     },
@@ -333,7 +440,7 @@ class ProjectDetailPageState extends State<ProjectDetailPage> {
                   const SizedBox(height: 28.0),
                   const Divider(height: 20, thickness: 0.5, color: Colors.grey),
                   const SizedBox(height: 32.0),
-                  ProjectAnalytics(projectController: widget.projectController),
+                  ProjectAnalytics(projectId: widget.projectId),
                   const SizedBox(height: 32.0),
 
                 ])

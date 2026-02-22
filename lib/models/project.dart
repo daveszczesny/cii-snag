@@ -116,6 +116,9 @@ class Project extends HiveObject {
     List<Category>? createdCategories,
     List<Tag>? createdTags,
     int? snagsCreatedCount,
+    List<PdfExportRecords>? pdfExportRecords,
+    List<CsvExportRecords>? csvExportRecords,
+    List<Snag>? snags,
   })
   :
     uuid = uuid ?? const Uuid().v4(),
@@ -126,7 +129,80 @@ class Project extends HiveObject {
     status = status ?? Status.todo,
     createdCategories = createdCategories ?? [],
     createdTags = createdTags ?? [],
-    snagsCreatedCount = snagsCreatedCount ?? 0;
+    snagsCreatedCount = snagsCreatedCount ?? 0,
+    pdfExportRecords = pdfExportRecords ?? [],
+    csvExportRecords = csvExportRecords ?? [],
+    snags = snags ?? [];
+
+  Project.from(Project other)
+    : uuid = other.uuid,
+      id = other.id,
+      name = other.name,
+      description = other.description,
+      mainImagePath = other.mainImagePath,
+      comments = other.comments,
+      dateCreated = other.dateCreated,
+      dateModified = other.dateModified,
+      dateCompleted = other.dateCompleted,
+      projectRef = other.projectRef,
+      client = other.client,
+      contractor = other.contractor,
+      finalRemarks = other.finalRemarks,
+      location = other.location,
+      status = other.status,
+      snags = other.snags.map((s) => s).toList(),
+      createdCategories = other.createdCategories?.map((c) => c).toList(),
+      createdTags = other.createdTags?.map((t) => t).toList(),
+      snagsCreatedCount = other.snagsCreatedCount,
+      dueDate = other.dueDate,
+      pdfExportRecords = other.pdfExportRecords?.map((r) => r).toList(),
+      csvExportRecords = other.csvExportRecords?.map((r) => r).toList();
+
+  Project copyWith({
+    String? name,
+    String? description,
+    String? mainImagePath,
+    Status? status,
+    String? location,
+    String? client,
+    String? contractor,
+    String? projectRef,
+    DateTime? dueDate,
+    List<Category>? createdCategories,
+    List<Tag>? createdTags,
+    String? finalRemarks,
+    DateTime? dateCreated,
+    DateTime? dateModified,
+    DateTime? dateCompleted,
+    int? snagsCreatedCount,
+    List<PdfExportRecords>? pdfExportRecords,
+    List<CsvExportRecords>? csvExportRecords,
+    List<Snag>? snags,
+  }) {
+    return Project(
+      uuid: uuid,
+      id: id,
+      name: name ?? this.name,
+      description: description ?? this.description,
+      mainImagePath: mainImagePath ?? this.mainImagePath,
+      dateCreated: dateCreated,
+      dateModified: DateTime.now(),
+      dateCompleted: dateCompleted,
+      projectRef: projectRef ?? this.projectRef,
+      client: client ?? this.client,
+      contractor: contractor ?? this.contractor,
+      finalRemarks: finalRemarks ?? this.finalRemarks,
+      location: location ?? this.location,
+      status: status ?? this.status,
+      createdCategories: createdCategories ?? this.createdCategories,
+      createdTags: createdTags ?? this.createdTags,
+      snagsCreatedCount: snagsCreatedCount,
+      dueDate: dueDate ?? this.dueDate,
+      pdfExportRecords: pdfExportRecords ?? this.pdfExportRecords,
+      csvExportRecords: csvExportRecords ?? this.csvExportRecords,
+      snags: snags ?? this.snags,
+    );
+  }
 
   static String humanReadableId(String name) {
     // Generate a human-readable ID
