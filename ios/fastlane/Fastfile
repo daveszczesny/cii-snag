@@ -15,7 +15,8 @@ platform :ios do
     match(
       type: "appstore",
       api_key: api_key,
-      app_identifier: "com.cii.reno"
+      app_identifier: "com.cii.reno",
+      git_url: "git@github.com:daveszczesny/ios-certificates.git"
     )
 
     cocoapods(
