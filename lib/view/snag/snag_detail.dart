@@ -1,4 +1,5 @@
 import 'package:cii/models/category.dart';
+import 'package:cii/models/priority.dart';
 import 'package:cii/models/project.dart';
 import 'package:cii/models/snag.dart';
 import 'package:cii/models/status.dart';
@@ -37,35 +38,49 @@ class _SnagDetailState extends ConsumerState<SnagDetail> {
   final TextEditingController finalremarksController = TextEditingController();
 
   late ValueNotifier<String> selectedStatusOption;
+  late ValueNotifier<String> selectedPriorityOption;
   final List<String> statusOptions = Status.values.map((e) => e.name).toList(); // get the name of each status
+  final List<String> priorityOptions = Priority.values.map((p) => p.name).toList(); // get the name of each priority
 
   List<String> imageFilePaths = [];
   String selectedImage = '';
-
   bool isEditable = false;
 
   @override
   void initState() {
     super.initState();
 
-    // final currentStatus = widget.snag.status.name;
-    // final initialStatus = statusOptions.firstWhere(
-      // (s) => s.toLowerCase() == currentStatus.toLowerCase(),
-      // orElse: () => statusOptions.first
-    // );
-    // Changed from initialStatus
     selectedStatusOption = ValueNotifier<String>(statusOptions.first);
+    selectedPriorityOption = ValueNotifier<String>(priorityOptions.first);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _setupStatusListener();
+      _setupListeners();
     });
   }
 
-  void _setupStatusListener() {
-    final Snag snag = SnagService.getSnag(ref, widget.snagId);
+  void _setupListeners() {
+    Snag snag = SnagService.getSnag(ref, widget.snagId);
     setState(() {imageFilePaths = List<String>.from(snag.imagePaths ?? []);});
 
+    selectedPriorityOption.addListener(() async {
+      snag = SnagService.getSnag(ref, widget.snagId);
+
+      final newPriority = Priority.values.firstWhere(
+        (p) => p.name == selectedPriorityOption.value,
+        orElse: () => Priority.low
+      );
+
+      // Update snag with the priority
+      if (snag.priority.name == newPriority.name) return; // no need to update?
+      final Snag updatedSnag = snag.copyWith(priority: newPriority);
+      SnagService.updateSnag(ref, updatedSnag);
+    });
+
     selectedStatusOption.addListener(() async {
+      
+      // Ensure snag is up-to-date in the listener
+      snag = SnagService.getSnag(ref, widget.snagId);
+
       final newStatus = Status.values.firstWhere(
         (s) => s.name == selectedStatusOption.value,
         orElse: () => Status.todo
@@ -219,7 +234,7 @@ class _SnagDetailState extends ConsumerState<SnagDetail> {
       ? snag.location!
       : 'No Location';
     final dueDate = snag.dueDate != null
-      ? DateFormat(AppDateTimeFormat.dateTimeFormatPattern).format(snag.dueDate!)
+      ? formatDate(snag.dueDate!)
       : 'No Due Date';
     final reviewedBy = !isNullorEmpty(snag.reviewedBy)
       ? snag.reviewedBy!
@@ -235,7 +250,7 @@ class _SnagDetailState extends ConsumerState<SnagDetail> {
       children: [
         buildTextDetail('ID', id),
         const SizedBox(height: gap),
-        buildTextInput(AppStrings.snagName(), name, nameController),
+        buildLimitedTextInput(AppStrings.snagName(), name, nameController, 40),
         const SizedBox(height: gap),
         buildLongTextInput('Description', description, descriptionController),
         const SizedBox(height: gap),
@@ -267,7 +282,7 @@ class _SnagDetailState extends ConsumerState<SnagDetail> {
     final assignee = !isNullorEmpty(snag.assignee) ? snag.assignee! : 'Unassigned';
     final location = !isNullorEmpty(snag.location) ? snag.location! : 'No Location';
     final dueDate = snag.dueDate != null
-      ? DateFormat(AppDateTimeFormat.dateTimeFormatPattern).format(snag.dueDate!)
+      ? formatDate(snag.dueDate!)
       : 'No Due Date';
     final reviewedBy = !isNullorEmpty(snag.reviewedBy) ? snag.reviewedBy! : 'No Reviewer';
     final finalRemarks = !isNullorEmpty(snag.finalRemarks) ? snag.finalRemarks! : 'No Final Remarks';
@@ -343,6 +358,9 @@ class _SnagDetailState extends ConsumerState<SnagDetail> {
 
     if (selectedStatusOption.value != snag.status.name) {
       selectedStatusOption.value = snag.status.name;
+    }
+    if (selectedPriorityOption.value != snag.priority.name) {
+      selectedPriorityOption.value = snag.priority.name;
     }
 
     final Project project = ProjectService.getProject(ref, widget.projectId);
@@ -425,11 +443,11 @@ class _SnagDetailState extends ConsumerState<SnagDetail> {
                   } else {
                     nameController.text = snag.name;
                     // TODO: Is ?? "" a problem?
-                    descriptionController.text = snag.description ?? "";
-                    assigneeController.text = snag.assignee ?? "";
-                    locationController.text = snag.location ?? "";
-                    dueDateController.text = snag.dueDate != null
-                      ? DateFormat(AppDateTimeFormat.dateTimeFormatPattern).format(snag.dueDate!)
+                    descriptionController.text = updatedSnag.description ?? "";
+                    assigneeController.text = updatedSnag.assignee ?? "";
+                    locationController.text = updatedSnag.location ?? "";
+                    dueDateController.text = updatedSnag.dueDate != null
+                      ? DateFormat(AppDateTimeFormat.dateTimeFormatPattern).format(updatedSnag.dueDate!)
                       : "";
                     isEditable = !isEditable;
                   }
@@ -512,8 +530,20 @@ class _SnagDetailState extends ConsumerState<SnagDetail> {
                   ),
 
                   // Status
-                  buildCustomSegmentedControl(label: 'Status', options: statusOptions, selectedNotifier: selectedStatusOption),
-                  const SizedBox(height: 28),
+                  buildCustomSegmentedControl(
+                    label: 'Status',
+                    options: statusOptions,
+                    selectedNotifier: selectedStatusOption,
+                    enabled: !isEditable
+                  ),
+                  const SizedBox(height: 20.0),
+                  buildCustomSegmentedControl(
+                    label: 'Priority',
+                    options: priorityOptions,
+                    selectedNotifier: selectedPriorityOption,
+                    enabled: !isEditable,
+                  ),
+                  const SizedBox(height: 28.0),
                   Padding(
                     padding: const EdgeInsets.only(left: 8),
                     child: Column(
@@ -529,14 +559,21 @@ class _SnagDetailState extends ConsumerState<SnagDetail> {
                   ),
 
                   if ((snag.finalImagePaths ?? []).isNotEmpty) ... [
-                    const SizedBox(height: 16.0),
-                    const Text('Final Images', style: TextStyle(color: Color(0xFF333333), fontSize: 14, fontWeight: FontWeight.w300, fontFamily: 'Roboto')),
-                    const SizedBox(height: 8.0),
-                    buildImageShowcase(
-                      context,
-                      ({String p = ''}) {setState(() {});},
-                      () {},
-                      snag.finalImagePaths ?? []
+                    Padding(
+                      padding: const EdgeInsets.only(left: 8),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 16.0),
+                          const Text("Final Images", style: TextStyle(color: Color(0xFF333333), fontSize: 14, fontWeight: FontWeight.w300, fontFamily: "Roboto")),
+                          buildImageShowcase(
+                            context,
+                            ({String p = ""}) { setState(() {}); },
+                            () {},
+                            snag.finalImagePaths ?? []
+                          )
+                        ],
+                      )
                     ),
                   ],
 
@@ -554,6 +591,7 @@ class _SnagDetailState extends ConsumerState<SnagDetail> {
                     getColor: (cat) => cat.color,
                     allowMultiple: false,
                     onCreate: (name, color) {
+                      if (name.isEmpty || name.trim().isEmpty) return;
                       setState(() {
                         final updatedProject = project.copyWith(
                           createdCategories: [

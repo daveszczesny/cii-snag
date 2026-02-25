@@ -36,7 +36,7 @@ class _ProjectAnalyticsState extends ConsumerState<ProjectAnalytics> {
 
     final Map<String, double> dataMap = {
       'Completed': totalCompleted.toDouble(),
-      'New': totalNew.toDouble(),
+      'Open': totalNew.toDouble(),
       'On Hold': totalOnHold.toDouble(),
       'In Progress': totalInProgress.toDouble(),
     };
@@ -104,8 +104,8 @@ class _ProjectAnalyticsState extends ConsumerState<ProjectAnalytics> {
     if (totalSnags == 0) {
       return const SizedBox.shrink();
     }
-    final categories = project.createdCategories ?? [];
-    if (categories.isEmpty) { 
+    final categories = List<Category>.from(project.createdCategories ?? []);
+    if (categories.isEmpty) {
       return const SizedBox.shrink();
     }
     final Map<String, double> categoryCounts = {};

@@ -1,5 +1,4 @@
 import 'package:cii/models/project.dart';
-import 'package:cii/providers/providers.dart';
 import 'package:cii/services/notification_service.dart';
 import 'package:cii/services/project_service.dart';
 import 'package:cii/services/tier_service.dart';
@@ -13,7 +12,6 @@ import 'package:cii/view/utils/constants.dart';
 import 'package:cii/view/changelog_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 
 
 /*

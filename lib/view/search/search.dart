@@ -528,7 +528,7 @@ class _FilterModalState extends ConsumerState<_FilterModal> {
                         },
                       ),
                       FilterChip(
-                        label: Text(AppStrings.snag()),
+                        label: Text(AppStrings.snags()),
                         selected: _type == SearchResultType.snag,
                         onSelected: (selected) {
                           setState(() {

@@ -219,7 +219,7 @@ class _SnagCardWidgetState extends ConsumerState<SnagCardWidget> {
     final now = DateTime.now();
     final diff = dueDate.difference(now).inDays;
     const iconSize = 18.0;
-    if (diff < -1) {
+    if (diff < 0) {
       return const Icon(Icons.warning, size: iconSize, color: Colors.red);
     } else if (diff <= 7) {
       return const Icon(Icons.schedule, size: iconSize, color: Colors.orange);
