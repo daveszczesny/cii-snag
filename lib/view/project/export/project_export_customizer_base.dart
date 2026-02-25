@@ -55,7 +55,7 @@ abstract class ProjectExportCustomizerBaseState<T extends ProjectExportCustomize
   // Abstracts
   String get title;
   List<Widget> buildCustomOptions({Project? project});
-  Widget buildExportButton();
+  Widget buildExportButton(String projectReference);
 
   @override
   Widget build(BuildContext context) {
@@ -82,7 +82,7 @@ abstract class ProjectExportCustomizerBaseState<T extends ProjectExportCustomize
                 ),
               ],
               const SizedBox(height: 24.0),
-              buildExportButton(),
+              buildExportButton(project.projectRef!),
             ]
           )
         )

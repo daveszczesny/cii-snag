@@ -2,6 +2,7 @@
 import 'package:cii/models/project.dart';
 import 'package:cii/services/csv_exporter.dart';
 import 'package:cii/services/project_service.dart';
+import 'package:cii/utils/common.dart';
 import 'package:cii/view/project/export/project_export_customizer_base.dart';
 import 'package:cii/view/utils/text.dart';
 import 'package:flutter/material.dart';
@@ -39,21 +40,22 @@ class _ProjectCsvExportCustomizerState extends ProjectExportCustomizerBaseState<
   }
 
   @override
-  Widget buildExportButton() {
-  
+  Widget buildExportButton(String projectReference) {
+
     return buildTextButton(
       "Export to CSV",
       () async {
-        saveCsvFile(context, widget.projectId, ref, nameController.text);
+        if (nameController.text.trim() == "") nameController.text = buildDefaultCsvFileName(projectReference);
+        saveCsvFile(context, widget.projectId, ref, nameController.text.trim());
         Navigator.pop(context);
       }
     );
   }
 
 
-  String buildDefaultCsvFileName(String ref) {
+  String buildDefaultCsvFileName(String projectReference) {
     // timestamp yyMMdd_hhMMss
     final timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
-    return "${ref}_$timestamp";
+    return "${projectReference}_$timestamp";
   }
 }

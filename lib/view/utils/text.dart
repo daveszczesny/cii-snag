@@ -250,6 +250,7 @@ Widget buildDatePickerInput(BuildContext context, String label, String hintText,
               initialDate: DateTime.now(),
               firstDate: DateTime.utc(DateTime.now().year, DateTime.now().month, DateTime.now().day),
               lastDate: DateTime.utc(DateTime.now().year + 20, 12, 31),
+              errorInvalidText: "Please select a valid date",
             );
             if (selectedDate != null) {
               controller.text = formatDate(selectedDate);

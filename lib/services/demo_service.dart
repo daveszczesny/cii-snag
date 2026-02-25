@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:cii/models/category.dart';
+import 'package:cii/models/tag.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
@@ -29,6 +30,11 @@ class DemoService {
     final snag1ImagePath = await _copyAssetToFile("lib/assets/demo/snag1.JPG", "demo_snag2.JPG");
     final snag2ImagePath = await _copyAssetToFile("lib/assets/demo/snag2.JPG", "demo_snag1.JPG");
 
+    List<Tag> projectTags = [
+      Tag(name: "Kitchen", color: Colors.orange),
+      Tag(name: "Living Room", color: Colors.purple)
+    ];
+
     // Create DEMO project
     final project = Project(
       name: "Demo Kitchen Renovation",
@@ -38,7 +44,11 @@ class DemoService {
       location: "London, UK",
       projectRef: "DEMO",
       mainImagePath: projectImageName,
-      createdCategories: [Category(name: "Painting", color: Colors.lightGreen)]
+      createdCategories: [
+        ... Category.defaultCategories,
+        Category(name: "Painting", color: Colors.lightGreen)
+      ],
+      createdTags: projectTags,
     );
 
     project.status = Status.inProgress;
@@ -52,9 +62,10 @@ class DemoService {
         priority: Priority.medium,
         location: 'Kitchen',
         assignee: 'John Smith',
-        categories: [project.createdCategories!.first],
+        categories: [project.createdCategories!.where((c) => c.name == "Painting").first],
         imagePaths: [snag1ImagePath],
-        dueDate: DateTime.now().add(const Duration(days: 5))
+        dueDate: DateTime.now().add(const Duration(days: 5)),
+        tags: [projectTags[0]],
       );
       Snag snag2 = Snag(
         id: 'DEMO-0002',
@@ -65,9 +76,10 @@ class DemoService {
         priority: Priority.high,
         location: 'Kitchen',
         assignee: 'John Smith',
-        categories: [project.createdCategories!.first],
+        categories: [project.createdCategories!.where((c) => c.name == "Painting").first],
         imagePaths: [snag2ImagePath],
-        dueDate: DateTime.now().add(const Duration(days: -1))
+        dueDate: DateTime.now().add(const Duration(days: -1)),
+        tags: [projectTags[0]],
       );
 
       project.snagsCreatedCount = 2;

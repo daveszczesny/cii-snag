@@ -10,7 +10,6 @@ import 'package:cii/view/utils/selector.dart';
 import 'package:cii/view/utils/text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:cii/providers/providers.dart';
 import 'package:cii/models/category.dart';
 
 class ProjectDetailPage extends ConsumerStatefulWidget {
@@ -46,14 +45,13 @@ class ProjectDetailPageState extends ConsumerState<ProjectDetailPage> {
   void initState() {
     super.initState();
     selectedStatusOption = ValueNotifier<String>(statusOptions.first);
-
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _setupListeners();
+    });
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-
-    final Project project = ProjectService.getProject(ref, widget.projectId);
+  void _setupListeners() {
+    Project project = ProjectService.getProject(ref, widget.projectId);
     final currentStatus = project.status.name;
 
     final initialStatus = statusOptions.firstWhere(
@@ -64,31 +62,31 @@ class ProjectDetailPageState extends ConsumerState<ProjectDetailPage> {
 
     selectedStatusOption.addListener(() async {
 
-      // Check if all snags in project are marked complete
+      // Get latest project
+      project = ProjectService.getProject(ref, widget.projectId);
+
       if (selectedStatusOption.value == Status.completed.name) {
 
         final int totalCompleteSnags = ProjectService.getSnagsByStatus(ref, widget.projectId, Status.completed).length;
-
-        // Updated via project provider
         final int totalSnags = ProjectService.getSnagCount(ref, widget.projectId);
 
-        if (totalSnags > totalCompleteSnags) { // some snags are not yet closed
-          // show a dialog asking the user if they 
+        // Check if some snags are incomplete
+        if (totalSnags > totalCompleteSnags) {
           final confirmed = await showDialog<bool>(
             context: context,
             builder: (context) => AlertDialog(
-              title: const Text('Close Project'),
-              content: Text('Some ${AppStrings.snags()} are not yet closed. Are you sure you want to close this project?'),
+              title: const Text("Close Project"), // TODO - Move to constants
+              content: Text("Some ${AppStrings.snags()} are not yet closed. Are you sure you want to close this project?"),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(false),
-                  child: const Text('Cancel'),
+                  child: const Text("Cancel")
                 ),
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(true),
-                  child: const Text('Yes, Close')
+                  child: const Text("Yes, Close")
                 )
-              ],
+              ]
             )
           );
           if (confirmed != true) {
@@ -101,7 +99,6 @@ class ProjectDetailPageState extends ConsumerState<ProjectDetailPage> {
       Status newStatus = Status.getStatus(selectedStatusOption.value)!;
       final updatedProject = project.copyWith(status: newStatus);
       ProjectService.updateProject(ref, updatedProject);
-
       setState(() {});
     });
   }
@@ -176,20 +173,22 @@ class ProjectDetailPageState extends ConsumerState<ProjectDetailPage> {
     final String projectName = project.name != ""
       ? project.name
       : "No Name";
-    final String projectDescription = project?.description != ""
-      ? project!.description!
+    final String projectDescription = !isNullorEmpty(project.description) 
+      ? project.description!
       : "No Description";
-    final String projectLocation = project?.location != ""
-      ? project!.location!
+    final String projectLocation = !isNullorEmpty(project.location) 
+      ? project.location!
       : "No Location";
-    final String projectClient = project?.client != ""
-      ? project!.client!
+    final String projectClient = !isNullorEmpty(project.client)
+      ? project.client!
       : "No Client";
-    final String projectContractor = project?.contractor != ""
-      ? project!.contractor!
+    final String projectContractor = !isNullorEmpty(project.contractor)
+      ? project.contractor!
       : "No Contractor";
-    final dueDate = project?.dueDate.toString() ?? "No Due Date";
-    final DateTime dateCreated = project!.dateCreated!;
+    final String dueDate = project.dueDate != null
+      ? formatDate(project.dueDate!)
+      : "No Due Date";
+    final DateTime dateCreated = project.dateCreated!;
     final String projectRef = project.projectRef!;
 
     return Column(
@@ -217,20 +216,22 @@ class ProjectDetailPageState extends ConsumerState<ProjectDetailPage> {
   Widget projectDetailNoEdit() {
     final Project project = ProjectService.getProject(ref, widget.projectId);
 
-    final projectDescription = project?.description != ""
-      ? project!.description!
+    final projectDescription = !isNullorEmpty(project.description)
+      ? project.description!
       : "No Description";
-    final projectLocation = project?.location != ""
-      ? project!.location!
+    final projectLocation = !isNullorEmpty(project.location)
+      ? project.location!
       : "No Location";
-    final projectClient = project?.client != ""
-      ? project!.client!
+    final projectClient = !isNullorEmpty(project.client)
+      ? project.client!
       : "No Client";
-    final projectContractor = project?.contractor != ""
-      ? project!.contractor!
+    final projectContractor = !isNullorEmpty(project.contractor)
+      ? project.contractor!
       : "No Contractor";
-    final projectRef = project!.projectRef!;
-    final dueDate = project?.dueDate.toString() ?? "No Due Date";
+    final projectRef = project.projectRef!;
+    final dueDate = project.dueDate != null
+      ? formatDate(project.dueDate!) 
+      : "No Due Date";
 
     nameController.text = project.name;
     descriptionController.text = project.description ?? "";
@@ -310,7 +311,12 @@ class ProjectDetailPageState extends ConsumerState<ProjectDetailPage> {
                   const Divider(height: 20, thickness: 0.5, color: Colors.grey),
 
                   const SizedBox(height: 28.0),
-                  buildCustomSegmentedControl(label: 'Status', options: statusOptions, selectedNotifier: selectedStatusOption),
+                  buildCustomSegmentedControl(
+                    label: 'Status',
+                    options: statusOptions,
+                    selectedNotifier: selectedStatusOption,
+                    enabled: !widget.isInEditMode,
+                  ),
                   const SizedBox(height: 28.0),
                   ObjectSelector(
                     label: AppStrings.category,
@@ -320,6 +326,7 @@ class ProjectDetailPageState extends ConsumerState<ProjectDetailPage> {
                     getName: (cat) => cat.name,
                     getColor: (cat) => cat.color,
                     onCreate: (name, color) {
+                      if (name.trim() == '') return;
                       setState(() {
                         final updatedProject = project.copyWith(
                           createdCategories: [
@@ -332,7 +339,6 @@ class ProjectDetailPageState extends ConsumerState<ProjectDetailPage> {
                     },
                     onDelete: (cat) {
                       // Check if any snag is using this category
-                      
                       bool categoryInUse = ProjectService.getSnags(ref, widget.projectId)
                         .where((s) =>
                           s.categories != null &&

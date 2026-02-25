@@ -1,7 +1,6 @@
 import 'package:cii/models/project.dart';
 import 'package:cii/models/category.dart' as cii;
 import 'package:cii/models/tag.dart';
-import 'package:cii/providers/project_provider.dart';
 import 'package:cii/services/project_service.dart';
 import 'package:cii/utils/common.dart';
 import 'package:cii/view/utils/constants.dart';
@@ -49,11 +48,22 @@ class _ProjectCreateState extends ConsumerState<ProjectCreate> {
 
     final dueDateTime = parseDate(dueDate);
 
+    // TODO: Move to validation method
     if (projectRef.isEmpty) {
       // do not allow empty project ref
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Project reference cannot be empty'),
+          duration: Duration(seconds: 2),
+        )
+      );
+      return;
+    }
+    if (projectRef.contains(" ")) {
+      // do not allow spaces in project ref
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Project reference cannot contain spaces'),
           duration: Duration(seconds: 2),
         )
       );

@@ -73,13 +73,14 @@ class _SnagCreateState extends ConsumerState<SnagCreate> {
       filteredProjects = getProjectByStatus(projects, "recent");
 
       if (filteredProjects.isNotEmpty) {
-        selectedProjectId = projects.first.uuid; 
+        selectedProjectId = filteredProjects.first.uuid; 
         setState(() {}); // TODO - is this needed?
       }
 
       // TODO: Check, i removed an else block when filterProjects is empty, might not be possible but check
     }
   }
+
 
   String createSnagId(Project project) {
     // get date in yyyyMMdd format
@@ -106,7 +107,7 @@ class _SnagCreateState extends ConsumerState<SnagCreate> {
     final Priority priority = Priority.getPriorityByString(selectedPriorityOption.value);
     final String dueDate = dueDateController.text;
     final dueDateTime = parseDate(dueDate);
-
+    
     if (name.isEmpty) {
       int no = ProjectService.getSnagCount(ref, project.uuid) + 1;
       // if the name is empty, create a default name 'Snag #$no' and also show a snackbar
@@ -135,7 +136,10 @@ class _SnagCreateState extends ConsumerState<SnagCreate> {
       }
     }
 
-    final snagId = createSnagId(project!);
+    final Status? snagStatus = Status.getStatus(selectedStatusOption.value);
+    
+
+    final snagId = createSnagId(project);
     final snag = Snag(
       projectId: selectedProjectId,
       id: snagId,
@@ -148,8 +152,9 @@ class _SnagCreateState extends ConsumerState<SnagCreate> {
       priority: priority,
       imagePaths: imageFilePaths,
       annotatedImagePaths: annotatedImages,
-      status: Status.getStatus(selectedStatusOption.value),
+      status: snagStatus ?? Status.todo,
       dueDate: dueDateTime,
+      dateClosed: (snagStatus != null && snagStatus == Status.completed) ? DateTime.now() : null
     );
 
     ProjectService.addSnag(ref, selectedProjectId!, snag);
@@ -211,6 +216,7 @@ class _SnagCreateState extends ConsumerState<SnagCreate> {
            assigneeController.text.isNotEmpty ||
            locationController.text.isNotEmpty ||
            imageFilePaths.isNotEmpty ||
+           dueDateController.text.isNotEmpty ||
            snagCategory != null ||
            (snagTags?.isNotEmpty ?? false);
   }
@@ -268,10 +274,15 @@ class _SnagCreateState extends ConsumerState<SnagCreate> {
   Widget build(BuildContext context) {
     
     selectProject();
+    
+    if (selectedProjectId == null) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator())
+      );
+    }
 
-    final currentProject = selectedProjectId != null
-      ? ProjectService.getProject(ref, selectedProjectId!)
-      : null;
+    // Current Project should never be null? Because of selectProject before hand?
+    final currentProject = ProjectService.getProject(ref, selectedProjectId!);
 
     // TODO replace WillPopScope
     return WillPopScope(
@@ -313,7 +324,10 @@ class _SnagCreateState extends ConsumerState<SnagCreate> {
                       buildDropdownInputForObjects(
                         label: 'Projects',
                         options: filteredProjects,
-                        selectedProject: null,
+                        selectedProject: filteredProjects.firstWhere(
+                          (project) => project.uuid == selectedProjectId,
+                          orElse: () => filteredProjects.first,
+                        ),
                         onChanged: (Project? value) {
                           setState(() {
                             selectedProjectId = value!.uuid;
@@ -345,7 +359,7 @@ class _SnagCreateState extends ConsumerState<SnagCreate> {
                       ),
                       const SizedBox(height: 28.0),
                     ],
-                    buildTextInput(AppStrings.snagName(), AppStrings.snagNameExample, nameController),
+                    buildLimitedTextInput(AppStrings.snagName(), AppStrings.snagNameExample, nameController, 40),
                     const SizedBox(height: 28.0),
                     buildLongTextInput("Description", "E.g. Explain the ${AppStrings.snag()}", descriptionController),
                     const SizedBox(height: 28.0),
@@ -359,7 +373,7 @@ class _SnagCreateState extends ConsumerState<SnagCreate> {
                     const SizedBox(height: 28.0),
                     buildCustomSegmentedControl(label: 'Status', options: statusOptions, selectedNotifier: selectedStatusOption),
                     const SizedBox(height: 28.0),
-              
+
                     if (selectedProjectId != null) ... [
                       ObjectSelector(
                         label: AppStrings.category,
@@ -370,7 +384,7 @@ class _SnagCreateState extends ConsumerState<SnagCreate> {
                         getColor: (cat) => cat.color,
                         onCreate: (name, color) {
                           setState(() {
-                            if (currentProject == null) return;
+                            if (currentProject == null || name.trim() == "") return;
                             final updatedProject = currentProject.copyWith(
                               createdCategories: [
                                 cii.Category(name: name, color: color),

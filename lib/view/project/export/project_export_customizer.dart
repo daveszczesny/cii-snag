@@ -2,6 +2,7 @@ import 'package:cii/models/project.dart';
 import 'package:cii/services/pdf_exporter.dart';
 import 'package:cii/services/project_service.dart';
 import 'package:cii/services/tier_service.dart';
+import 'package:cii/utils/common.dart';
 import 'package:cii/view/project/export/project_export_customizer_base.dart';
 import 'package:cii/view/utils/text.dart';
 import 'package:flutter/material.dart';
@@ -72,17 +73,20 @@ class _ProjectExportCustomizerState extends ProjectExportCustomizerBaseState<Pro
   }
 
   @override
-  Widget buildExportButton() {
+  Widget buildExportButton(String projectReference) {
+    
     return buildTextButton(
       "Export to PDF",
       () async {
+        if (nameController.text.trim() == "") nameController.text = buildDefaultPdfFileName(projectReference);
+
         await savePdfFile(
           context,
           widget.projectId,
           selectedQualityNotifier.value,
           options[themeController.text],
           ref,
-          nameController.text,
+          nameController.text.trim(),
           selectedCategories.toList(),
           selectedStatuses.toList(),
         );
@@ -95,9 +99,9 @@ class _ProjectExportCustomizerState extends ProjectExportCustomizerBaseState<Pro
   }
 
 
-  String buildDefaultPdfFileName(String ref) {
+  String buildDefaultPdfFileName(String projectReference) {
     // timestamp yyMMdd_hhMMss
     final timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
-    return "${ref}_$timestamp";
+    return "${projectReference}_$timestamp";
   }
 }
