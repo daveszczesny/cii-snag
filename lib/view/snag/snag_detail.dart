@@ -1,19 +1,20 @@
-import 'package:cii/models/category.dart';
 import 'package:cii/models/priority.dart';
 import 'package:cii/models/project.dart';
 import 'package:cii/models/snag.dart';
 import 'package:cii/models/status.dart';
-import 'package:cii/models/tag.dart';
 import 'package:cii/services/project_service.dart';
 import 'package:cii/services/snag_service.dart';
 import 'package:cii/utils/common.dart';
-import 'package:cii/view/utils/constants.dart';
+import 'package:cii/view/snag/widgets/snag_app_bar.dart';
+import 'package:cii/view/snag/widgets/snag_category_section.dart';
+import 'package:cii/view/snag/widgets/snag_due_date_alert.dart';
+import 'package:cii/view/snag/widgets/snag_form_section.dart';
+import 'package:cii/view/snag/widgets/snag_image_section.dart';
+import 'package:cii/view/snag/widgets/snag_status_section.dart';
+import 'package:cii/view/snag/widgets/snag_tag_section.dart';
 import 'package:cii/view/utils/image.dart';
-import 'package:cii/view/utils/selector.dart';
-import 'package:cii/view/utils/text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 
 class SnagDetail extends ConsumerStatefulWidget {
   final String projectId;
@@ -216,136 +217,7 @@ class _SnagDetailState extends ConsumerState<SnagDetail> {
     }
     return path;
   }
-// -----------------------------------------------
 
-
-  Widget snagDetailEditable(BuildContext context) {
-    final Snag snag = SnagService.getSnag(ref, widget.snagId);
-    final name = snag.name; 
-    final description = !isNullorEmpty(snag.description)
-      ? snag.description
-      : 'No Description';
-    final id = snag.id; // not nullable
-    final dateCreated = formatDate(snag.dateCreated);
-    final assignee = !isNullorEmpty(snag.assignee)
-    ? snag.assignee!
-    : 'Unassigned';
-    final location = !isNullorEmpty(snag.location)
-      ? snag.location!
-      : 'No Location';
-    final dueDate = snag.dueDate != null
-      ? formatDate(snag.dueDate!)
-      : 'No Due Date';
-    final reviewedBy = !isNullorEmpty(snag.reviewedBy)
-      ? snag.reviewedBy!
-      : 'No Reviewer';
-    final finalRemarks = !isNullorEmpty(snag.finalRemarks)
-      ? snag.finalRemarks!
-      : 'No Final Remarks';
-
-    const double gap = 16;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        buildTextDetail('ID', id),
-        const SizedBox(height: gap),
-        buildLimitedTextInput(AppStrings.snagName(), name, nameController, 40),
-        const SizedBox(height: gap),
-        buildLongTextInput('Description', description, descriptionController),
-        const SizedBox(height: gap),
-        buildTextDetail('Date Created', dateCreated),
-        const SizedBox(height: gap),
-        buildTextInput('Assignee', assignee, assigneeController),
-        const SizedBox(height: gap),
-        buildTextInput('Location', location, locationController),
-        const SizedBox(height: gap),
-        buildDatePickerInput(context, 'Due Date', dueDate, dueDateController),
-        const SizedBox(height: gap),
-        if (snag.status.name == Status.completed.name) ... [
-          const SizedBox(height: gap),
-          buildTextInput("Reviewed By", reviewedBy, reviewedByController),
-          const SizedBox(height: gap),
-          buildTextInput("Final Remarks", finalRemarks, finalremarksController),
-        ]
-      ],
-    );
-  }
-
-  Widget snagDetailNoEdit() {
-    final Snag snag = SnagService.getSnag(ref, widget.snagId);
-
-    final name = snag.name; 
-    final description = !isNullorEmpty(snag.description) ? snag.description! : 'No Description';
-    final id = snag.id; // not nullable
-    final dateCreated = formatDate(snag.dateCreated);
-    final assignee = !isNullorEmpty(snag.assignee) ? snag.assignee! : 'Unassigned';
-    final location = !isNullorEmpty(snag.location) ? snag.location! : 'No Location';
-    final dueDate = snag.dueDate != null
-      ? formatDate(snag.dueDate!)
-      : 'No Due Date';
-    final reviewedBy = !isNullorEmpty(snag.reviewedBy) ? snag.reviewedBy! : 'No Reviewer';
-    final finalRemarks = !isNullorEmpty(snag.finalRemarks) ? snag.finalRemarks! : 'No Final Remarks';
-    final dateClosed = snag.dateClosed != null
-      ? DateFormat(AppDateTimeFormat.dateTimeFormatPattern).format(snag.dateClosed!)
-      : '-';
-    var dueDateSubtext = '';
-    var dueDateIcon;
-
-
-    if (snag.dueDate != null && snag.status.name != Status.completed.name) {
-      final dueDateTime = snag.dueDate!;
-      final now = DateTime.now();
-      final diff = dueDateTime.difference(now).inDays;
-      const iconSize = 16.0;
-
-      if (diff < 0) {
-        dueDateSubtext = 'Overdue by ${diff.abs()} days';
-        dueDateIcon = Icon(Icons.warning, size: iconSize, color: Colors.red.withOpacity(0.8));
-      } else if (diff == 0) {
-        dueDateSubtext = 'Due today';
-        dueDateIcon = Icon(Icons.schedule, size: iconSize, color: Colors.orange.withOpacity(0.8));
-      } else {
-        dueDateSubtext = '${diff + 1} days left';
-        if (diff <= 7) {
-          dueDateIcon = Icon(Icons.schedule, size: iconSize, color: Colors.orange.withOpacity(0.8));
-        } else if (diff <= 14) {
-          dueDateIcon = Icon(Icons.schedule, size: iconSize, color: Colors.green.withOpacity(0.8));
-        } else {
-          dueDateIcon = null; // No icon for more than 14 days
-        }
-      }
-
-    }
-
-    const double gap = 16;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        buildTextDetail('ID', id),
-        const SizedBox(height: gap),
-        buildTextDetail('${AppStrings.snag()} Name', name),
-        const SizedBox(height: gap),
-        buildJustifiedTextDetail('Description', description),
-        const SizedBox(height: gap),
-        buildTextDetail('Date Created', dateCreated),
-        const SizedBox(height: gap),
-        buildTextDetail('Assignee', assignee),
-        const SizedBox(height: gap),
-        buildTextDetail('Location', location),
-        const SizedBox(height: gap),
-        buildTextDetailWithIcon('Due Date', dueDate, dueDateIcon, subtext: dueDateSubtext),
-        if (snag.status.name == Status.completed.name) ... [
-          const SizedBox(height: gap),
-          buildTextDetail('Date Closed', dateClosed),
-          const SizedBox(height: gap),
-          buildTextDetail('Reviewed By', reviewedBy),
-          const SizedBox(height: gap),
-          buildTextDetail('Final remarks', finalRemarks),
-        ]
-      ],
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -363,102 +235,25 @@ class _SnagDetailState extends ConsumerState<SnagDetail> {
       selectedPriorityOption.value = snag.priority.name;
     }
 
+
+    Map<String, TextEditingController> controllers = {
+      "name": nameController,
+      "description": descriptionController,
+      "assignee": assigneeController,
+      "location": locationController,
+      "dueDate": dueDateController,
+      "reviewedBy": reviewedByController,
+      "finalRemarks": finalremarksController
+    };
+
     final Project project = ProjectService.getProject(ref, widget.projectId);
     return Scaffold(
-      appBar: AppBar(
-        title: Text(snag.name),
-        leading: isEditable == false ? IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () {
-              Navigator.pop(context);
-            },
-          ) : GestureDetector(
-            onTap: () {
-              // cancel the edit
-              // check if anything has changed
-              if (
-                (nameController.text != '' && nameController.text != snag.name) ||
-                (descriptionController.text != '' && descriptionController.text != snag.description) ||
-                (assigneeController.text != '' && assigneeController.text != snag.assignee) ||
-                (locationController.text != '' && locationController.text != snag.location) ||
-                (dueDateController.text != '' && snag.dueDate != null && dueDateController.text != DateFormat(AppDateTimeFormat.dateTimeFormatPattern).format(snag.dueDate!))
-              ) {
-                // show a dialog to confirm
-                showDialog(
-                  context: context,
-                  builder: (context) {
-                    return AlertDialog(
-                      title: const Text('Discard Changes'),
-                      content: const Text('Are you sure you want to discard the changes?'),
-                      actions: [
-                        TextButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                          },
-                          child: const Text('Cancel')
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                            setState(() {
-                              isEditable = !isEditable;
-                            });
-                          },
-                          child: const Text('Discard')
-                        )
-                      ],
-                    );
-                  }
-                );
-              } else {
-                isEditable = !isEditable;
-              }
-              setState(() {});
-            },
-            child: const Icon(Icons.close)
-          ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 15),
-            child: GestureDetector(
-              onTap: () {
-
-                final Snag updatedSnag = snag.copyWith(
-                  name: nameController.text != '' ? nameController.text : snag.name,
-                  description: descriptionController.text.trim(),
-                  assignee: assigneeController.text,
-                  location: locationController.text,
-                  dueDate: dueDateController.text.isNotEmpty ? parseDate(dueDateController.text) : snag.dueDate,
-                  reviewedBy: reviewedByController.text,
-                  finalRemarks: finalremarksController.text,
-                );
-
-                SnagService.updateSnag(ref, updatedSnag);
-
-                setState(() {
-                  if (isEditable) {
-                     // set snag details
-                    isEditable = !isEditable;
-                    widget.onStatusChanged?.call();
-                  } else {
-                    nameController.text = snag.name;
-                    // TODO: Is ?? "" a problem?
-                    descriptionController.text = updatedSnag.description ?? "";
-                    assigneeController.text = updatedSnag.assignee ?? "";
-                    locationController.text = updatedSnag.location ?? "";
-                    dueDateController.text = updatedSnag.dueDate != null
-                      ? DateFormat(AppDateTimeFormat.dateTimeFormatPattern).format(updatedSnag.dueDate!)
-                      : "";
-                    isEditable = !isEditable;
-                  }
-                });
-              },
-              child: isEditable ?
-                const Icon(Icons.check)
-                : const Text('Edit')
-            )
-          )
-        ],
+      appBar: SnagAppBar(
+        snag: snag,
+        isEditable: isEditable,
+        controllers: controllers,
+        onToggleEdit: () => setState(() => isEditable = !isEditable),
+        onStatusChanged: widget.onStatusChanged,
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -468,92 +263,33 @@ class _SnagDetailState extends ConsumerState<SnagDetail> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(height: 12),
-                  if (imageFilePaths.isEmpty) ... [
-                    buildImageInput_V3(context, onChange, imageFilePaths)
-                  ] else ... [
-                    showImageWithEditAbility(context, selectedImage != '' ? selectedImage : getAnnotatedImage(imageFilePaths[0]), saveAnnotatedImage)
-                  ],
-
-                  const SizedBox(height: 14.0),
-
-                  // small image showcase
-                  if (imageFilePaths.isNotEmpty) ... [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        buildImageShowcase(context, onChange, saveAnnotatedImage, imageFilePaths, onLongPress: setAsMainImage),
-                        if (imageFilePaths.length < 5) ... [
-                          buildImageInput_V3(context, onChange, imageFilePaths, large: false)
-                        ],
-                      ],
-                    ),
-                    const SizedBox(height: 28.0),
-                  ],
+                  SnagImageSection(
+                    imageFilePaths: imageFilePaths,
+                    selectedImage: selectedImage,
+                    onChange: onChange,
+                    saveAnnotatedImage: saveAnnotatedImage,
+                    setAsMainImage: setAsMainImage,
+                    getAnnotatedImage: getAnnotatedImage,
+                  ),
 
                   // Alert on due date
-                  ValueListenableBuilder(
-                    valueListenable: AppDueDateReminder.version,
-                    builder: (context, _, __) {
-                      if (snag.dueDate != null) {
-                        final dueDateTime = snag.dueDate!;
-                        final now = DateTime.now();
-                        final diff = dueDateTime.difference(now).inDays;
-                        
-                        if (diff <= AppDueDateReminder.dueDateReminderDays - 1 && diff >= 0) {
-                          return Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.all(12),
-                            margin: const EdgeInsets.only(bottom: 16),
-                            decoration: BoxDecoration(
-                              color: Colors.orange.withOpacity(0.1),
-                              border: Border.all(color: Colors.orange, width: 1),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Row(
-                              children: [
-                                const Icon(Icons.warning, color: Colors.orange, size: 20),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    diff == 0 ? 'Due today!' : 'Due in ${diff + 1} days',
-                                    style: const TextStyle(color: Colors.orange, fontWeight: FontWeight.w500),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        }
-                      }
-                      return const SizedBox.shrink();
-                    },
-                  ),
+                  SnagDueDateAlert(snag: snag), 
 
                   // Status
-                  buildCustomSegmentedControl(
-                    label: 'Status',
-                    options: statusOptions,
-                    selectedNotifier: selectedStatusOption,
-                    enabled: !isEditable
-                  ),
+                  SnagStatusSection(label: "Status", statusOptions: statusOptions, selectedStatusOption: selectedStatusOption, isEditable: isEditable),
                   const SizedBox(height: 20.0),
-                  buildCustomSegmentedControl(
-                    label: 'Priority',
-                    options: priorityOptions,
-                    selectedNotifier: selectedPriorityOption,
-                    enabled: !isEditable,
-                  ),
+                  SnagStatusSection(label: "Priority", statusOptions: priorityOptions, selectedStatusOption: selectedPriorityOption, isEditable: isEditable),
                   const SizedBox(height: 28.0),
                   Padding(
                     padding: const EdgeInsets.only(left: 8),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        if (isEditable) ... [
-                          snagDetailEditable(context)
-                        ] else ... [
-                          snagDetailNoEdit()
-                        ]
+                        SnagFormSection(
+                          snag: snag,
+                          isEditable: isEditable,
+                          controllers: controllers
+                        ),
                       ],
                     )
                   ),
@@ -576,99 +312,12 @@ class _SnagDetailState extends ConsumerState<SnagDetail> {
                       )
                     ),
                   ],
-
                   const SizedBox(height: 28.0),
                   const Divider(height: 20, thickness: 0.5, color: Colors.grey),
                   const SizedBox(height: 28.0),
-
-                  // Category and Tags
-                  ObjectSelector(
-                    label: AppStrings.category,
-                    pluralLabel: AppStrings.categories,
-                    hint: AppStrings.categoryHint(),
-                    options: project.createdCategories ?? [],
-                    getName: (cat) => cat.name,
-                    getColor: (cat) => cat.color,
-                    allowMultiple: false,
-                    onCreate: (name, color) {
-                      if (name.isEmpty || name.trim().isEmpty) return;
-                      setState(() {
-                        final updatedProject = project.copyWith(
-                          createdCategories: [
-                            Category(name: capitilize(name), color: color),
-                            ...project.createdCategories ?? []
-                          ]
-                        );
-                        ProjectService.updateProject(ref, updatedProject);
-                      });
-                    },
-                    onSelect: (cat) {
-                      if (!isListNullorEmpty(snag.categories) && snag.categories!.where((c) => c.name == cat.name).toList().isNotEmpty) {
-                        final Snag updatedSnag = snag.copyWith(
-                          categories: []
-                        );
-                        SnagService.updateSnag(ref, updatedSnag);
-                        setState(() {
-                          widget.onStatusChanged?.call();
-                        });
-                      } else {
-                        final Snag updatedSnag = snag.copyWith(
-                          categories: [cat]
-                        );
-                        SnagService.updateSnag(ref, updatedSnag);
-                        setState(() {
-                          widget.onStatusChanged?.call();
-                        });
-                      }
-                    },
-                    hasColorSelector: true,
-                    selectedItems: snag.categories,
-                  ),
-
+                  SnagCategorySection(project: project, snag: snag, onChanged: () => setState(() => widget.onStatusChanged?.call())),
                   const SizedBox(height: 24.0),
-
-                  // Tag Selector
-                  ObjectSelector(
-                    label: AppStrings.tag,
-                    pluralLabel: AppStrings.tags,
-                    hint: AppStrings.tagHint(),
-                    options: project.createdTags ?? [],
-                    getName: (tag) => tag.name,
-                    getColor: (tag) => tag.color,
-                    allowMultiple: true, // Enable multi-select
-                    onCreate: (name, color) {
-                      setState(() {
-                        final updatedProject = project.copyWith(
-                          createdTags: [
-                            Tag(name: capitilize(name), color: color),
-                            ...project.createdTags ?? []
-                          ]
-                        );
-                        ProjectService.updateProject(ref, updatedProject);
-                      });
-                    },
-                    onSelect: (tag) {
-                      setState(() {
-                        // Check if tag is already in snag
-                        if (!isListNullorEmpty(snag.tags) && snag.tags!.where((t) => t.name == tag.name).toList().isNotEmpty) {
-                          // Remove tag from snag
-                          final Snag updatedSnag = snag.copyWith(
-                            tags: snag.tags!.where((t) => t.name != tag.name).toList()
-                          );
-                          SnagService.updateSnag(ref, updatedSnag);
-                        } else {
-                          // Add tag to snag
-                          final Snag updatedSnag = snag.copyWith(
-                            tags: [...snag.tags!, tag]
-                          );
-                          SnagService.updateSnag(ref, updatedSnag);
-                          widget.onStatusChanged?.call();
-                        }
-                      });
-                    },
-                    hasColorSelector: true,
-                    selectedItems: snag.tags,
-                  ),
+                  SnagTagSection(project: project, snag: snag, onChanged: () => setState(() => widget.onStatusChanged?.call()))
                 ],
               ),
             ),

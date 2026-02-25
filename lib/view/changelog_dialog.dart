@@ -6,7 +6,7 @@ import 'package:cii/services/changelog_service.dart';
 class ChangelogDialog extends StatefulWidget{
   final String changelog;
 
-  const ChangelogDialog({Key? key, required this.changelog}) : super(key : key);
+  const ChangelogDialog({super.key, required this.changelog});
 
   @override
   State<ChangelogDialog> createState() => _ChangelogDialogState();
