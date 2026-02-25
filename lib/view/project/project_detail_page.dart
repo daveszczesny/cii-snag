@@ -17,10 +17,10 @@ class ProjectDetailPage extends ConsumerStatefulWidget {
 
   final bool isInEditMode;
   const ProjectDetailPage({
-    Key? key,
+    super.key,
     required this.projectId,
     required this.isInEditMode,
-    }) : super(key: key);
+    });
 
   @override
   ConsumerState<ProjectDetailPage> createState() => ProjectDetailPageState();
