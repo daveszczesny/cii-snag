@@ -1,7 +1,7 @@
 name: cii
 description: "Construction & Renovation tool"
 publish_to: 'none'
-version: 1.0.14+5
+version: 1.0.14
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -40,6 +40,7 @@ dependencies:
   url_launcher: ^6.2.1
   in_app_purchase: ^3.2.3
   flutter_markdown: ^0.7.4+1
+  gal: ^2.3.0
 
 dev_dependencies:
   flutter_test:

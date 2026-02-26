@@ -9,8 +9,14 @@ import 'package:path_provider/path_provider.dart';
 class CustomImageEditor extends StatefulWidget {
   final String imagePath;
   final Function(String) onSave;
+  final Function(bool)? onAnnotationChanged;
 
-  const CustomImageEditor({super.key, required this.imagePath, required this.onSave});
+  const CustomImageEditor({
+    super.key,
+    required this.imagePath,
+    required this.onSave,
+    this.onAnnotationChanged,
+  });
 
   @override
   State<CustomImageEditor> createState() => _CustomImageEditorState();
@@ -87,6 +93,14 @@ class _CustomImageEditorState extends State<CustomImageEditor> {
     super.initState();
     _saveState();
     _loadImageAndCalculateBounds();
+  }
+
+  bool get hasAnnotations => _points.isNotEmpty || _textAnnotations.isNotEmpty || _shapes.isNotEmpty;
+
+  void _notifyAnnotationChanged() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      widget.onAnnotationChanged?.call(hasAnnotations);
+    });
   }
 
   Future<void> _loadImageAndCalculateBounds() async {
@@ -919,6 +933,8 @@ class _CustomImageEditorState extends State<CustomImageEditor> {
       _history.removeAt(0);
       _historyIndex--;
     }
+
+    _notifyAnnotationChanged();
   }
   
   bool _canUndo() => _historyIndex > 0;
@@ -1169,7 +1185,7 @@ class _CustomImageEditorState extends State<CustomImageEditor> {
             children: [
               Icon(Icons.check_circle, color: Colors.white),
               SizedBox(width: 8),
-              Text('Image saved with proper stroke widths!'),
+              Text('Image saved'),
             ],
           ),
           backgroundColor: Colors.green,
