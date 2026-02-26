@@ -97,12 +97,11 @@ class SnagFormSection extends StatelessWidget {
           _buildDueDateWithAlert(),
           const SizedBox(height: gap),
           if (snag.status == Status.completed) ... [
-            const SizedBox(height: gap),
             buildTextDetail("Date Closed", dateClosed),
             const SizedBox(height: gap),
-            buildTextDetail("Reviewed By", snag.reviewedBy ?? "-"),
+            buildTextDetail("Reviewed By", !isNullorEmpty(snag.reviewedBy) ? snag.reviewedBy! : "-"),
             const SizedBox(height: gap),
-            buildTextDetail("Final Remarks", snag.finalRemarks ?? "-")
+            buildTextDetail("Final Remarks", !isNullorEmpty(snag.finalRemarks) ? snag.finalRemarks! : "-")
           ]
         ]
       );

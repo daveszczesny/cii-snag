@@ -172,22 +172,22 @@ class ProjectDetailPageState extends ConsumerState<ProjectDetailPage> {
     final Project project = ProjectService.getProject(ref, widget.projectId);
     final String projectName = project.name != ""
       ? project.name
-      : "No Name";
+      : "";
     final String projectDescription = !isNullorEmpty(project.description) 
       ? project.description!
-      : "No Description";
+      : "";
     final String projectLocation = !isNullorEmpty(project.location) 
       ? project.location!
-      : "No Location";
+      : "";
     final String projectClient = !isNullorEmpty(project.client)
       ? project.client!
-      : "No Client";
+      : "";
     final String projectContractor = !isNullorEmpty(project.contractor)
       ? project.contractor!
-      : "No Contractor";
+      : "";
     final String dueDate = project.dueDate != null
       ? formatDate(project.dueDate!)
-      : "No Due Date";
+      : "";
     final DateTime dateCreated = project.dateCreated!;
     final String projectRef = project.projectRef!;
 
@@ -218,20 +218,20 @@ class ProjectDetailPageState extends ConsumerState<ProjectDetailPage> {
 
     final projectDescription = !isNullorEmpty(project.description)
       ? project.description!
-      : "No Description";
+      : "-";
     final projectLocation = !isNullorEmpty(project.location)
       ? project.location!
-      : "No Location";
+      : "-";
     final projectClient = !isNullorEmpty(project.client)
       ? project.client!
-      : "No Client";
+      : "-";
     final projectContractor = !isNullorEmpty(project.contractor)
       ? project.contractor!
-      : "No Contractor";
+      : "-";
     final projectRef = project.projectRef!;
     final dueDate = project.dueDate != null
       ? formatDate(project.dueDate!) 
-      : "No Due Date";
+      : "-";
 
     nameController.text = project.name;
     descriptionController.text = project.description ?? "";
@@ -306,8 +306,7 @@ class ProjectDetailPageState extends ConsumerState<ProjectDetailPage> {
                     ] else ... [
                       projectDetailNoEdit()
                     ],
-                
-                
+
                   const Divider(height: 20, thickness: 0.5, color: Colors.grey),
 
                   const SizedBox(height: 28.0),
