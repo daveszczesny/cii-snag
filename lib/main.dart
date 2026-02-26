@@ -143,7 +143,6 @@ void main() async {
       final isFirstLaunch = await DemoService.isFirstLaunch();
       if (isFirstLaunch) {
         await DemoService.createDemoData();
-        await DemoService.markFirstLaunchComplete();
       }
     } catch (e) {
       debugPrint("Error creating demo data: $e");

@@ -1,4 +1,5 @@
 import 'package:cii/models/project.dart';
+import 'package:cii/services/demo_service.dart';
 import 'package:cii/services/notification_service.dart';
 import 'package:cii/services/project_service.dart';
 import 'package:cii/services/tier_service.dart';
@@ -45,6 +46,16 @@ class _ScreenState extends ConsumerState<Screen> {
   }
 
   void _checkForChangelog() async {
+
+    final isFirstLaunch = await DemoService.isFirstLaunch();
+
+    if (isFirstLaunch) {
+      // Don't show changelog
+      await DemoService.markFirstLaunchComplete();
+      await ChangelogService.markChangelogSeen();
+      return;
+    }
+
     if (await ChangelogService.shouldShowChangelog()) {
       final changelog = await ChangelogService.getLatestChangelog();
       if (mounted) {

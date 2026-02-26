@@ -33,6 +33,24 @@ class SafeTextInputFormatter extends TextInputFormatter {
   }
 }
 
+
+class ProjectReferenceTextInputFormatter extends SafeTextInputFormatter {
+  static final RegExp _whitespaceRegex = RegExp(r'\s');
+
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    final parentResult = super.formatEditUpdate(oldValue, newValue);
+    final sanitized = parentResult.text.replaceAll(_whitespaceRegex, '');
+    if (sanitized == parentResult.text) {
+      return parentResult;
+    }
+    return TextEditingValue(text: sanitized, selection: TextSelection.collapsed(offset: sanitized.length));
+  }
+}
+
 Widget buildTextDetail(String label, String text) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -212,7 +230,8 @@ Widget buildTextInputForREF(String label, String hintText, TextEditingController
         TextField(
           controller: controller,
           textCapitalization: TextCapitalization.characters,
-          inputFormatters: [SafeTextInputFormatter()],
+          maxLength: 12,
+          inputFormatters: [ProjectReferenceTextInputFormatter(), LengthLimitingTextInputFormatter(12)],
           style: const TextStyle(color: Colors.black, fontSize: 16, fontWeight: FontWeight.w400, fontFamily: 'Roboto'),
           decoration: InputDecoration(
             hintText: hintText, hintStyle: const TextStyle(color: Color(0xFF333333), fontSize: 14, fontWeight: FontWeight.w300, fontFamily: 'Roboto'),

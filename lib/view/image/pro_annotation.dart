@@ -12,20 +12,55 @@ class ImageAnnotationScreen extends StatefulWidget {
 }
 
 class _ImageAnnotationScreenState extends State<ImageAnnotationScreen> {
-  final GlobalKey _repaintKey = GlobalKey();
+  bool _hasAnnotations = false;
+
+
+  Future<bool> _showExitConfirmation() async {
+    if (!_hasAnnotations) return true;
+
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Discard Changes?"),
+        content: const Text("You have unsaved changes. Are you sure you want to exit?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text("Cancel"),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text("Discard"),
+          )
+        ]
+      )
+    );
+    return result ?? false;
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(AppStrings.imageAnnotation),
-      ),
-      body: CustomImageEditor(
-        imagePath: widget.imagePath,
-        onSave: (path) {
-          Navigator.pop(context, path);
-        },
-      ),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        final shouldPop = await _showExitConfirmation();
+        if (shouldPop && context.mounted) {
+          Navigator.pop(context);
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text(AppStrings.imageAnnotation),
+        ),
+        body: CustomImageEditor(
+          imagePath: widget.imagePath,
+          onSave: (path) => Navigator.pop(context, path),
+          onAnnotationChanged: (hasAnnotation) {
+            setState(() => _hasAnnotations = hasAnnotation);
+          },
+        ),
+      )
     );
   }
 

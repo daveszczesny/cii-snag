@@ -62,7 +62,7 @@ class AppStrings {
   static const String projectLocation = 'Location';
   static const String projectLocationExample = 'E.g. London';
 
-  static const String projectRef = 'Project Ref';
+  static const String projectRef = 'Project Reference';
   static const String projectRefExample = 'E.g. PID012';
 
   static const String projectClient = 'Client';
@@ -195,5 +195,24 @@ class AppDueDateReminder {
     version.value++;
 
     loadDueDateReminderPrefs();
+  }
+}
+
+class AppImageSettings {
+  static ValueNotifier<int> version = ValueNotifier<int>(0);
+
+  static bool saveToGallery = false;
+
+  static Future<void> loadImageSettingsPrefs() async {
+    final prefs = await SharedPreferences.getInstance();
+    AppImageSettings.saveToGallery = prefs.getBool("save_to_gallery") ?? false;
+  }
+
+  static Future<void> saveImageSettingsPrefs(bool v) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool("save_to_gallery", v);
+    version.value++;
+
+    loadImageSettingsPrefs();
   }
 }

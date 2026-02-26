@@ -417,7 +417,7 @@ class _SearchResultCard extends ConsumerWidget {
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
-                            result.type == SearchResultType.project ? 'Project' : 'Snag',
+                            result.type == SearchResultType.project ? 'Project' : AppStrings.snag(),
                             style: const TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w300,

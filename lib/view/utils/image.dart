@@ -6,6 +6,7 @@ import 'package:cii/view/utils/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:gal/gal.dart';
 
 class SimpleCropper extends StatefulWidget {
   final String imageFileName;
@@ -873,6 +874,11 @@ Future<void> pickImageFromSource(
   BuildContext context,
   {bool ignoreAspectRatio = false}
 ) async {
+
+  await AppImageSettings.loadImageSettingsPrefs();
+
+  final bool saveToGallery = AppImageSettings.saveToGallery;
+  
   final ImagePicker picker = ImagePicker();
   XFile? image;
   final rootContext = Navigator.of(context, rootNavigator: true).context;
@@ -890,6 +896,10 @@ Future<void> pickImageFromSource(
         barrierDismissible: false,
         builder: (_) => const Center(child: CircularProgressIndicator()),
       );
+    }
+
+    if (saveToGallery && source == ImageSource.camera) {
+      await Gal.putImage(image.path);
     }
     String imagePath = await compressAndSaveImage(File(image.path));
 

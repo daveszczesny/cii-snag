@@ -4,7 +4,7 @@ import 'package:cii/view/settings/naming_settings.dart';
 import 'package:cii/view/settings/premium_upgrade.dart';
 import 'package:cii/view/settings/privacy_policy.dart';
 import 'package:cii/view/settings/terms_conditions.dart';
-import 'package:cii/view/settings/feedback.dart' as ReportFeedback;
+import 'package:cii/view/settings/feedback.dart' as report_feedback;
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
@@ -75,7 +75,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   // settingsTab(context, Icons.apartment, "Company", const CompanySettings()),
                   settingsTab(context, Icons.description, "Terms & Conditions", const TermsConditions()),
                   settingsTab(context, Icons.privacy_tip, "Privacy Policy", const PrivacyPolicy()),
-                  settingsTab(context, Icons.feedback_outlined, "Report a bug", const ReportFeedback.Feedback()),
+                  settingsTab(context, Icons.feedback_outlined, "Report a bug", const report_feedback.Feedback()),
                   settingsTab(context, Icons.workspace_premium_rounded, "Upgrade to Pro", const PremiumUpgradePage()),
                 ],
               ),

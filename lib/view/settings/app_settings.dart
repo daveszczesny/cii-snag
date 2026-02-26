@@ -18,6 +18,9 @@ class _AppSettingsState extends State<AppSettings> {
   // Date Time Formats
   String selectedPattern = AppDateTimeFormat.dateTimeFormatPattern;
 
+  // Image Settings
+  bool saveImagesToGallery = false;
+
   @override
   void initState() {
     super.initState();
@@ -25,9 +28,11 @@ class _AppSettingsState extends State<AppSettings> {
   }
 
   void _loadSettings() async {
+    await AppImageSettings.loadImageSettingsPrefs();
     await AppDueDateReminder.loadDueDateReminderPrefs();
     setState(() {
       dueDateReminder.text = AppDueDateReminder.dueDateReminderDays.toString();
+      saveImagesToGallery = AppImageSettings.saveToGallery;
     });
   }
 
@@ -45,6 +50,11 @@ class _AppSettingsState extends State<AppSettings> {
       changed = true;
     }
 
+    if (saveImagesToGallery != AppImageSettings.saveToGallery) {
+      await AppImageSettings.saveImageSettingsPrefs(saveImagesToGallery);
+      changed = true;
+    }
+
     if(changed){
       showSnackBar();
     }
@@ -56,6 +66,34 @@ class _AppSettingsState extends State<AppSettings> {
         content: Text('App settings updated'),
         duration: Duration(seconds: 2),
       )
+    );
+  }
+
+  Widget buildImageSetting() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        const Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "Save images to camera roll",
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w400, fontFamily: "Roboto"),
+            ),
+            SizedBox(height: 4),
+            Text(
+              "Toggle if images are saved to camera roll",
+              style: TextStyle(fontSize: 12, color: Colors.grey),
+            ),
+          ],
+        ),
+        Switch(
+          value: saveImagesToGallery,
+          onChanged: (value) {
+            setState(() => saveImagesToGallery = value);
+          }
+        ),
+      ],
     );
   }
 
@@ -181,6 +219,8 @@ class _AppSettingsState extends State<AppSettings> {
             buildDueDateReminder(),
             const SizedBox(height: 16),
             buildDateTime(),
+            const SizedBox(height: 16),
+            buildImageSetting(),
           ]
         )
       )
