@@ -1,8 +1,7 @@
 import 'package:cii/models/project.dart';
-import 'package:cii/services/project_service.dart';
 import 'package:cii/view/utils/constants.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:hive/hive.dart';
 import 'package:cii/models/notification.dart';
@@ -13,6 +12,8 @@ class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
   factory NotificationService() => _instance;
   NotificationService._internal();
+
+  final ValueNotifier<int> unreadCountNotifier = ValueNotifier<int>(0);
 
   final FlutterLocalNotificationsPlugin _notifications = FlutterLocalNotificationsPlugin();
   late Box<AppNotification> _notificationBox;
@@ -26,7 +27,7 @@ class NotificationService {
       requestBadgePermission: true,
       requestSoundPermission: true,
     );
-    
+
     const settings = InitializationSettings(
       android: androidSettings,
       iOS: iosSettings,
@@ -34,6 +35,31 @@ class NotificationService {
 
     await _notifications.initialize(settings);
     _notificationBox = await Hive.openBox<AppNotification>('notifications');
+    await _migrateNotifications();
+
+    // Clean up old deleted notifications
+    await hardDeleteNotifications();
+  }
+
+  // Migration of existing notifications to include isDelete field
+  // TODO! Delete in version 1.0.15
+  Future<void> _migrateNotifications() async {
+    final notifications = _notificationBox.values.toList();
+    for (final notification in notifications) {
+      if (notification.isDeleted == null) {
+        notification.isDeleted = false;
+        await notification.save();
+      }
+    }
+  }
+
+  Future<void> hardDeleteNotifications() async {
+    final notifications = _notificationBox.values
+      .where((n) => n.deleted && DateTime.now().difference(n.createdAt).inDays > 5)
+      .toList();
+    for (final notification in notifications) {
+      await _notificationBox.delete(notification.id);
+    }
   }
 
   Future<void> checkSnagNotifications(List<Snag> snags) async {
@@ -108,10 +134,10 @@ class NotificationService {
     String? projectId,
   }) async {
     final id = const Uuid().v4();
-    
+
     // Check if similar notification already exists (avoid spam)
     final existing = _notificationBox.values.where((n) => 
-      n.snagId == snagId && n.type == type && !n.isRead &&
+      n.snagId == snagId && n.type == type &&
       DateTime.now().difference(n.createdAt).inHours < 24
     ).toList();
     
@@ -125,7 +151,7 @@ class NotificationService {
         snagId: snagId,
         projectId: projectId,
       );
-      
+
       await _notificationBox.put(id, notification);
       await _showPushNotification(title, message, id.hashCode);
     }
@@ -136,8 +162,8 @@ class NotificationService {
       'snag_notifications',
       'Snag Notifications',
       channelDescription: 'Notifications for snag due dates and updates',
-      importance: Importance.high,
-      priority: Priority.high,
+      importance: Importance.low,
+      priority: Priority.low,
     );
     
     const iosDetails = DarwinNotificationDetails();
@@ -147,7 +173,9 @@ class NotificationService {
   }
 
   List<AppNotification> getNotifications() {
-    return _notificationBox.values.toList()
+    return _notificationBox.values
+      .where((n) => !n.deleted)
+      .toList()
       ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
   }
 
@@ -156,14 +184,26 @@ class NotificationService {
     if (notification != null) {
       notification.isRead = true;
       await notification.save();
+      unreadCountNotifier.value = unreadCount;
     }
   }
 
   Future<void> deleteNotification(String notificationId) async {
-    await _notificationBox.delete(notificationId);
+    // Soft Delete notification
+    final notification = _notificationBox.get(notificationId);
+    if (notification != null) {
+      notification.isDeleted = true;
+      await notification.save();
+      unreadCountNotifier.value = unreadCount;
+    }
   }
 
-  int get unreadCount => _notificationBox.values.where((n) => !n.isRead).length;
+  int get unreadCount
+  {
+    final count = _notificationBox.values.where((n) => !n.isRead && !n.deleted).length;
+    unreadCountNotifier.value = count;
+    return count;
+  }
 
   Future<void> createAssignmentNotification(String snagName) async {
     await _createNotification(

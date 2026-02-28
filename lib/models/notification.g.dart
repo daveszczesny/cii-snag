@@ -25,13 +25,14 @@ class AppNotificationAdapter extends TypeAdapter<AppNotification> {
       snagId: fields[5] as String?,
       projectId: fields[6] as String?,
       isRead: fields[7] as bool,
+      isDeleted: fields[8] as bool?,
     );
   }
 
   @override
   void write(BinaryWriter writer, AppNotification obj) {
     writer
-      ..writeByte(8)
+      ..writeByte(9)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -47,7 +48,9 @@ class AppNotificationAdapter extends TypeAdapter<AppNotification> {
       ..writeByte(6)
       ..write(obj.projectId)
       ..writeByte(7)
-      ..write(obj.isRead);
+      ..write(obj.isRead)
+      ..writeByte(8)
+      ..write(obj.isDeleted);
   }
 
   @override

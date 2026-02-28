@@ -183,10 +183,15 @@ class _ScreenState extends ConsumerState<Screen> {
           NavigationDestination(icon: Icon(_index == 0 ? Icons.home_filled : Icons.home_outlined,),label: 'Projects'),
           NavigationDestination(icon: Icon(_index == 1 ? Icons.search : Icons.search_outlined,),label: AppStrings.search),
           NavigationDestination(
-            icon: Badge(
-              isLabelVisible: _unreadCount > 0,
-              label: Text(_unreadCount.toString()),
-              child: Icon(_index == 2 ? Icons.notifications : Icons.notifications_outlined),
+            icon: ValueListenableBuilder<int>(
+              valueListenable: _notificationService.unreadCountNotifier,
+              builder: (context, count, child) {
+                return Badge(
+                  isLabelVisible: count > 0,
+                  label: Text(count.toString()),
+                  child: Icon(_index == 2 ? Icons.notifications : Icons.notifications_outlined),
+                );
+              },
             ),
             label: AppStrings.notifications
           ),

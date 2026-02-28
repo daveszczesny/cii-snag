@@ -22,12 +22,13 @@ class SnagAdapter extends TypeAdapter<Snag> {
       projectId: fields[14] as String?,
       name: fields[2] as String,
       dateCreated: fields[3] as DateTime?,
-      dueDate: fields[21] as DateTime?,
       status: fields[4] as Status?,
       priority: fields[5] as Priority?,
+      dueDate: fields[21] as DateTime?,
       description: fields[6] as String?,
       imagePaths: (fields[7] as List?)?.cast<String>(),
       annotatedImagePaths: (fields[17] as Map?)?.cast<String, String>(),
+      progressImagePaths: (fields[18] as List?)?.cast<String>(),
       assignee: fields[8] as String?,
       comments: (fields[9] as List?)?.cast<Comment>(),
       finalRemarks: fields[10] as String?,
@@ -37,10 +38,9 @@ class SnagAdapter extends TypeAdapter<Snag> {
       tags: (fields[15] as List?)?.cast<Tag>(),
       categories: (fields[16] as List?)?.cast<Category>(),
       reviewedBy: fields[20] as String?,
-    )
-      ..progressImagePaths = (fields[18] as List?)?.cast<String>()
-      ..finalImagePaths = (fields[19] as List?)?.cast<String>()
-      ..dateClosed = fields[22] as DateTime?;
+      finalImagePaths: (fields[19] as List?)?.cast<String>(),
+      dateClosed: fields[22] as DateTime?,
+    );
   }
 
   @override
