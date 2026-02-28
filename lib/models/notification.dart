@@ -36,6 +36,9 @@ class AppNotification extends HiveObject {
   @HiveField(7)
   bool isRead;
 
+  @HiveField(8)
+  bool? isDeleted;
+
   AppNotification({
     required this.id,
     required this.title,
@@ -45,5 +48,8 @@ class AppNotification extends HiveObject {
     this.snagId,
     this.projectId,
     this.isRead = false,
+    this.isDeleted = false,
   });
+
+  bool get deleted => isDeleted ?? false;
 }

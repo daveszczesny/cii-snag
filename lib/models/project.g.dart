@@ -36,10 +36,10 @@ class ProjectAdapter extends TypeAdapter<Project> {
       createdCategories: (fields[17] as List?)?.cast<Category>(),
       createdTags: (fields[16] as List?)?.cast<Tag>(),
       snagsCreatedCount: fields[18] as int?,
-    )
-      ..snags = (fields[15] as List).cast<Snag>()
-      ..pdfExportRecords = (fields[20] as List?)?.cast<PdfExportRecords>()
-      ..csvExportRecords = (fields[21] as List?)?.cast<CsvExportRecords>();
+      pdfExportRecords: (fields[20] as List?)?.cast<PdfExportRecords>(),
+      csvExportRecords: (fields[21] as List?)?.cast<CsvExportRecords>(),
+      snags: (fields[15] as List?)?.cast<Snag>(),
+    );
   }
 
   @override
