@@ -1,4 +1,4 @@
-package com.constructionitis.cii
+package com.cii.reno
 
 import io.flutter.embedding.android.FlutterActivity
 
