@@ -1,6 +1,6 @@
 # Changelog
 
-## v1.0.14 - 2024-02-26
+## v1.0.15 - 2024-02-26
 - Customize export file names for better organization
 - Performance improvements and optimizations
 - New setting to save images to gallery
